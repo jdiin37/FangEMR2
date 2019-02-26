@@ -1,0 +1,282 @@
+		
+			<div class="panel panel-info">
+				<!--檢驗 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="labPage_Title" class="EMRPurpleTitle">檢驗</span>
+						<!-- 以下用來測試 一次選擇多列 jqGird 資料 -->
+						<span id="LabListRowKey" style="display:none;"></span>
+						
+						
+						
+						<button style="display:none;" id="getRowData" onclick="getLabSelectedRow();">測試取得多列資料</button>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+					</div>
+					<div class="pull-right">
+						<!-- <button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('labPage')"><span class="glyphicon glyphicon-new-window"></span></button>-->
+						<button type="button" id="extraInp" class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('labPage')"></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('labPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_labPage" class="panel-collapse collapse in"> -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="LabMaster">
+								<button class="btn btn-primary" id="LabMasterDate" onclick="LabListByDate()">檢驗 <span class="badge">0</span></button> <input value="5" id="LabYear" type="text" class="form-control input-sm input-center"
+									style="max-width: 48px;"> <label class="EMRLabel" for="LabYear">年</label>
+								<button class="btn btn-primary" id="LabMasterYear" onclick="LabListByYear()">5年檢驗 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="LabMasterAll" onclick="LabListByAll()">全部檢驗 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="LabDetail"></div>
+						</div>
+					</div>
+					<!-- <hr style="margin: 10px" />-->
+					<hr class="hr_noline" />
+					<div class="row" id="LabCol">
+						<div class="col-sm-3">
+							<table id="LabList" class="table-hover">
+							</table>
+							<div id="LabList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-9">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading EMRPurpleTitle" id="labListHead">檢驗報告標題</div>
+								<div class="panel-body pre-scrollable" id="labListBody"> 
+								
+								
+								     
+								
+								
+								<ul id="is_txt" class="nav nav-pills" style="display:none;">
+  								  <li class="active"><a  data-toggle="pill" href="#Lab_txtContent1">報告</a></li>  								 							 
+								</ul>
+								
+								<ul id="is_form" class="nav nav-pills" style="display:none;">  								  
+  								  <li class="active"><a data-toggle="pill"  href="#Lab_dataContent1">報告</a></li> 
+  								  <li style="display:none;"><a data-toggle="pill"  href="#Lab_sumContent2">彙總</a></li>  							 
+								</ul>
+								
+								<!-- 細菌報告 -->
+								<!--  <ul id="is_germ" class="nav nav-tabs" style="display:none;">  								  
+  								  <li class="active"><a data-toggle="tab" href="#Lab_GermContent">報告</a></li> 
+  															 
+								</ul>-->
+								
+								<div id="is_txt_content" class="tab-content TabContentOutline" style="display:none;">
+								 <!-- 純文字類型 --> 
+								 <div style="display:none;white-space:pre;" id="Lab_txtContent1" class="tab-pane fade in active EMRContentFont pre-scrollable"></div>
+								 
+								 
+								 
+								</div>
+								
+								 <div id="is_form_content" class="tab-content TabContentOutline" style="display:none;">
+  								   
+  								   <div id="Lab_dataContent1" class="tab-pane fade in active"><!-- 表格類型 -->
+  								   
+  								   <div class="row">
+  								    <div class="col-sm-12">
+  								       <button class="btn btn-primary" id="btnLabLineChart1" >趨勢圖</button>
+    								     <button class="btn btn-primary" id="btnLabSummary1" >彙總</button>
+    								<!-- 檢驗彙總  日期範圍 -->
+    								<!--  <input  id="sliderLabDate" name="sliderLabDate" data-slider-id="sliderLabDate" type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1"  data-slider-value="15"/>-->  
+    								<!--<input  id="sliderLabTime" data-slider-id="sliderLabTime" type="text"  data-slider-min="0"  data-slider-step="1"/>--> 
+    								<div id="labSumRadioGroup" class="labRadioGroup pull-right">
+								    <!-- <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumRadio" checked="checked" value="month">1個月</label>-->
+								    <input class="EMRRadioButton" type="radio" name="labSumRadio" checked="checked" value="month" id="labSumMonth"/><label class="EMRLabel" for="labSumMonth"><span></span>1個月</label>
+								    
+								    <!-- <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumRadio" value="season">3個月</label>-->
+								    <input class="EMRRadioButton" type="radio" name="labSumRadio" value="season" id="labSumSeason"/><label class="EMRLabel" for="labSumSeason"><span></span>3個月</label>
+								    
+                                                    			    <!--  <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumRadio" value="halfYear">半年</label>-->
+                                                    			    <input class="EMRRadioButton" type="radio" name="labSumRadio" value="halfYear" id="labSumHalfYear"/><label class="EMRLabel" for="labSumHalfYear"><span></span>半年</label>
+                                                    			    
+                                                    			    <!-- <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumRadio" value="year">1年</label>-->
+                                                    			    <input class="EMRRadioButton" type="radio" name="labSumRadio" value="year" id="labSumYear"/><label class="EMRLabel" for="labSumYear"><span></span>1年</label>
+                                                    			    
+                                                    			    <!-- <label class="radio-inline form-inline text-center EMRLabelBold">
+                                                    			     <input type="radio" name="labSumRadio" value="自訂">自訂:
+                                                    			     </label>-->
+                                                    			     <input class="EMRRadioButton" type="radio" name="labSumRadio" value="自訂" id="labSumCustom"/><label class="EMRLabel" for="labSumCustom"><span></span>自訂</label>
+                                                    			     <input  id="inputLabSumStartDate" type="text" class="form-inline input-sm EMRLabel LabStartEndDateInputWidth">
+                                                    			     <input  id="inputLabSumEndDate" type="text" class="form-inline input-sm EMRLabel LabStartEndDateInputWidth">
+								</div>
+  								    </div>
+  								   
+  								    <div class="col-sm-12">
+  								      <table id="LabDataList" class="table-hover"></table>
+								     <div id="LabDataList_Pager"></div>
+  								    
+  								     </div>
+  								    
+  								   </div>
+    								     
+    								    
+								
+								    
+								     <!--<div id="LabLineChartContainer" style="display:none;">
+								       <canvas id="LabLineChart" style="display:none;"></canvas>
+								     </div>-->
+								     
+  								   </div>
+  								   <div id="Lab_sumContent2" class="tab-pane fade"><!-- 檢驗彙總 -->
+    								      
+    								      <button class="btn btn-primary">趨勢圖</button>
+								      <!--  <table id="LabSumList" class="table-hover"></table>
+								       <div id="LabSumList_Pager"></div>-->	
+  								   </div>
+								 </div>
+								 
+								 
+								 <!-- 細菌報告 --> 
+								 <div id="is_germ_content" class="tab-pane fade in active">
+								   	 <div class="row">
+								<!-- 細菌報告 新修正畫面 1070321 -->
+								<div class="col-sm-12 form-inline row form-group ">
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel">報告編號:&nbsp;</label><span class="spanOutline" id="germLabNo"></span></div>
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="germReqDate">開單時間:&nbsp;</label> <span class="spanOutline" id="germReqDate"></span></div>
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="germLabDate">簽收時間:&nbsp;</label> <span class="spanOutline" id="germLabDate"></span></div>
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="germResDate">培養時間:&nbsp;</label> <span class="spanOutline" id="germResDate"></span></div>
+								<hr class="hr_divideStyle1 col-sm-12">
+								</div>
+								
+								
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="germPtName">&emsp;&emsp;姓名:&nbsp;</label> <span class="spanOutline" id="germPtName"></span></div>
+								 <div class="col-sm-3 form-inline"><label class="EMRLabel" for="bedClinic">&emsp;開單處:&nbsp;</label> <span class="spanOutline" id="bedClinic"></span></div>
+								 <div class="col-sm-3 form-inline"><label class="EMRLabel" for="germRptName">報告類別:&nbsp;</label> <span class="spanOutline" id="germRptName"></span></div>
+								 <div class="col-sm-3 form-inline"><label class="EMRLabel" for="germDocName">&emsp;&emsp;醫師:&nbsp;</label> <span class="spanOutline" id="germDocName"></span></div>
+								
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="sampleDoc">&emsp;&emsp;檢體:&nbsp;</label> <span class="spanOutline" id="sampleDoc"></span></div>
+								 <div class="col-sm-3 form-inline"><label class="EMRLabel" for="pmn">&emsp;&nbsp;&nbsp;PMN:&nbsp;</label> <span class="spanOutline" id="pmn"></span></div>
+								 <div class="col-sm-3 form-inline"><label class="EMRLabel" for="epiCell">EPI_CELL:&nbsp;</label> <span class="spanOutline" id="epiCell"></span></div>
+								 <label style="display:none;" class="TitlefontSize" id="germTitle"></label>
+								<hr class="hr_divideStyle2 col-sm-12">
+								</div>
+								
+								 
+								 <div class="col-sm-12" id="">
+								 <form>
+								   <fieldset class="scheduler-border">
+								   <legend class="scheduler-border">Resistanc Markers:</legend>					  
+								   
+					                                     
+								      <div class="col-sm-6">
+								      
+								       <!--  <div class=""> 
+								       <label class="EMRLabel">Resistanc Markers:</label> 
+								      </div>-->
+								      
+    								      <div class="">     								          								      
+								       <label for="resisMark1" class="EMRLabel">1.</label> <span id="resisMark1" class="spanOutlineLarge"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="resisMark2" class="EMRLabel">2.</label> <span id="resisMark2" class="spanOutlineLarge"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="resisMark3" class="EMRLabel">3.</label> <span id="resisMark3" class="spanOutlineLarge"></span>
+								      </div>
+								     
+    								     </div>
+    								     
+    								      <div class="col-sm-6">
+								     
+    								      <div class="">     								          								      
+								       <label for="resisGerm1" class="EMRLabel">1.</label> <span id="resisGerm1" class="spanOutlineLarge"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="resisGerm2" class="EMRLabel">2.</label> <span id="resisGerm2" class="spanOutlineLarge"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="resisGerm3" class="EMRLabel">3.</label> <span id="resisGerm3" class="spanOutlineLarge"></span>
+								      </div>
+								     
+    								     </div>
+								    
+								    </fieldset>
+								    </form>
+								    <!-- Isolated -->
+								    <div class="row form-group col-sm-12 form-inline clearFieldsetfix" id="labIGCLayout">
+								      <fieldset class="scheduler-border2 col-sm-5">
+								      <legend class="scheduler-border">Isolated Organism:</legend>
+								    <div class="col-sm-12">
+								    
+								       <div class="">     								          								      
+								       <label for="germName1" class="EMRLabel">1.</label> <span id="germName1" class="spanOutlineLarge"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="germName2" class="EMRLabel">2.</label> <span id="germName2" class="spanOutlineLarge"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="germName3" class="EMRLabel">3.</label> <span id="germName3" class="spanOutlineLarge"></span>
+								      </div>
+								    </div>
+								    </fieldset>
+								    
+								    <fieldset class="scheduler-border3 col-sm-3">
+								      <legend class="scheduler-border">Growth:</legend>
+								    
+								    <div class="col-sm-12">
+								       <div class="">     								          								      
+								       <label for="germQty1" class="EMRLabel"></label> <span id="germQty1" class="spanOutlineLarge"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="germQty2" class="EMRLabel"></label> <span id="germQty2" class="spanOutlineLarge"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="germQty3" class="EMRLabel"></label> <span id="germQty3" class="spanOutlineLarge"></span>
+								      </div>
+								    </div>
+								     </fieldset>
+								     
+								      <fieldset class="scheduler-border3 col-sm-3">
+								      <legend class="scheduler-border">Colony Count:</legend>
+								     
+								    <div class="col-sm-12">
+								    
+								       <div class="">     								          								      
+								       <label for="germDoc1" class="EMRLabel"></label> <span id="germDoc1" class="spanOutlineLarge"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="germDoc2" class="EMRLabel"></label> <span id="germDoc2" class="spanOutlineLarge"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="germDoc3" class="EMRLabel"></label> <span id="germDoc3" class="spanOutlineLarge"></span>
+								      </div>
+								    </div>
+								    </fieldset>
+								    </div>
+								   
+								   
+								 </div>
+								 <div class="col-sm-12">
+								  <table id="GermAntibioList" class="table-hover"></table>
+								   <div id="GermAntibioList_Pager"></div>	
+								 </div>
+								 
+								 </div>
+								
+								</div>								 
+								
+								 
+							          </div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+			
+			
+		

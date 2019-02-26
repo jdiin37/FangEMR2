@@ -1,0 +1,28 @@
+/**
+ * 
+ */
+
+var StatObj = {
+	StatYear : 5,
+	StatSDate : "",
+	StatEDate : "",
+	viewType: ""	
+};
+
+//call STAT用藥紀錄   (尚未完成) 尚未接上API by IvyLin
+var callST = function(){
+	
+	StatObj.StatYear = PatObj.recentYear;
+	StatObj.StatSDate = ViewListObj.sdate;
+	StatObj.StatEDate = ViewListObj.edate;
+	StatObj.viewType = ViewListObj.viewType;
+	
+	 setPageVisible("stPage", true);
+	 popUpPageFixPos("stPage");
+	 zIndex -=1; //目的是為了要讓 st移到 住院紀錄的上層
+	 $('#inpRecordPage').css('z-index', zIndex);
+	 
+	 var title = StatObj.StatSDate + "-" +StatObj.StatEDate + "&nbsp;" + (StatObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-STAT用藥紀錄";
+	 title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+	 $('#stPage_Title').html(title);	//設定title內容
+}

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="device=device-width" />
+<title>EMR</title>
+<link rel="stylesheet" href="styles/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="styles/ui.jqgrid-bootstrap.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="styles/EMRstyle.css" type="text/css" />
+<link rel="stylesheet" href="styles/EMRThemePurple.css" type="text/css" />
+<link rel="stylesheet" href="styles/Common.css" type="text/css" />
+<script src="../../scripts/jquery-1.11.1.min.js"></script>
+<script src="../../scripts/jquery-ui.min.js"></script>
+<script src="../../scripts/i18n/grid.locale-tw.js"></script>
+<script src="../../scripts/jquery.jqGrid.min.js"></script>
+<script src="../../scripts/bootstrap.min.js"></script>
+<script src="EMRfunction.js?20171107"></script>
+<script src="EMRpageControl.js?20171107"></script>
+<script src="EMRajax.js?20171107"></script>
+<script src="EMRjqGrid.js?20171110"></script>
+
+<script>
+	//$.jgrid.defaults.responsive = true;
+	$.jgrid.defaults.styleUI = 'Bootstrap';
+</script>
+
+<script type="text/javascript">
+	$(document).ready(
+			function() {
+
+				//畫面生成 事件設定
+				render();
+
+				//確認使用者
+				ajax_checkPasswd();
+
+				//
+				//alert(userHeight);
+				//$('#pageContainer').css('max-height',userHeight + 'px');
+				window.onresize = function(event) { //畫面resize時			
+					userHeight = window.innerHeight
+							|| document.documentElement.clientHeight
+							|| document.body.clientHeight;
+					processPage();
+					//alert(JSON.stringify(visiPageArray));
+				};
+
+			});
+</script>
+
+</head>
+<!-- 鎖住F5 onkeydown="return (event.keyCode != 116)" -->
+
+<body>
+	<div id="masterPage">
+		<script type="text/javascript">
+			//$("#masterPage").load("masterPage.html");
+		</script>
+		<!--LoadingModal-->
+		<div class="modal fade" tabindex="-1" role="dialog" id="LoadingModal">
+			<div class="modal-dialog modal-lg" role="document">
+				<div class="modal-content">
+					<div class="modal-body" id="alertMsg">
+						<h4 class="modal-title">Loading...</h4>
+						<span id="loading-msg"></span>
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+						</div>
+					</div>
+				</div>
+				<!-- /.modal-content -->
+			</div>
+			<!-- /.modal-dialog -->
+		</div>
+		<!--LoadingModal-->
+		<nav class="navbar navbar-custom navbar-static-top" role="navigation">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"><span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span><span
+						class="icon-bar"></span><span class="icon-bar"></span></button> <a class="navbar-brand" href=""><img src="" /><span id=hospName></span> 【EMR系統】</a>
+				</div>
+				<!-- /.navbar-header -->
+				<div class="collapse navbar-collapse" id="myNavbar">
+					<!-- <ul class="nav navbar-nav hide">
+						<li><a href="#">病患</a></li>
+					</ul> -->
+					<ul class="nav navbar-nav navbar-right">
+						<li class="dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle hide">視窗<b class="caret"></b></a>
+							<ul class="dropdown-menu" id="ul_windows">
+								<li><a href="#" id="li_mainPage" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;EMR</a></li>
+								<li><a href="#" id="li_queryPage" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;查詢病患</a></li>
+								<li class="divider"></li>
+								<li><a href="#" id="li_examPage" class="pageControl btn disabled">檢驗</a></li>
+							</ul></li>
+						<li class="dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle hide">樣式<b class="caret"></b></a>
+							<ul class="dropdown-menu" id="ul_windows">
+								<li><a href="#" id="li_purple" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;紫色</a></li>
+								<li><a href="#" id="li_orange" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;橘色</a></li>
+								<li class="divider"></li>
+								<li><a href="#" id="li_examPage" class="pageControl btn disabled">檢驗</a></li>
+							</ul></li>
+						<li class="dropdown"><a href='#' data-toggle='dropdown' class='dropdown-toggle'><span id="user_info"></span><b class='caret'></b></a>
+							<ul class="dropdown-menu">
+								<li><a href="Login.html"><span id="user_log"></span></a></li>
+							</ul></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</div>
+
+
+	<div class="container-fluid" id="pageContainer">
+		<div id="mainPage" class="page" onclick="goTop('mainPage');">
+			<div class="panel panel-info" id="mainPageheader">
+				<!--主頁 -->
+				<div class="panel-heading clearfix">
+					<div class="panel-title pull-left panel-tool">
+						<span id="mainPage_Title">EMR</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_mainPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp hide" onclick="popUpPageToggle('mainPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="close hide"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_mainPage" class="panel-collapse collapse in"> -->
+				<div class="panel-body">
+					<div class="row form-group" id="mainBlock1">
+						<div class="col-sm-12 form-inline">
+							<button type="button" class="btn btn-img40 img40_Searchpatient" id="btn_Searchpatient"></button>&emsp;<span class="EMRfont" id="PatInfo"> 病歷號碼:<span id="chart_no"></span>&emsp;姓名:<span
+								id="pt_name"></span>&emsp;性別:<span id="sex_name"></span>&emsp;年齡:<span id="age"></span>&emsp;最初門診日期:<span id="first_view_date"></span> <span id="first_div_name"></span>&emsp;最近門診日期:<span
+								id="last_view_date"></span> <span id="last_div_name"></span>
+							</span>
+							<div class="pull-right">
+								<button type="button" class="btn btn-img40 img40_Diabetesmark" id="btn_Diabetesmark"></button>
+								<button type="button" class="btn btn-img40 img40_Majordiseases" id="btn_Majordiseases"></button>
+								<button type="button" class="btn btn-img40 img40_Allergy" id="btn_Allergy"></button>
+								<button type="button" class="btn btn-img40 img40_History" id="btn_History"></button>
+								<button type="button" class="btn btn-img40 img40_Surgery" id="btn_Surgery"></button>
+							</div>
+						</div>
+					</div>
+					<div class="row form-group well well-sm" id="mainBlock2">
+						<div class="col-sm-6 form-inline right">
+							<div class="form-group">
+								<label for="recentYear">查詢範圍 </label> <input type="text" class="form-control input-sm" style="max-width: 48px;" placeholder="" id="recentYear" value="1"> <span></span> <label
+									for="recentYear"> 年 </label>
+							</div>
+							<button class="btn btn-primary-inverse" onclick="callInp('year')">住院 <span class="badge" id="yearsINP">0</span></button>
+							<button class="btn btn-primary-inverse">門急 <span class="badge" id="yearsOPD">0</span></button>							
+							<button class="btn btn-primary-inverse" onclick="callOp('year')">手術 <span class="badge" id="yearsOR">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callLab('year')">檢驗 <span class="badge" id="yearsLAB">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callXray('year')">影像 <span class="badge" id="yearsXRAY">0</span></button>
+						</div>
+						<div class="col-sm-6 form-inline">
+							<div class="form-group">
+								<label for="">全部 </label>
+							</div>
+							<button class="btn btn-primary-inverse" onclick="callInp()">住院 <span class="badge" id="allINP">0</span></button>
+							<button class="btn btn-primary-inverse">門急 <span class="badge" id="allOPD">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callOp()">手術 <span class="badge" id="allOR">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callLab()">檢驗 <span class="badge" id="allLAB">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callXray()">影像 <span class="badge" id="allXRAY">0</span></button>
+						</div>
+					</div>
+					<div class="row pre-scrollable" id="mainBlock3">
+						<div class="col-sm-12">
+							<div class="panel-group" id="timeLine"></div>
+						</div>
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		</div>
+		<div id="queryPage" class="page" onclick="goTop('queryPage');">
+			<div class="panel panel-info">
+				<!--查詢病患頁 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="queryPage_Title">查詢病患</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_queryPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('queryPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('queryPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_queryPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row form-group" id="queryBlock1">
+						<div class="col-sm-12">
+							<span class="EMRfont" id="query_PatInfo"> 病歷號碼:<span id="chart_no2"></span>&emsp;姓名:<span id="pt_name2"></span>&emsp;性別:<span id="sex_name2"></span>&emsp;年齡:<span id="age2"></span>&emsp;電話:<span
+								id="home_tel"></span>
+							</span>
+						</div>
+					</div>
+					<div class="row well well-sm" id="queryBlock2">
+						<div class="col-sm-4 form-inline right">
+							<div class="form-group">
+								<label class="checkbox-inline"><input type="checkbox" id="chk_queryOPD" checked>門診 </label>
+							</div>
+							<div class="form-group">
+								<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_OPDdays" value="1"><label for="input_OPDdays">天 </label>
+							</div>
+							<div class="form-group">
+								<label class="checkbox-inline"><input type="checkbox" id="chk_queryINP" checked>住院</label>
+							</div>
+							<div class="form-group">
+								<label class="checkbox-inline"><input type="checkbox" id="chk_queryDIS">出院</label>
+							</div>
+							<div class="form-group">
+								<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_DISdays"><label for="input_DISdays">天 </label>
+							</div>
+							<button type="button" class="btn btn-img40 img40_query" id="btn_query1"></button>
+						</div>
+						<div class="col-sm-8 form-inline">
+							<div class="form-group">
+								<label for="query_ptName">姓名 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_ptName" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_birth">生日 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_birth" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_tel">電話 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_tel" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_chartNo">病歷號 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_chartNo" value="">
+							</div>
+							<button type="button" class="btn btn-img40 img40_query" id="btn_query2"></button>
+						</div>
+					</div>
+					<div class="row" id="currentList">
+						<div class="col-sm-12">
+							<table id="PatList" class="table-hover">
+							</table>
+							<div id="PatList_Pager"></div>
+						</div>
+					</div>
+					<div class="row" id="chartBaseList">
+						<div class="col-sm-4">
+							<table id="PatList2" class="table-hover">
+							</table>
+							<div id="PatList2_Pager"></div>
+						</div>
+						<div class="col-sm-8">
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading">基本資料查詢</div>
+								<div class="panel-body" id="queryChartbasebody">I'm empty</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- </div>  -->
+			</div>
+		</div>
+		<div id="labPage" class="page" onclick="goTop('labPage');">
+			<div class="panel panel-info">
+				<!--檢驗 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="labPage_Title">檢驗</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('labPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('labPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_labPage" class="panel-collapse collapse in"> -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="LabMaster">
+								<button class="btn btn-primary" id="LabMasterDate" onclick="LabListByDate()">檢驗 <span class="badge">0</span></button> <input value="5" id="LabYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="LabYear">年</label>
+								<button class="btn btn-primary" id="LabMasterYear" onclick="LabListByYear()">5年檢驗 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="LabMasterAll" onclick="LabListByAll()">全部檢驗 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="LabDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row">
+						<div class="col-sm-3">
+							<table id="LabList" class="table-hover">
+							</table>
+							<div id="LabList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-9">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading" id="labListHead">檢驗報告標題</div>
+								<div class="panel-body pre-scrollable" id="labListBody">檢驗報告內容</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		</div>
+		<div id="xrayPage" class="page" onclick="goTop('xrayPage');">
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="xrayPage_Title">影像</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('xrayPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('xrayPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_xrayPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="LabMaster">
+								<button class="btn btn-primary" id="XrayMasterDate" onclick="XrayListByDate()">影像 <span class="badge">0</span></button> <input value="5" id="XrayYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="XrayYear">年</label>
+								<button class="btn btn-primary" id="XrayMasterYear" onclick="XrayListByYear()">5年影像 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="XrayMasterAll" onclick="XrayListByAll()">全部影像 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="XrayDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row">
+						<div class="col-sm-3">
+							<table id="XrayList" class="table-hover">
+							</table>
+							<div id="XrayList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-9">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading" id="XrayListHead">影像報告標題</div>
+								<div class="panel-body pre-scrollable" id="XrayListBody">
+																		
+								         <div class="table-responsive purple-outline container-fluid" >
+	             <div class="row form-group">
+	                <div class="col-sm-6 form-inline">
+                           <label for="reportDate">報告日期:</label>
+                           <span id="xray_ReportDate"></span>                          
+                        </div>
+                        <div class="col-sm-6 form-inline">
+                           <label for="reportClerk">報告人員:</label>
+                           <span id="xray_ReportMan"></span>
+                        </div>
+                       </div>
+                       
+                       <div class="row form-group"> 
+                         <div class="col-sm-6 form-inline">
+                           <label for="xRayType">X光類別:</label>
+                           <span id="xray_ReportType"></span>
+                        </div>
+                        <div class="col-sm-6 form-inline">
+                           <label for="doctor">醫師:</label>
+                           <span id="xray_ReportDoctor"></span>
+                        </div>
+                       </div>
+	            </div>
+	            <!-- 照射位置  -->
+	            <br/>
+	            <div class="table-responsive">
+	              <table id="XRayPosTable" class="table purple-outline table-bordered" >
+	                <thead class="thGradient">
+	                  <tr>
+                              <td>照射位置</td>
+                              <td></td>
+                              <td>片子種類</td>
+                              <td></td>
+                              <td>片數</td>	                
+	                  </tr>
+	                </thead>
+	                <tbody>
+	                  <tr>
+	                    <td>SX0021</td>
+	                    <td>Gynecologic ultrasound</td>
+	                    <td>I</td>
+	                    <td>PACS</td>
+	                    <td>1</td>
+	                  </tr>
+	                  <tr>
+	                    <td>SX0021</td>
+	                    <td>Gynecologic ultrasound</td>
+	                    <td>I</td>
+	                    <td>PACS</td>
+	                    <td>1</td>
+	                  </tr>
+	                </tbody>
+	              </table>
+	            </div>
+	            <!-- 醫囑原因 、報告內容 -->
+	           
+		 <fieldset class="purple-outline pre-scrollable">
+	             <div class="row form-group container-fluid"> 
+                         <div class="col-sm-6">
+                           <label for="dianoReason">一、醫囑原因:</label>
+                           <div id="xray_dianoReason" style="white-space:pre;">醫囑原因內文</div>
+                         </div>  
+                       </div>
+                       <div class="row form-group container-fluid"> 
+                         <div class="col-sm-6">
+                           <label for="finding">二、報告內容</label>
+                          <div id="xray_dianoReason" style="white-space:pre;">報告內容內文</div>    
+                        </div>
+                       </div>
+                     </fieldset>
+								</div><!-- 影像報告內容 panel-body結尾 -->
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		</div>
+
+		<div id="opPage" class="page" onclick="goTop('opPage');">
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="xrayPage_Title">手術</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('opPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('opPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_xrayPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="LabMaster">
+								<button class="btn btn-primary" id="OpMasterDate" onclick="OpListByDate()">手術 <span class="badge">0</span></button> <input value="5" id="OpYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="OpYear">年</label>
+								<button class="btn btn-primary" id="OpMasterYear" onclick="OpListByYear()">5年手術 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="OpMasterAll" onclick="OpListByAll()">全部手術 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="OpDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row">
+						<div class="col-sm-3">
+							<table id="OpList" class="table-hover">
+							</table>
+							<div id="OpList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-9">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading" id="OpListHead">手術標題</div>
+								<div class="panel-body" id="OpListBody">手術報告內容</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		</div>
+
+		<div id="inpPage" class="page" onclick="goTop('inpPage');">
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="inpPage_Title">住院</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('inpPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('inpPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_xrayPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="LabMaster">
+								<input value="5" id="InpYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="InpYear">年</label>
+								<button class="btn btn-primary" id="InpMasterYear" onclick="InpByYear()">5年住院 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="InpMasterAll" onclick="InpByAll()">全部住院 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="XrayDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row">
+						<div class="col-sm-6">
+							<table id="InpList" class="table-hover">
+							</table>
+							<div id="InpList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-6">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading" id="InpListHead">住院標題</div>
+								<div class="panel-body pre-scrollable" id="InpListBody">住院內容</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		</div>
+
+		<div id="inpRecordPage" class="page" onclick="goTop('inpRecordPage');">
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="inpRecordPage_Title">住院紀錄</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('inpRecordPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('inpRecordPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<div class="panel-body fix-body">
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline">
+							<span class="EMRfont" id="inpRecordPatInfo"> </span>
+						</div>
+					</div>
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline" id="inpRecordInfo"></div>
+					</div>
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline" id="inpRecordInfo">
+							<button class="btn btn-primary" onclick="alert('尚未建置')">病房</button>&nbsp;
+							<button class="btn btn-primary" name="admission" onclick="alert('尚未建置')">普通病房 <span class="badge">0</span></button>&nbsp;
+							<button class="btn btn-primary" name="outnote" onclick="alert('尚未建置')">ICU <span class="badge">0</span></button>&nbsp;
+							<button class="btn btn-primary" name="chgbed" onclick="alert('尚未建置')">恢復室 <span class="badge">0</span></button>&nbsp;
+							<div class="pull-right">
+								<button class="btn btn-primary" name="chgbed" onclick="alert('尚未建置')">ST用藥 <span class="badge">0</span></button>&nbsp;
+								<button class="btn btn-primary" name="chgbed" onclick="callUD();">UD用藥 <span class="badge">0</span></button>&nbsp;
+								<button class="btn btn-primary" name="chgbed" onclick="alert('尚未建置')">TPR生命紀錄單 <span class="badge">0</span></button>&nbsp;
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12">
+							<table id="inpRecordList" class="table-hover">
+							</table>
+							<div id="inpRecordList_Pager"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="udPage" class="page" onclick="goTop('udPage');">
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="udPage_Title">UD用藥紀錄</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('udPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('udPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_labPage" class="panel-collapse collapse in"> -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="UDMaster">
+								<button class="btn btn-primary" id="UDMasterDate" onclick="">UD用藥紀錄 <span class="badge">0</span></button> <input value="5" id="UDYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="UDYear">年</label>
+								<button class="btn btn-primary" id="UDMasterYear" onclick="">5年UD用藥紀錄<span class="badge">0</span></button>
+								<button class="btn btn-primary" id="UDMasterAll" onclick="">全部用藥紀錄 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="UDDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row">
+						<div class="col-sm-3">
+							<table id="UDList" class="table-hover">
+							</table>
+							<div id="UDList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-9">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading" id="UDListHead">UD用藥紀錄標題</div>
+								<div class="panel-body pre-scrollable" id="UDListBody">UD用藥紀錄內容</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		</div>
+		
+		<nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+			<div class="container-fluid">
+				<div class="row" id="bottom-toolbar"></div>
+			</div>
+		</nav>
+	</div>	
+</body>
+
+</html>

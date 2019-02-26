@@ -1,0 +1,78 @@
+/**
+ * 
+ */
+
+
+   function formatDateTime(cellValue, options, rowObject) {
+	   if(cellValue === undefined || cellValue === null||cellValue=="[object Window]"){
+		   return "";
+		   
+	   }else{
+  			if(cellValue.length==7){
+	   			 var y = cellValue.substring(0,3);
+	   			 var m = cellValue.substring(3,5);
+	   			 var d = cellValue.substring(5,7);
+	   			 console.log(y+"/"+m+"/"+d);
+	   				return y+"/"+m+"/"+d;
+	   				
+	   			}else if(cellValue.length==6){
+	   			 var hh = cellValue.substring(0,2);
+	   			 var mm = cellValue.substring(2,4);
+	   			 var ss = cellValue.substring(4,6);
+	   			 console.log(hh+":"+mm+":"+ss);
+	   				return hh+":"+mm+":"+ss;
+	   				
+	   			}else{
+	   			 var hh = cellValue.substring(0,2);
+	   			 var mm = cellValue.substring(2,4);
+	   			 console.log(hh+":"+mm);
+	   				return hh+":"+mm;
+	   				
+	   			}
+	   }
+	  
+            };
+
+function jqGrid_outNoteChangeBed(tableName,pagerName,arrayData){	//門診住院出院
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: 250,
+	    colModel: [
+	        { label: '轉床日期', name: 'change_date', width: 40, formatter: formatDateTime, key:true },
+	        { label: '轉床時間', name: 'change_time', formatter: formatDateTime, width: 40 },
+	        { label: '科別', name: 'div_name', width: 50 },
+	        { label: '床位號碼', name: 'to_bed_no', width: 50 },
+	        { label: '醫師', name: 'to_doctor', width: 50 }
+	      
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+//	    onSelectRow:getSelectedRow,
+	    width: null,
+	    shrinkToFit: true,
+	    sortable:true,  //可否拖曳排序
+		pager: pagerName
+		
+		
+	});
+	$(tableName).jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {data: arrayData});
+	$(tableName).trigger('reloadGrid');
+//	$('#currentList').show();
+//	$('#chartBaseList').hide();
+	function getSelectedRow() {
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	  /**  if (rowKey){        
+	    	PatObj.chart_no = rowKey;
+	    	showLoading();
+	    	ajax_getChartByChartNo();
+	    	$('#collapseMain').collapse('show');
+	    	setPageVisible("queryPage",false);
+	    	setPageVisible("mainPage",true);
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }**/
+	}
+}

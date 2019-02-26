@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>我的第一個HTML</title>
+    <style>
+        p:hover{
+            background-color:yellow;
+        }
+        h1:hover{
+            background-color:yellow;
+        }
+        span{
+            background-color:yellow;
+        }
+        .h:hover{
+            background-color:yellow;
+        }
+    </style>
+</head>
+<body>
+    <h1>This is My Webpage</h1>
+    <h2>This is My Webpage</h2>
+    <h3>This is My Webpage</h3>
+    <h4>This is My Webpage</h4>
+    <h5>This is My Webpage</h5>
+    <h6>This is My Webpage</h6>
+    dsfsdfsadfasdfsadf
+    dsfsfsfdsgdfgdfgdf
+    jgjgh
+    hjghjfgjfgj
+    <p><b>This is My Webpage</b></p>
+    <p>This is My Webpage</p>
+    <span>This is My Webpage</span>
+
+    <script>
+        for (j = 1; j <= 100; j++)
+            for (i = 1; i <= 6; i++)
+                document.write("<h" + i + " class='h'>This is My Javascript</h" + i + ">");
+    </script>
+</body>
+</html>

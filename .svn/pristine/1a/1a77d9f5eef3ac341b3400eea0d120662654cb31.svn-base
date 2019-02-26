@@ -1,0 +1,343 @@
+package library.utility;
+
+import library.encode.PropertiesUtil;
+
+import java.io.IOException;
+import java.sql.*;
+import java.util.Properties;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+
+
+public class JDBCUtilities {
+
+    private String dbms;
+    private String dbName;
+    private String userName;
+    private String password;
+    private String urlString;
+    private String dbConnectionType;
+
+    private String driver;
+    private String serverName;
+    private int portNumber;
+    private Properties prop;
+    private String context;
+    private String dataSource;
+    
+    public JDBCUtilities() {
+        super();
+        this.setProperties();
+    }
+
+    private void setProperties() {
+
+        this.prop = new Properties();
+        this.prop = PropertiesUtil.loadProperties();
+
+        this.dbms = this.prop.getProperty("dbms");
+        this.driver = this.prop.getProperty("driver");
+        this.dbName = this.prop.getProperty("dbName");
+        this.userName = this.prop.getProperty("userName");
+        this.password = this.prop.getProperty("password");
+        this.serverName = this.prop.getProperty("serverName");
+        this.portNumber = Integer.parseInt(this.prop.getProperty("portNumber"));
+        this.urlString = this.prop.getProperty("urlString");
+        this.dbConnectionType = this.prop.getProperty("dbConnectionType");
+        this.context = this.prop.getProperty("context");
+        this.dataSource = this.prop.getProperty("dataSource");
+
+//        System.out.println("Set the following properties:");
+//        System.out.println("dbms: " + dbms);
+//        System.out.println("driver: " + driver);
+//        System.out.println("dbName: " + dbName);
+//        System.out.println("userName: " + userName);
+//        System.out.println("serverName: " + serverName);
+//        System.out.println("portNumber: " + portNumber);
+//        System.out.println("urlString: " + urlString);
+//        System.out.println("\n    --> Database Connection Type: " + dbConnectionType);        
+
+    }
+
+    public static void getWarningsFromResultSet(ResultSet rs) throws SQLException {
+        printWarnings(rs.getWarnings());
+    }
+
+    public static void getWarningsFromStatement(Statement stmt) throws SQLException {
+        printWarnings(stmt.getWarnings());
+    }
+
+    public static void printWarnings(SQLWarning warning) throws SQLException {
+        if (warning != null) {
+            System.out.println("\n---Warning---\n");
+            while (warning != null) {
+                System.out.println("Message: " + warning.getMessage());
+                System.out.println("SQLState: " + warning.getSQLState());
+                System.out.print("Vendor error code: ");
+                System.out.println(warning.getErrorCode());
+                System.out.println("");
+                warning = warning.getNextWarning();
+            }
+        }
+    }
+
+    public static boolean ignoreSQLException(String sqlState) {
+        if (sqlState == null) {
+            System.out.println("The SQL state is not defined!");
+            return false;
+        }
+        // X0Y32: Jar file already exists in schema
+        if (sqlState.equalsIgnoreCase("X0Y32"))
+            return true;
+
+        // 42Y55: Table already exists in schema
+        if (sqlState.equalsIgnoreCase("42Y55"))
+            return true;
+
+        return false;
+    }
+
+    public static void printBatchUpdateException(BatchUpdateException b) {
+        System.err.println("----BatchUpdateException----");
+        System.err.println("SQLState:  " + b.getSQLState());
+        System.err.println("Message:  " + b.getMessage());
+        System.err.println("Vendor:  " + b.getErrorCode());
+        System.err.print("Update counts:  ");
+        int[] updateCounts = b.getUpdateCounts();
+        for (int i = 0; i < updateCounts.length; i++) {
+            System.err.print(updateCounts[i] + "   ");
+        }
+    }
+
+    public static void printSQLException(SQLException ex) {
+        for (Throwable e : ex) {
+            if (e instanceof SQLException) {
+                if (!ignoreSQLException(((SQLException)e).getSQLState())) {
+                    e.printStackTrace(System.err);
+                    System.err.println("SQLState: " + ((SQLException)e).getSQLState());
+                    System.err.println("Error Code: " + ((SQLException)e).getErrorCode());
+                    System.err.println("Message: " + e.getMessage());
+                    Throwable t = ex.getCause();
+                    while (t != null) {
+                        System.out.println("Cause: " + t);
+                        t = t.getCause();
+                    }
+                }
+            }
+        }
+    }
+
+    public static void alternatePrintSQLException(SQLException ex) {
+        while (ex != null) {
+            System.err.println("SQLState: " + ex.getSQLState());
+            System.err.println("Error Code: " + ex.getErrorCode());
+            System.err.println("Message: " + ex.getMessage());
+            Throwable t = ex.getCause();
+            while (t != null) {
+                System.out.println("Cause: " + t);
+                t = t.getCause();
+            }
+            ex = ex.getNextException();
+        }
+    }
+
+    public Connection getConnection() throws SQLException {
+        Connection conn = null;
+        try {
+            if (this.dbConnectionType.equals("JNDI")) {
+                conn = this.getConnectionByJNDI();
+            } else {                
+                conn = this.getConnectionByJDBC();
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return conn;
+    }
+
+    public Connection getConnectionByJDBC() throws SQLException {
+        Connection conn = null;
+        Properties connectionProps = new Properties();
+        connectionProps.put("user", this.userName);
+        connectionProps.put("password", this.password);
+
+        String currentUrlString = null;
+
+        if (this.dbms.equals("mysql")) {
+            currentUrlString = "jdbc:" + this.dbms + "://" + this.serverName +
+                    ":" + this.portNumber + "/";
+            conn = DriverManager.getConnection(currentUrlString, connectionProps);
+            this.urlString = currentUrlString + this.dbName;
+            conn.setCatalog(this.dbName);
+        } else if (this.dbms.equals("derby")) {
+            this.urlString = "jdbc:" + this.dbms + ":" + this.dbName;
+            conn = DriverManager.getConnection(this.urlString + ";create=true", connectionProps);
+        } else if (this.dbms.equals("oracle")) {
+            try {
+                Class.forName(this.driver); 
+                currentUrlString = this.urlString;
+                conn = DriverManager.getConnection(currentUrlString, connectionProps);
+            } catch (ClassNotFoundException ex) {    
+                ex.printStackTrace();
+            }
+        }
+
+//        System.out.println("currentUrlString= " + this.urlString);
+//        System.out.println("Connected to database");
+        return conn;
+    }
+
+    public Connection getConnectionByJNDI() throws IOException, SQLException {
+        Connection conn = null;
+        try {
+            Context initContext = new InitialContext();
+            Context envContext  = (Context)initContext.lookup(this.context);
+            DataSource ds = (DataSource)envContext.lookup(this.dataSource);
+            conn = ds.getConnection();
+        } catch (NamingException e) {
+            // TODO Auto-generated catch block
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return conn;
+    }
+
+    public Connection getConnection(String userName, String password) throws SQLException {
+        Connection conn = null;
+        Properties connectionProps = new Properties();
+        String currentUrlString = null;
+        connectionProps.put("user", userName);
+        connectionProps.put("password", password);
+        if (this.dbms.equals("mysql")) {
+            conn = DriverManager.getConnection("jdbc:" + this.dbms + "://" + this.serverName + ":" + this.portNumber + "/", connectionProps);
+            conn.setCatalog(this.dbName);
+        } else if (this.dbms.equals("derby")) {
+            conn = DriverManager.getConnection("jdbc:" + this.dbms + ":" + this.dbName + ";create=true", connectionProps);
+        } else if (this.dbms.equals("oracle")) {
+            try {
+                Class.forName(this.driver);
+                currentUrlString = this.urlString;
+                conn = DriverManager.getConnection(currentUrlString, connectionProps);
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return conn;
+    }
+
+    public static void closeResultSet(ResultSet rs) {
+        //System.out.println("Releasing ResultSet resources ...");
+        try {
+            if (rs != null) {
+                rs.close();
+            }
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        }
+    }
+
+    public static void closeStatement(Statement stmt) {
+        //System.out.println("Releasing Statement resources ...");
+        try {
+            if (stmt != null) {
+                stmt.close();
+            }
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        }
+    }
+
+    public static void closeStatement(PreparedStatement stmt) {
+        //System.out.println("Releasing Prepared Statement resources ...");
+        try {
+            if (stmt != null) {
+                stmt.close();
+            }
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        }
+    }
+
+    public static void closeConnection(Connection conn) {
+        //System.out.println("Releasing Connection resources ...");
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        }
+    }
+
+    private static void setAutoCommit(Connection conn, boolean bol) {
+        try {
+            if (conn != null) {
+                conn.setAutoCommit(bol);
+            }
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        }
+    }
+
+    public static void setAutoCommitFalse(Connection conn) {
+        setAutoCommit(conn, false);
+    }
+
+    public static void setAutoCommitTrue(Connection conn) {
+        setAutoCommit(conn, true);
+    }
+
+    public static void commitConnection(Connection conn) {
+        try {
+            if (conn != null) {
+                conn.commit();
+            }
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        }
+    }
+
+    public static void rollbackConnection(Connection conn) {
+        try {
+            if (conn != null) {
+                conn.rollback();
+            }
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        }
+    }
+
+    public static void main(String[] args) {
+        JDBCUtilities myJDBCUtilities;
+        Connection myConnection = null;
+
+        try {
+            System.out.println("Reading properties file... ");
+            myJDBCUtilities = new JDBCUtilities();
+        } catch (Exception e) {
+            System.out.println("Problem reading properties file... ");
+            e.printStackTrace();
+            return;
+        }
+
+        try {
+            myConnection = myJDBCUtilities.getConnection();
+            // JDBCUtilities.outputClientInfoProperties(myConnection);
+            // myConnection = myJDBCUtilities.getConnection("root", "root", "jdbc:mysql://localhost:3306/");
+            // myConnection = myJDBCUtilities.getConnectionWithDataSource(myJDBCUtilities.dbName,"derby","", "", "localhost", 3306);
+        } catch (SQLException ex) {
+            printSQLException(ex);
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
+        } finally {
+            closeConnection(myConnection);
+        }
+
+    }
+}

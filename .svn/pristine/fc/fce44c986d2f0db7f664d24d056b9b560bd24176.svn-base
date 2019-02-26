@@ -1,0 +1,366 @@
+package model;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapEntryUtil;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static library.utility.MapUtil.castToInt;
+import static library.utility.MapUtil.castToStr;
+
+/**
+ * Created by jeffy on 2017/10/20.
+ */
+public class EMRViewList {
+    private Connection con;
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private JsonArray jsonArray = new JsonArray();
+    private OrRecord orRecord;
+    private Patopd patopd;
+    private Patinp patinp;
+    private Disicd disicd;
+
+    public EMRViewList(Connection con) {
+        this.con = con;
+        patopd = new Patopd(con);
+        patinp = new Patinp(con);
+        disicd = new Disicd(con);
+        orRecord = new OrRecord(con);
+    }
+
+    public List<Map<String, Object>> queryPTListByStartEndDateAndChartNo(String startDate, String endDate, int chartNo) throws SQLException {
+        String queryString =
+                "SELECT a.ckin_date sorted_date, 'INP' visit_type, a.chart_no, a.serno, a.ckin_date start_date, a.discharge_date end_date, " +
+                "       a.vs, b.emp_name doctor_name, a.div_no, c.div_name " +
+                "  FROM patinp a, employee b, division c " +
+                " WHERE ckin_date BETWEEN ? AND ? " +
+                "   AND chart_no = ? " +
+                "   AND a.vs = b.emp_no(+) " +
+                "   AND a.div_no = c.div_no(+) " +
+                "UNION ALL     " +
+                "SELECT a.view_date sorted_date, 'OPD' visit_type, a.chart_no, a.duplicate_no, a.view_date start_date, null end_date, " +
+                "       a.doctor_no, b.emp_name doctor_name, a.div_no, c.div_name " +
+                "  FROM patopd a, employee b, division c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.doctor_no = b.emp_no(+) " +
+                "   AND a.div_no = c.div_no(+) " +
+                "ORDER BY sorted_date desc, end_date desc nulls last ";
+
+        EntityFactory emrViewListEntity = new EntityFactory(con, queryString);
+        return emrViewListEntity.findMultiple(new Object[]{startDate, endDate, chartNo, startDate, endDate, chartNo});
+    }
+
+    private List<Map<String, Object>> getInpList(List<Map<String, Object>> objects) {
+        List<String> keyList = Arrays.asList("visit_type", "chart_no", "serno", "start_date", "end_date", "vs",
+                "doctor_name", "div_no", "div_name");
+        return objects.stream()
+                .filter(map -> map.get("visit_type").equals("INP"))
+                .map(map -> MapEntryUtil.getSubMapByKeyList(map, keyList))
+                .collect(Collectors.toList());
+    }
+
+    private List<Map<String, String>> getAdmitList(List<Map<String, Object>> inpListMap) {
+        List<Map<String, String>> admitList = new ArrayList<>();
+        for (Map<String, Object> map : inpListMap) {
+            Map<String, String> tempMap = new LinkedHashMap<>();
+            for (Map.Entry entry : map.entrySet()) {
+                if (entry.getKey().equals("start_date") || entry.getKey().equals("end_date")) {
+                    tempMap.put((String)entry.getKey(), (String)entry.getValue());
+                }
+            }
+            admitList.add(tempMap);
+        }
+
+        return admitList;
+    }
+
+    private Map<String, Object> getOpdMap(List<Map<String, Object>> objects, String startDate, String endDate) {
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        int chartNo = objects.stream()
+                .map(map -> castToInt(map.get("chart_no")))
+                .findFirst().get();
+
+        List<String> viewDateList = objects.stream()
+                .filter(map -> castToStr(map.get("visit_type")).equals("OPD"))
+                .filter(map -> castToStr(map.get("start_date")).compareTo(startDate) > 0
+                            && castToStr(map.get("start_date")).compareTo(endDate) <= 0)
+                .map(map -> castToStr(map.get("start_date")))
+                .collect(Collectors.toList());
+
+        Optional<String> maxViewDate = viewDateList.stream()
+                .max(String::compareTo);
+        Optional<String> minViewDate = viewDateList.stream()
+                .min(String::compareTo);
+
+        if (maxViewDate.isPresent() && minViewDate.isPresent()) {
+            result.put("visit_type", "OPD");
+            result.put("chart_no", chartNo);
+            result.put("start_date", minViewDate.get());
+            result.put("end_date", maxViewDate.get());
+        }
+
+        return result;
+    }
+
+    private List<Map<String, Object>> mergeInpListWithOpdList(List<Map<String, Object>> objects, String startDate, String endDate) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> opdMap;
+
+        List<Map<String, Object>> inpListMap = getInpList(objects);
+        List<Map<String, String>> admitListMap = getAdmitList(inpListMap);
+
+        if (inpListMap.isEmpty()) {
+            opdMap = getOpdMap(objects, startDate, endDate);
+            if (!opdMap.isEmpty()) {
+                result.add(opdMap);
+            }
+        }
+
+        for (int idx = 0; idx < inpListMap.size(); idx++) {
+            String opdStartDate;
+            String opdEndDate;
+
+            // add last opd data, the range of view_date was between last discharge_date and now
+            if (idx == 0) {
+                // startDate: current 'discharge_date' if 'discharge_date' is null then get current 'ckin_date'
+                // endDate : endDate
+                opdStartDate = admitListMap.get(idx).get("end_date") != null
+                        ? admitListMap.get(idx).get("end_date")
+                        : admitListMap.get(idx).get("start_date");
+                opdEndDate = endDate;
+                opdMap = getOpdMap(objects, opdStartDate, opdEndDate);
+
+                if (!opdMap.isEmpty()) {
+                    result.add(opdMap);
+                }
+            }
+
+            // add current inp data
+            result.add(inpListMap.get(idx));
+
+            // add opd data between current inp and previous inp
+            // the range of view_date was between current ckin_date and previous discharge_date
+            if (idx >= 0 && idx <= inpListMap.size() - 2) {
+                // startDate: previous 'discharge_date' if 'discharge_date' is null then get previous 'ckin_date'
+                // endDate : current 'ckin_date'
+                opdStartDate = admitListMap.get(idx+1).get("end_date") != null
+                        ? admitListMap.get(idx+1).get("end_date")
+                        : admitListMap.get(idx+1).get("start_date");
+                opdEndDate = admitListMap.get(idx).get("start_date");
+                opdMap = getOpdMap(objects, opdStartDate, opdEndDate);
+
+                if (!opdMap.isEmpty()) {
+                    result.add(opdMap);
+                }
+            }
+
+            // add first opd data, the range of view_date was between first ckin_date and start_date
+            if (idx == inpListMap.size() - 1) {
+                // startDate: startDate'
+                // endDate :  current ckin_date
+                opdStartDate = startDate;
+                opdEndDate = admitListMap.get(idx).get("start_date");
+
+                opdMap = getOpdMap(objects, opdStartDate, opdEndDate);
+
+                if (!opdMap.isEmpty()) {
+                    result.add(opdMap);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private Map<String, Object> getPatinpICDByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = patinp.queryPatinpICDByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getDisicdByCode(String code) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = disicd.queryDisicdByCode(code);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> getPatinpDisList(Map<String, Object> inputMap) {
+        List<Map<String, Object>> disicdList = new ArrayList<>();
+
+        int chartNo = castToInt(inputMap.get("chart_no"));
+        int serno = castToInt(inputMap.get("serno"));
+
+        Map<String, Object> disMap = getPatinpICDByChartNoSerno(chartNo, serno);
+
+        Map<String, Object> disicd;
+
+        List<String> codeList = Arrays.asList("disease_icd9", "disease_icd9_1", "disease_icd9_2", "disease_icd9_3", "disease_icd9_4");
+        List<String> keyList = Arrays.asList("code", "title1", "title2");
+
+        for (String name : codeList) {
+            Optional<Object> disCode = disMap.entrySet().stream()
+                    .filter(entry -> entry.getKey().equals(name))
+                    .map(Map.Entry::getValue)
+                    .findAny();
+
+            if (disCode.isPresent()) {
+                disicd = getDisicdByCode(castToStr(disCode.get()).substring(0, 3));
+                if (!disicd.isEmpty()) {
+                    disicdList.add(MapEntryUtil.getSubMapByKeyList(disicd, keyList));
+                }
+            }
+
+            break;
+        }
+
+        return disicdList;
+    }
+
+    private List<Map<String, Object>> getOPCodeByStartDateEndDateAndChartNo(String startDate, String endDate, int chartNo) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        try {
+            result = orRecord.queryOPCodeByStartDateEndDateAndChartNo(startDate, endDate, chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> getOPList(Map<String, Object> map) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
+        int chartNo = castToInt(map.get("chart_no"));
+        String startDate = castToStr(map.get("start_date"));
+        String endDate = castToStr(map.get("end_date"));
+        String visitType = castToStr(map.get("visit_type"));
+
+        List<Map<String, Object>> opListMap =
+                getOPCodeByStartDateEndDateAndChartNo(startDate, endDate, chartNo);
+
+        if (!opListMap.isEmpty()) {
+            List<String> codeList = Arrays.asList("code1", "code2", "code3");
+            List<String> codeNameList = Arrays.asList("full_name_1", "full_name_2", "full_name_3");
+
+            Object opDate;
+            Object code;
+            Object codeName;
+            for (Map<String, Object> opMap : opListMap) {
+                Map<String, Object> resultMap = new LinkedHashMap<>();
+
+                if (visitType.equals("INP") && !castToStr(opMap.get("inp_opd")).equals("I")) continue;
+                if (visitType.equals("OPD") && !castToStr(opMap.get("inp_opd")).equals("O")) continue;
+
+                opDate = opMap.get("op_date");
+                for (int idx = 0; idx < codeList.size(); idx++) {
+                    if (opMap.get(codeList.get(idx)) != null) {
+                        code = opMap.get(codeList.get(idx));
+                        codeName = opMap.get(codeNameList.get(idx));
+                        resultMap.put("op_date", opDate);
+                        resultMap.put("op_code", code);
+                        resultMap.put("op_name", codeName);
+                        resultList.add(resultMap);
+                    }
+                }
+            }
+        }
+        return resultList;
+    }
+
+    public String getEmrViewListOpdInpByChartNo(String startDate, String endDate, int chartNo) {
+        try {
+
+            objects = queryPTListByStartEndDateAndChartNo(startDate, endDate, chartNo);
+
+            if (objects.size() > 0) {
+                // extract patinp data from objects
+                List<Map<String, Object>> inpListMap = getInpList(objects);
+
+                // from patinp data list merge patopd data
+                List<Map<String, Object>> emrViewListMap = mergeInpListWithOpdList(objects, startDate, endDate);
+
+                // from emrViewListMap merge disease and op
+                String visitType;
+                for (Map<String, Object> map : emrViewListMap) {
+                    jsonObject = MapUtil.mapToJsonObject(map);
+
+                    visitType = castToStr(map.get("visit_type"));
+
+                    // if map of data is INP then add main disease
+                    if (visitType.equals("INP")) {
+                        List<Map<String, Object>> disicdListOfMap = getPatinpDisList(map);
+                        if (!disicdListOfMap.isEmpty()) {
+                            jsonObject.add("dis_details", MapUtil.listMapToJsonArray(disicdListOfMap));
+                        }
+                    }
+
+                    // add op data
+                    List<Map<String, Object>> opListOfMap = getOPList(map);
+                    if (!opListOfMap.isEmpty()) {
+                        jsonObject.add("op_details", MapUtil.listMapToJsonArray(opListOfMap));
+                    }
+
+                    jsonArray.add(jsonObject);
+
+                }
+
+                jsonObject = MapUtil.getSuccessResult(jsonArray);
+            } else {
+                jsonObject = MapUtil.getFailureResult("EMRViewList.qetEmrViewListOpdAndInpAndChartNo startDate=" + startDate
+                        + " endDate=" + endDate + " chartNo=" + chartNo + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            EMRViewList emrViewList = new EMRViewList(myConnection);
+
+            String startDate = "1010101";
+            String endDate = "1061020";
+//            int chartNo = 912473;
+            int chartNo = 923883;
+            System.out.println("\nEMRViewList.queryPTListByStartEndDateAndChartNo startDate=" + startDate + " endDate=" + endDate + " chartNo=" + chartNo + " JsonArray: " +
+                    MapUtil.listMapToJsonArray(emrViewList.queryPTListByStartEndDateAndChartNo(startDate, endDate, chartNo)));
+
+            System.out.println("\nEMRViewList.getEmrViewListOpdInpByChartNo startDate=" + startDate + " endDate=" + endDate + " chartNo=" + chartNo + " JsonArray: " +
+                    emrViewList.getEmrViewListOpdInpByChartNo(startDate, endDate, chartNo));
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

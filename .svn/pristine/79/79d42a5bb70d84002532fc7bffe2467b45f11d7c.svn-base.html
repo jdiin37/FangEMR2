@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="device=device-width" />
+<title>EMR</title>
+<link rel="stylesheet" href="/FangEmrServices/styles/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="/FangEmrServices/styles/ui.jqgrid-bootstrap.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="/FangEmrServices/styles/EMRstyle.css" type="text/css" />
+<link rel="stylesheet" href="/FangEmrServices/styles/EMRThemePurple.css" type="text/css" />
+<link rel="stylesheet" href="/FangEmrServices/styles/Common.css" type="text/css" />
+<script src="/FangEmrServices/scripts/jquery-1.11.1.min.js"></script>
+<script src="/FangEmrServices/scripts/jquery-ui.min.js"></script>
+<script src="/FangEmrServices/scripts/i18n/grid.locale-tw.js"></script>
+<script src="/FangEmrServices/scripts/jquery.jqGrid.min.js"></script>
+<script src="/FangEmrServices/scripts/bootstrap.min.js"></script>
+<script src="/FangEmrServices/html/mainEMR/EMRfunction.js?20171107"></script>
+<script src="/FangEmrServices/html/mainEMR/EMRpageControl.js?20171107"></script>
+<script src="/FangEmrServices/html/mainEMR/EMRajax.js?20171107"></script>
+<script src="/FangEmrServices/html/mainEMR/EMRjqGrid.js?20171110"></script>
+<script src="https://www.w3schools.com/lib/w3.js"></script>
+<script src="/FangEmrServices/html/OutNote/OutNote.js"></script>
+<script src="/FangEmrServices/html/Xray/Xray.js"></script>
+<script src="/FangEmrServices/html/Operation/Operation.js"></script>
+<script src="/FangEmrServices/html/Lab/Lab.js"></script>
+<script src="/FangEmrServices/html/Inp/Inp.js"></script>
+<script src="/FangEmrServices/html/InpRecord/InpRecord.js"></script>
+<script src="/FangEmrServices/html/UD/UD.js"></script>
+<script src="/FangEmrServices/html/STAT/STAT.js"></script>
+<script src="/FangEmrServices/html/Focus/Focus.js"></script>
+<script src="/FangEmrServices/html/QueryPatient/QueryPatient.js"></script>
+<script src="/FangEmrServices/html/Progress/Progress.js"></script>
+<script src="/FangEmrServices/html/Admission/Admission.js"></script>
+<script src="/FangEmrServices/html/ChangeBed/ChangeBed.js"></script>
+<script src="/FangEmrServices/html/OpdRecord/OpdRecord.js"></script>
+<script src="/FangEmrServices/html/Germ/Germ.js"></script>
+<script src="/FangEmrServices/html/TakeHome/TakeHome.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script><!-- 趨勢圖使用 -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js'></script><!-- 驗證日期使用 -->
+
+
+
+
+<script>
+	//$.jgrid.defaults.responsive = true;
+	$.jgrid.defaults.styleUI = 'Bootstrap';
+</script>
+
+<style>
+/**測試用***/
+
+.showbox {
+	width: 804px;
+	height: 664px;
+	border: 2px solid #1dd;
+	vertical-align: top;
+}
+
+.showbox img{
+	width: 800px;
+	height: 660px;
+	
+}
+
+.showXrayPos img {
+	width: 140px;
+	height: 92px;
+	border: 2px solid #transparent;
+	vertical-align: middle;
+	margin: 10px;
+}
+
+
+
+.showXrayPos img:hover {
+	width: 140px;
+	height: 92px;
+	border: 2px solid #DD4F43;
+	vertical-align: middle;
+}
+
+.active-Xray {
+	width: 140px;
+	height: 92px;
+	border: 2px solid #1dd;
+	vertical-align: middle;
+}
+
+
+
+img.active-Xray:hover {
+	width: 140px;
+	height: 92px;
+	border: 2px solid #1dd;
+	
+}
+
+.active-Xray:active {
+	width: 140px;
+	height: 92px;
+	border: 2px solid #1dd;
+	
+}
+
+#xrayPosDetail{
+padding:10px;
+margin:10px;
+}
+
+
+</style>
+
+
+<script type="text/javascript">
+	$(document).ready(
+			
+			
+			
+			function() {
+				
+				w3.includeHTML();//載入 各個頁面的div 
+				//畫面生成 事件設定
+				render();
+				renderQueryPatient();//查詢病患
+				renderXray();//影像
+				testShowXray();//影像照射位置
+				renderOperation();//手術
+				renderLab(); //檢驗
+				renderInp();//住院
+				renderFocus();//護理紀錄
+				renderOutNote();//出院病摘
+				renderProgress();//病程紀錄
+				renderAdmission();//入院病摘
+				renderGerm();//細菌報告
+				renderSTAT();//Stat用藥紀錄
+				renderUD();//UD用藥紀錄
+
+				//確認使用者
+				//ajax_checkPasswd();
+				render_checkPasswd();
+				ajax_getHospName(); // 取得醫院資料
+				ajax_getChartByChartNo(); // 取得客戶基本資料		
+				
+				
+				//
+				//alert(userHeight);
+				//$('#pageContainer').css('max-height',userHeight + 'px');
+				window.onresize = function(event) { //畫面resize時			
+					userHeight = window.innerHeight
+							|| document.documentElement.clientHeight
+							|| document.body.clientHeight;
+					processPage();
+					//alert(JSON.stringify(visiPageArray));
+				};
+
+			});
+</script>
+
+</head>
+<!-- 鎖住F5 onkeydown="return (event.keyCode != 116)" -->
+
+<body>
+
+   <!-- 1070201 add 顯示影像 彈跳視窗 -->
+	   <!--<div id="XrayModal" class="modal fade" > 		
+  		
+  		
+  	      <div class="modal-content XrayModal-Content">
+    		<div class="pull-right">
+    		   <a href="#"><span class="btn btn-lg glyphicon glyphicon-remove"  onclick="close_XrayModal(this);"></span></a>
+	          </div>
+			
+		<div class="row">
+	            <div class="col-sm-12">
+	             影像 假資料 
+	          <div class="showbox"><img id="show-image" src="/FangEmrServices/html/Xray/XrayImg/xray01.jpg" /></div>
+	            <p></p>
+	           <div class="showXrayPos">
+		  <a href="/FangEmrServices/html/Xray/XrayImg/xray01.jpg"><img src="/FangEmrServices/html/Xray/XrayImg/xray01.jpg" title="" /></a>
+		  <a href="/FangEmrServices/html/Xray/XrayImg/xray02.jpg"><img src="/FangEmrServices/html/Xray/XrayImg/xray02.jpg" title="" /></a>
+		  <a href="/FangEmrServices/html/Xray/XrayImg/xray03.jpg"><img src="/FangEmrServices/html/Xray/XrayImg/xray03.jpg" title="" /></a>
+		  <a href="/FangEmrServices/html/Xray/XrayImg/xray04.jpg"><img src="/FangEmrServices/html/Xray/XrayImg/xray04.jpg" title="" /></a>
+	           </div>
+	           影像 假資料
+	            </div>
+	    		
+	          </div>	
+  	      </div>
+	  </div> -->
+	<!-- 1070201 add 顯示影像  彈跳視窗 -->
+
+	<div id="masterPage">
+		<script type="text/javascript">
+			//$("#masterPage").load("masterPage.html");
+		</script>
+		<!--LoadingModal-->
+		<div class="modal fade" tabindex="-1" role="dialog" id="LoadingModal">
+			<div class="modal-dialog modal-lg" role="document">
+				<div class="modal-content">
+					<div class="modal-body" id="alertMsg">
+						<h4 class="modal-title">Loading...</h4>
+						<span id="loading-msg"></span>
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+						</div>
+					</div>
+				</div>
+				<!-- /.modal-content -->
+			</div>
+			<!-- /.modal-dialog -->
+		</div>
+		<!--LoadingModal-->
+		<nav class="navbar navbar-custom navbar-static-top" role="navigation">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"><span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span><span
+						class="icon-bar"></span><span class="icon-bar"></span></button> <a class="navbar-brand" href=""><img src="" /><span id=hospName></span> 【EMR系統】</a>
+				</div>
+				<!-- /.navbar-header -->
+				<div class="collapse navbar-collapse" id="myNavbar">
+					<!-- <ul class="nav navbar-nav hide">
+						<li><a href="#">病患</a></li>
+					</ul> -->
+					<ul class="nav navbar-nav navbar-right">
+						<li class="dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle hide">視窗<b class="caret"></b></a>
+							<ul class="dropdown-menu" id="ul_windows">
+								<li><a href="#" id="li_mainPage" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;EMR</a></li>
+								<li><a href="#" id="li_queryPage" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;查詢病患</a></li>
+								<li class="divider"></li>
+								<li><a href="#" id="li_examPage" class="pageControl btn disabled">檢驗</a></li>
+							</ul></li>
+						<li class="dropdown"><a href="#" data-toggle="dropdown" class="dropdown-toggle hide">樣式<b class="caret"></b></a>
+							<ul class="dropdown-menu" id="ul_windows">
+								<li><a href="#" id="li_purple" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;紫色</a></li>
+								<li><a href="#" id="li_orange" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;橘色</a></li>
+								<li class="divider"></li>
+								<li><a href="#" id="li_examPage" class="pageControl btn disabled">檢驗</a></li>
+							</ul></li>
+						<li class="dropdown"><a href='#' data-toggle='dropdown' class='dropdown-toggle'><span id="user_info"></span><b class='caret'></b></a>
+							<ul class="dropdown-menu" style="display:none;">
+								<li><a href="Login.html"><span id="user_log"></span></a></li>
+							</ul></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		
+		<!-- 1070130 add 趨勢圖 彈跳視窗 -->
+	   <div id="chartModal" class="modal" > 		
+  		<!-- Modal content -->
+  		
+  	      <div class="modal-content chartModal-Content">
+    		<div class="pull-right">
+    		   <a href="#"><span class="btn btn-lg glyphicon glyphicon-remove"  onclick="close_chartModal(this);"></span></a>
+	          </div>
+			
+		<div class="row">
+	            <div class="col-sm-12"></div>
+	    		
+	          </div>	
+  	      </div>
+	  </div>
+		<!-- 1070130 add 趨勢圖 彈跳視窗 -->
+		
+	
+		
+	</div>
+	
+	
+	
+	
+	
+
+
+	<div class="container-fluid" id="pageContainer">
+		<div id="mainPage" class="page" onclick="goTop('mainPage');">
+			<div class="panel panel-info" id="mainPageheader">
+				<!--主頁 -->
+				<div class="panel-heading clearfix">
+					<div class="panel-title pull-left panel-tool">
+						<span id="mainPage_Title">EMR</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_mainPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp hide" onclick="popUpPageToggle('mainPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="close hide"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_mainPage" class="panel-collapse collapse in"> -->
+				<div class="panel-body">
+					<div class="row form-group" id="mainBlock1">
+						<div class="col-sm-12 form-inline">
+							<button type="button" class="btn btn-img40 img40_Searchpatient" id="btn_Searchpatient"></button>&emsp;<span class="EMRfont" id="PatInfo"> 病歷號碼:<span id="chart_no"></span>&emsp;姓名:<span
+								id="pt_name"></span>&emsp;性別:<span id="sex_name"></span>&emsp;年齡:<span id="age"></span>&emsp;最初門診日期:<span id="first_view_date"></span> <span id="first_div_name"></span>&emsp;最近門診日期:<span
+								id="last_view_date"></span> <span id="last_div_name"></span>
+							</span>
+							<div class="pull-right">
+								<button type="button" class="btn btn-img40 img40_Diabetesmark" id="btn_Diabetesmark"></button>
+								<button type="button" class="btn btn-img40 img40_Majordiseases" id="btn_Majordiseases"></button>
+								<button type="button" class="btn btn-img40 img40_Allergy" id="btn_Allergy"></button>
+								<button type="button" class="btn btn-img40 img40_History" id="btn_History"></button>
+								<button style="display:none;" type="button" class="btn btn-img40 img40_Surgery" id="btn_Surgery"></button>
+							</div>
+						</div>
+					</div>
+					<div class="row form-group well well-sm" id="mainBlock2">
+						<div class="col-sm-6 form-inline right">
+							<div class="form-group">
+								<label class="EMRLabel" for="recentYear">查詢範圍 </label> <input type="text" class="form-control input-sm input-center" style="max-width: 48px;" placeholder="" id="recentYear" value="1"> <span></span> <label
+									for="recentYear" class="EMRLabel"> 年 </label>
+							</div>
+							<button class="btn btn-primary-inverse" onclick="callInp('year')"><img alt="住院" src="/FangEmrServices/img/24_inp.png">住院 <span class="badge" id="yearsINP">0</span></button>
+							<button class="btn btn-primary-inverse"><img alt="門急" src="/FangEmrServices/img/24_emg.png">門急 <span class="badge" id="yearsOPD">0</span></button>							
+							<button class="btn btn-primary-inverse" onclick="callOp('year')"><img alt="手術" src="/FangEmrServices/img/24_op.png">手術 <span class="badge" id="yearsOR">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callLab('year')"><img alt="檢驗" src="/FangEmrServices/img/24_lab.png">檢驗 <span class="badge" id="yearsLAB">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callXray('year')"><img alt="影像" src="/FangEmrServices/img/24_xray.png"> 影像 <span class="badge" id="yearsXRAY">0</span></button>
+							
+						</div>
+						<div class="col-sm-6 form-inline">
+							<div class="form-group">
+								<label for="" class="EMRLabel">全部 </label>
+							</div>
+							<button class="btn btn-primary-inverse" onclick="callInp()"><img alt="住院" src="/FangEmrServices/img/24_inp.png">住院 <span class="badge" id="allINP">0</span></button>
+							<button class="btn btn-primary-inverse"><img alt="門急" src="/FangEmrServices/img/24_emg.png">門急 <span class="badge" id="allOPD">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callOp()"><img alt="手術" src="/FangEmrServices/img/24_op.png">手術 <span class="badge" id="allOR">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callLab()"><img alt="檢驗" src="/FangEmrServices/img/24_lab.png">檢驗 <span class="badge" id="allLAB">0</span></button>
+							<button class="btn btn-primary-inverse" onclick="callXray()"><img alt="影像" src="/FangEmrServices/img/24_xray.png"> 影像 <span class="badge" id="allXRAY">0</span></button>
+							
+						</div>
+					</div>
+					<div class="row pre-scrollable" id="mainBlock3">
+						<div class="col-sm-12">
+							<div class="panel-group" id="timeLine"></div>
+						</div>
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		</div>
+	
+	<!-- 查詢病患 -->
+	<div   w3-include-html="../QueryPatient/QueryPatient.html"  id="queryPage" class="page" onclick="goTop('queryPage');"></div>
+		
+	 <!-- 檢驗 -->
+	<div w3-include-html="../Lab/Lab.html" id="labPage" class="page" onclick="goTop('labPage');"></div>
+	
+	<!-- 檢驗趨勢圖 -->
+	<div w3-include-html="../Lab/LabChart.html" id="labChartPage" class="page" onclick="goTop('labChartPage');"></div>
+	
+	<!-- 檢驗彙總表 -->
+	<div w3-include-html="../Lab/LabSum.html" id="labSumPage" class="page" onclick="goTop('labSumPage');"></div>
+	
+	<!-- 檢驗彙趨勢圖 -->
+	<div w3-include-html="../Lab/LabSumChart.html" id="labSumChartPage" class="page" onclick="goTop('labSumChartPage');"></div>		
+			
+	 <!-- 影像 -->
+	<div w3-include-html="../Xray/Xray.html" id="xrayPage" class="page" onclick="goTop('xrayPage');"></div>
+	
+	 <!-- 影像照射位置 1070201 add 測試 -->
+	<div w3-include-html="../Xray/XrayPos.html" id="xrayPosPage" class="page" onclick="goTop('xrayPosPage');"></div>
+	
+	 <!-- 手術 -->
+	<div w3-include-html="../Operation/Operation.html" id="opPage" class="page" onclick="goTop('opPage');"></div>
+          
+           <!-- 住院 -->
+          <div w3-include-html="../Inp/Inp.html" id="inpPage" class="page" onclick="goTop('inpPage');"></div>
+	
+	 <!-- 住院紀錄 -->
+	<div w3-include-html="../InpRecord/InpRecord.html" id="inpRecordPage" class="page" onclick="goTop('inpRecordPage');"></div>
+	
+	 <!-- UD -->
+	<div w3-include-html="../UD/UD.html" id="udPage" class="page" onclick="goTop('udPage');"></div>
+	 
+	 <!-- STAT -->
+	<div w3-include-html="../STAT/STAT.html" id="stPage" class="page" onclick="goTop('stPage');"></div>
+		
+	 <!-- 護理紀錄   -->
+	 <div w3-include-html="../Focus/Focus.html" id="focusPage" class="page" onclick="goTop('focusPage');"></div>
+	
+	 <!-- 出院病摘   -->	
+	 <div w3-include-html="../OutNote/OutNote.html" id="outNotePage" class="page" onclick="goTop('outNotePage');"></div>
+	 
+	  <!-- 入院病摘   -->	
+	 <div w3-include-html="../Admission/Admission.html" id="admissionPage" class="page" onclick="goTop('admissionPage');"></div>
+
+	 <!-- 病程紀錄 -->
+	 <div   w3-include-html="../Progress/Progress.html"  id="progressPage" class="page" onclick="goTop('progressPage');"></div>
+	 
+	 <!-- 病房紀錄 -->
+	 <div   w3-include-html="../ChangeBed/ChangeBed.html"  id="chgBedPage" class="page" onclick="goTop('chgBedPage');"></div>
+	 
+	  <!-- 細菌報告   -->
+	 <div  w3-include-html="../Germ/Germ.html"  id="germPage" class="page" onclick="goTop('germPage');"></div>
+	 
+	  <!-- 出院帶藥   -->
+	 <div  w3-include-html="../TakeHome/TakeHome.html"  id="takeHomePage" class="page" onclick="goTop('takeHomePage');"></div>
+	 
+	  <!-- 門急紀錄 -->
+	 <div   w3-include-html="../OpdRecord/OpdRecord.html"  id="opdRecordPage" class="page" onclick="goTop('opdRecordPage');"></div>
+	
+	 
+	 <div class="container-fluid" id="PopPageContainer"></div> <!-- 抽離頁 專用 -->
+	  
+		<nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+			<div class="container-fluid" >
+				<div class="row" id="bottom-toolbar"></div>
+			</div>
+		</nav>
+	</div>	
+</body>
+
+</html>

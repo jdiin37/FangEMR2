@@ -1,0 +1,60 @@
+package library.dateutility;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Created by jeffy on 2017/7/13.
+ */
+public class DateComputeUtil {
+
+    public static List<String> getStartDateEndDate(String range) {
+        LocalDate today = LocalDate.now();
+        // default startDate is today before 10 years.
+        // default endDate is today.
+        String startDate = DateUtil.dateToROCDateString(today.plus(-10, ChronoUnit.YEARS));
+        String endDate = DateUtil.dateToROCDateString(today);
+
+        if (range.equals("month")) {
+            startDate = DateUtil.dateToROCDateString(today.plus(-1, ChronoUnit.MONTHS));
+        }
+
+        if (range.equals("season")) {
+            startDate = DateUtil.dateToROCDateString(today.plus(-3, ChronoUnit.MONTHS));
+        }
+
+        if (range.equals("halfYear")) {
+            startDate = DateUtil.dateToROCDateString(today.plus(-6, ChronoUnit.MONTHS));
+        }
+
+        if (range.equals("year")) {
+            startDate = DateUtil.dateToROCDateString(today.plus(-1, ChronoUnit.YEARS));
+        }
+
+        if (range.contains("|")) {
+            startDate = range.split("\\|")[0];
+            endDate = range.split("\\|")[1];
+        }
+
+        return  Arrays.asList(startDate, endDate);
+    }
+
+    public static void main(String... args) {
+        String range = "0760101|1040804";
+        System.out.println("StartDate and EndDate: By Range='0760101|1040804': " + getStartDateEndDate(range));
+
+        range = "month";
+        System.out.println("StartDate and EndDate: By Range='month': " + getStartDateEndDate(range));
+
+        range = "season";
+        System.out.println("StartDate and EndDate: By Range='season': " + getStartDateEndDate(range));
+
+        range = "halfYear";
+        System.out.println("StartDate and EndDate: By Range='halfYear': " + getStartDateEndDate(range));
+
+        range = "year";
+        System.out.println("StartDate and EndDate: By Range='year': " + getStartDateEndDate(range));
+    }
+}

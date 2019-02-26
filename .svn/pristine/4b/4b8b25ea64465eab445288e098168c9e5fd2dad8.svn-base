@@ -1,0 +1,354 @@
+﻿ [
+    {
+      "disease_code": "K70.30",
+      "code_name_c": "酒精性肝硬化未伴有腹水",
+      "code_name_e": "Alcoholic cirrhosis of liver without ascites",
+      "summary": 3,
+      "detailData": [
+        {
+          "view_date": "1050620",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050801",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050829",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "K25.0",
+      "code_name_c": "急性胃潰瘍併出血",
+      "code_name_e": "Acute gastric ulcer with hemorrhage",
+      "summary": 3,
+      "detailData": [
+        {
+          "view_date": "1050620",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050801",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050829",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "B18.1",
+      "code_name_c": "慢性病毒性B型肝炎未伴有D 型肝炎病毒",
+      "code_name_e": "Chronic viral hepatitis B without delta-agent",
+      "summary": 3,
+      "detailData": [
+        {
+          "view_date": "1050620",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050801",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050829",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "R17",
+      "code_name_c": "黃疸",
+      "code_name_e": "Unspecified jaundice",
+      "summary": 3,
+      "detailData": [
+        {
+          "view_date": "1050620",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050801",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050829",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "K21.0",
+      "code_name_c": "胃食道逆流性疾病併食道炎",
+      "code_name_e": "Gastro-esophageal reflux disease with esophagitis",
+      "summary": 3,
+      "detailData": [
+        {
+          "view_date": "1050620",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050801",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050829",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "K80.80",
+      "code_name_c": "其他膽結石未伴有阻塞",
+      "code_name_e": "Other cholelithiasis without obstruction",
+      "summary": 1,
+      "detailData": [
+        {
+          "view_date": "1050620",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "D62",
+      "code_name_c": "急性出血後貧血",
+      "code_name_e": "Acute posthemorrhagic anemia",
+      "summary": 3,
+      "detailData": [
+        {
+          "view_date": "1050620",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050801",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050829",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "K80.20",
+      "code_name_c": "膽囊結石未伴有膽囊炎未伴有阻塞",
+      "code_name_e": "Calculus of gallbladder without cholecystitis without obstruction",
+      "summary": 2,
+      "detailData": [
+        {
+          "view_date": "1050801",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        },
+        {
+          "view_date": "1050829",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "MM9",
+          "doctor_name": "黃○鴻",
+          "div_no": "MI",
+          "div_name": "胃腸肝臟內科",
+          "cash_type": "1",
+          "cash_type_name": "一般門診"
+        }
+      ]
+    },
+    {
+      "disease_code": "R10.9",
+      "code_name_c": "腹痛",
+      "code_name_e": "Unspecified abdominal pain",
+      "summary": 1,
+      "detailData": [
+        {
+          "view_date": "1050921",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "AA6",
+          "doctor_name": "孔○鵬",
+          "div_no": "ER",
+          "div_name": "急診醫學科",
+          "cash_type": "E",
+          "cash_type_name": "急診"
+        }
+      ]
+    },
+    {
+      "disease_code": "K30",
+      "code_name_c": "功能性消化不良",
+      "code_name_e": "Functional dyspepsia",
+      "summary": 1,
+      "detailData": [
+        {
+          "view_date": "1050921",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "AA6",
+          "doctor_name": "孔○鵬",
+          "div_no": "ER",
+          "div_name": "急診醫學科",
+          "cash_type": "E",
+          "cash_type_name": "急診"
+        }
+      ]
+    },
+    {
+      "disease_code": "K76.9",
+      "code_name_c": "肝之疾病",
+      "code_name_e": "Liver disease, unspecified",
+      "summary": 1,
+      "detailData": [
+        {
+          "view_date": "1050921",
+          "chart_no": 912473,
+          "duplicate_no": 1,
+          "doctor_no": "AA6",
+          "doctor_name": "孔○鵬",
+          "div_no": "ER",
+          "div_name": "急診醫學科",
+          "cash_type": "E",
+          "cash_type_name": "急診"
+        }
+      ]
+    }
+  ]

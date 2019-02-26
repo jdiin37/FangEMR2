@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="device=device-width" />
+<title>EMR</title>
+<link rel="stylesheet" href="styles/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="styles/select2.css" type="text/css" />
+<link rel="stylesheet" href="styles/select2-bootstrap.css" type="text/css" />
+<link rel="stylesheet" href="styles/dataTables.bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="styles/EMRstyle.css" type="text/css" />
+<script src="scripts/jquery-1.11.1.min.js"></script>
+<script src="scripts/bootstrap.min.js"></script>
+<script src="scripts/select2.full.js"></script>
+<script src="scripts/EMRfunction.js?20171024"></script>
+<script src="scripts/EMRajax.js?20171024"></script>
+<script src="scripts/jquery.dataTables.min.js"></script>
+<script src="scripts/dataTables.bootstrap.min.js"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		$(".select2-single").select2({
+			theme : "bootstrap",
+			width : null,
+			containerCssClass : ':all:'
+		});
+		
+		if(getQueryVariable("chartNo").length > 0){
+			PatObj.chart_no = getQueryVariable("chartNo");//取得QueryString	
+		}
+		
+		
+		//畫面生成 事件設定
+		render();
+
+		//確認使用者
+		ajax_checkPasswd();		
+		
+	});
+</script>
+
+</head>
+<!-- 鎖住F5 onkeydown="return (event.keyCode != 116)" -->
+
+<body>
+	<!--LoadingModal-->
+	<div class="modal fade" tabindex="-1" role="dialog" id="LoadingModal">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-body" id="alertMsg">
+					<h4 class="modal-title">Loading...</h4>
+					<span id="loading-msg"></span>
+					<div class="progress">
+						<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+					</div>
+				</div>
+			</div>
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+	<!--LoadingModal-->
+	<nav class="navbar navbar-custom navbar-static-top" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"><span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span><span
+					class="icon-bar"></span><span class="icon-bar"></span></button> <a class="navbar-brand" href=""><img src="" /><span id=hospName></span> 【EMR系統】</a>
+			</div>
+			<ul class="nav navbar-nav">
+			</ul>
+			<!-- /.navbar-header -->
+			<div class="collapse navbar-collapse" id="myNavbar">
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown">
+						<a href="#" data-toggle="dropdown" class="dropdown-toggle">視窗<b class="caret"></b></a>
+                        <ul class="dropdown-menu" id="ul_windows">
+                            <li><a href="#" id="li_mainPage" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;EMR</a></li>
+                            <li><a href="#" id="li_queryPage" class="pageControl"><span class="glyphicon glyphicon-ok"></span>&emsp;查詢病患</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#" id="li_examPage" class="pageControl btn disabled">檢驗</a></li>
+                        </ul>
+					</li>
+					<li class="dropdown">
+						<a href='#' data-toggle='dropdown' class='dropdown-toggle'><span id="user_info"></span><b class='caret'></b></a>
+						<ul class="dropdown-menu">
+                            <li><a href="Login.html"><span id="user_log"></span></a></li>                           
+                        </ul>
+					</li>			
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container-fluid">
+		<div class="panel panel-info" id="mainPage">
+			<div class="panel-heading clearfix">
+				<div class="panel-title pull-left panel-tool">
+					<a data-toggle="collapse" data-parent="#accordion" href="#collapseMain">EMR</a>
+				</div>
+				<div class="pull-right">
+					<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				</div>
+			</div>
+			<div id="collapseMain" class="panel-collapse collapse in">
+				<div class="panel-body">
+					<div class="row form-group" id="mainBlock1">
+						<div class="col-sm-12 form-inline">
+							<button type="button" class="btn btn-primary" id="btn_ShowQueryPage"><span class="glyphicon glyphicon-search"></span></button>&emsp;<span class="h4"> 病歷號碼:<span id="chart_no"></span>&emsp;姓名:<span
+								id="pt_name"></span>&emsp;性別:<span id="sex_name"></span>&emsp;年齡:<span id="age"></span>&emsp;最初門診日期:<span id="first_view_date"></span> <span id="first_div_name"></span>&emsp;最近門診日期:<span
+								id="last_view_date"></span> <span id="last_div_name"></span>
+							</span>
+							<div class="pull-right">
+								<button type="button" class="btn btn-primary" id="btn_block1"><span class="glyphicon glyphicon-wrench"></span></button>
+								<button type="button" class="btn btn-primary" id="btn_block2"><span class="glyphicon glyphicon-wrench"></span></button>
+								<button type="button" class="btn btn-primary" id="btn_block3"><span class="glyphicon glyphicon-wrench"></span></button>
+								<button type="button" class="btn btn-primary" id="btn_block4"><span class="glyphicon glyphicon-wrench"></span></button>
+								<button type="button" class="btn btn-primary" id="btn_block5"><span class="glyphicon glyphicon-wrench"></span></button>
+							</div>
+						</div>
+					</div>
+					<div class="row form-group well well-sm" id="mainBlock2">
+						<div class="col-sm-6 form-inline">
+							<div class="form-group">
+								<label for="recentYear">查詢範圍 </label> <input type="text" class="form-control input-sm" style="max-width: 48px;" placeholder="" id="recentYear" value="1"> <span></span> <label
+									for="recentYear"> 年 </label>
+							</div>
+							<button class="btn btn-primary">住院 <span class="badge" id="yearsOPD">0</span></button>
+							<button class="btn btn-primary">門急 <span class="badge" id="yearsINP">0</span></button>
+							<button class="btn btn-primary">手術 <span class="badge" id="yearsOR">0</span></button>
+							<button class="btn btn-primary">影像 <span class="badge" id="yearsLAB">0</span></button>
+							<button class="btn btn-primary">檢驗 <span class="badge" id="yearsXRAY">0</span></button>
+						</div>
+						<div class="col-sm-6 form-inline">
+							<div class="form-group">
+								<label for="">全部 </label>
+							</div>
+							<button class="btn btn-primary">住院 <span class="badge" id="allOPD">0</span></button>
+							<button class="btn btn-primary">門急 <span class="badge" id="allINP">0</span></button>
+							<button class="btn btn-primary">手術 <span class="badge" id="allOR">0</span></button>
+							<button class="btn btn-primary">影像 <span class="badge" id="allLAB">0</span></button>
+							<button class="btn btn-primary">檢驗 <span class="badge" id="allXRAY">0</span></button>
+						</div>
+					</div>
+					<div class="row" id="mainBlock3">
+						<div class="col-sm-12">
+							<div class="panel-group" id="timeLine"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel panel-info" id="queryPage">
+			<div class="panel-heading clearfix">
+				<div class="panel-title pull-left panel-tool">
+					<a data-toggle="collapse" data-parent="#accordion" href="#collapseQuery">查詢病患</a>
+				</div>
+				<div class="pull-right">
+					<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				</div>
+			</div>
+			<div id="collapseQuery" class="panel-collapse collapse">
+				<div class="panel-body">
+					<div class="row form-group" id="queryBlock1">
+						<div class="col-sm-12">
+							<mark class="h4" id=""></mark>
+						</div>
+					</div>
+					<div class="row well well-sm" id="queryBlock2">
+
+						<div class="col-sm-4 form-inline">
+							<div class="form-group">
+								<label class="checkbox-inline"><input type="checkbox" value="" id="chk_queryOPD" checked>門診 </label>
+							</div>
+							<div class="form-group">
+								<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_OPDdays" value="1"><label for="input_OPDdays">天 </label>
+							</div>
+							<div class="form-group">
+								<label class="radio-inline"><input type="radio" name="optradio" id="rdo_queryINP" checked>住院</label> <label class="radio-inline"><input type="radio" name="optradio"
+									id="rdo_queryDIS">出院</label>
+							</div>
+							<div class="form-group">
+								<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_DISdays"><label for="input_DISdays">天 </label>
+							</div>
+							<button type="button" class="btn btn-primary" id="btn_query1"><span class="glyphicon glyphicon-search"></span></button>
+						</div>
+						<div class="col-sm-8 form-inline">
+							<div class="form-group">
+								<label for="query_ptName">姓名 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_ptName" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_birth">生日 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_birth" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_tel">電話 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_tel" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_chartNo">病歷號 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_chartNo" value="">
+							</div>
+							<button type="button" class="btn btn-primary" id="btn_query2"><span class="glyphicon glyphicon-search"></span></button>
+						</div>
+					</div>
+					<div class="row" id="queryBlock3">
+						<div class="col-sm-12">
+							<div class="form-group table-responsive">
+								<table id="table_PatList" class="table table-bordered table-hover">
+									<thead>
+										<tr>
+											<th>病歷號</th>
+											<th>就診類別</th>
+											<th>姓名</th>
+											<th>性別</th>
+											<th>年齡</th>
+											<th>身分證字號</th>
+											<th>電話</th>
+											<th>門診日期</th>
+											<th>出生日期</th>
+											<th>住院日期</th>
+											<th>出院日期</th>
+											<th>主治醫師</th>
+											<th>科別</th>
+											<th>早/午/晚</th>
+											<th>診間</th>
+											<th>床位</th>
+											<th>護理站</th>
+										</tr>
+									</thead>
+									<tbody id="table_PatList_Body">
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<div class="col-sm-12">
+							<div class="form-group table-responsive">
+								<table id="table_PatListShort" class="table table-bordered table-hover">
+									<thead>
+										<tr>
+											<th>病歷號</th>
+											<th>姓名</th>
+											<th>性別</th>
+											<th>年齡</th>
+											<th>身分證字號</th>
+										</tr>
+									</thead>
+									<tbody id="table_PatListShort_Body">
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<!-- 					<div class="col-sm-2"> -->
+						<!-- 						<select class="form-control select2-single"> -->
+						<!-- 							<option value="0">病歷號</option> -->
+						<!-- 							<option value="1">姓名</option> -->
+						<!-- 							<option value="2">性別</option> -->
+						<!-- 						</select> -->
+						<!-- 					</div> -->
+						<!-- 					<div class="col-sm-2"> -->
+						<!-- 						<input type="text" class="form-control" placeholder="關鍵字搜尋" id="input_filter" value="" onkeyup="filter_qeuryPat()"> -->
+						<!-- 					</div> -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static library.utility.JDBCUtilities.*;
+
+/**
+ * Created by jeffy on 2017/8/29.
+ */
+public class Order {
+
+    private Connection con;
+
+    public Order(Connection con) {
+        this.con = con;
+    }
+
+    public List<Map<String, Object>> queryOrderDetailByStockOrderNo(String stock, String startOrderNo, String endOrderNo, String serialId) throws SQLException {
+        String queryString =
+                "SELECT a.stock, a.order_no, a.item_no, " +
+                "       row_number() over (partition by a.stock, a.order_no order by a.stock, a.order_no) as rec_count, " +
+                "       b.barcode, b.full_name, a.supp_no, c.supp_name, " +
+                "       a.order_date, a.delivery_date, a.orig_unit, a.sale_unit, d.unit_name, a.ratio, a.price, " +
+                "       a.orig_price, a.order_saleunit_qty, a.order_origunit_qty, a.send_rate, a.send_qty, " +
+                "       a.tot_qty, NVL(a.order_saleunit_qty,0) / NVL(a.ratio,1) tot_qty_cal,'' effect_date, " + 
+                "       a.price rec_price, rec_qty, a.invoice_amt, '' invoice_no, '' invoice_date, '' rec_pe_no, " +
+                "       '' update_flag_pad, '' pad_date, '' pad_clerk, '' trans_date, '' trans_clerk " +
+                "  FROM order2 a, inv b, supply c, packunit d  " +
+                " WHERE a.stock = ? " +
+                "   AND a.order_no BETWEEN ? AND ? " +
+                "   AND NVL(a.close_date, ' ') = ' ' " +
+                "   AND NOT EXISTS (SELECT 1 FROM invapprec e  " +
+                "                    WHERE e.serialid = ? " +
+                "                      AND e.kind_type = 'ORDER' " +
+                "                      AND e.stock = a.stock " +
+                "                      AND e.kind_no = a.order_no)  " +
+                "   AND a.stock = b.stock(+) " +
+                "   AND a.item_no = b.item_no(+) " +
+                "   AND a.supp_no = c.supp_no(+) " +
+                "   AND a.orig_unit = d.unit_no(+) " +
+                " ORDER BY a.stock, a.order_no, a.item_no ";
+
+        EntityFactory orderEntity = new EntityFactory(con, queryString);
+        return orderEntity.findMultiple(new Object[]{stock, startOrderNo, endOrderNo, serialId});
+    }
+
+    public int getOrder2LogMaxRecCountByStockOrderNo(String stock, String orderNo) throws SQLException {
+        Object obj;
+        String queryString =
+                "SELECT MAX(rec_count) + 1 next_rec_count " +
+                "  FROM order2_log " +
+                " WHERE stock = ?  " +
+                "   AND order_no = ? ";
+
+        EntityFactory orderEntity = new EntityFactory(con, queryString);
+        Map<String, Object> result = orderEntity.findSingle(new Object[]{stock, orderNo});
+        obj = result.get("next_rec_count");
+        return (obj == null) ? 1 : MapUtil.castToInt(obj);
+    }
+
+    public List<Integer> batchInsertOrder2Log(List<List<Object>> listObjects) throws SQLException {
+        String updateString =
+                "INSERT INTO order2_log( " +
+                "    stock, order_no, item_no, rec_count, supp_no, order_date, delivery_date, orig_unit, " +
+                "    sale_unit, ratio, price, orig_price, order_saleunit_qty, order_origunit_qty, send_rate, send_qty, " +
+                "    tot_qty, effect_date, rec_price, rec_qty, invoice_amt, invoice_no, invoice_date, rec_pe_no, " +
+                "    pad_date, pad_clerk, trans_date, trans_clerk) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, " +
+                "       ?, ?, ?, ?, ?, ?, ?, ?, " +
+                "       ?, ?, ?, ?, ?, ?, ?, ?, " +
+                "       ?, ?, ?, ?) ";
+        // stock, order_no, item_no, supp_no, order_date, delivery_date, orig_unit,
+        // sale_unit, ratio, price, orig_price, order_saleunit_qty, order_origunit_qty, send_rate, send_qty,
+        // tot_qty, rec_price, rec_qty, effect_date, rec_pe_no, pad_date, pad_clerk, trans_date, trans_clerk
+
+        EntityFactory orderEntity = new EntityFactory(con, updateString);
+        return orderEntity.batchUpsert(listObjects);
+    }
+
+    public static void main(String[] args) {
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        Connection myConnection = null;
+        String resultStrng = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            Order order = new Order(myConnection);
+
+            System.out.println("\nOrder.queryOrderDetailByStockOrderNo stock='SS' order_no='10512005' ListMap: " +
+                    order.queryOrderDetailByStockOrderNo("SS", "10601001", "10603999", "H2NPCV0011382TA"));
+
+            System.out.println("\nOrder.queryOrderDetailByStockOrderNo stock='SS' order_no='10512005' JsonArray: " +
+                    MapUtil.listMapToJsonArray(order.queryOrderDetailByStockOrderNo("SS", "10601001", "10603999", "H2NPCV0011382TA")));
+
+            // start batch insert order2_log
+            List<List<Object>> listObjects = new ArrayList<>();
+
+//            stock, order_no, item_no, supp_no, order_date, delivery_date, orig_unit,
+//            sale_unit, ratio, price, orig_price, order_saleunit_qty, order_origunit_qty, send_rate, send_qty, tot_qty,
+//            effect_date, rec_price,rec_qty,  invoice_amt, invoice_no, invoice_date, rec_pe_no,
+//            pad_date, pad_clerk, trans_date, trans_clerk
+            listObjects.add(Arrays.asList("SS", "10601003", "ODO50", 1, "D0000095", "1060103", "1060110", "TAB",
+                                          "TAB", 1, 1.66, 1.66, 4000, 4000, 0, 0, 4000,
+                                          "1061201", 1.66, 4000, 5000, "T111111", "1060110", "300983",
+                                          "1060828", "KSPH", "1060829", "KSPH"));
+            listObjects.add(Arrays.asList("SS", "10601003", "ODP",   2, "D0000095", "1060103", "1060110", "TAB",
+                                          "TAB", 1, 7.51, 7.51,15000,15000, 0, 0,15000,
+                                          "1061201", 7.51,15000,105000, "T111111", "1060110", "2527",
+                                          "1060828", "KSPH", "1060829", "KSPH"));
+
+            // 1. set autoCommit -> false
+            // 2. execute batch insert
+            // 3. check if insert all success
+            // 4. if all success ? commit : rollback
+            // 5. set autoCommit -> true
+            setAutoCommitFalse(myConnection);
+            List<Integer> updateCounts = order.batchInsertOrder2Log(listObjects);
+            System.out.printf("Update count %s%n", updateCounts);
+
+            if (updateCounts.size() == listObjects.size() && !updateCounts.contains(Statement.EXECUTE_FAILED)) {
+                commitConnection(myConnection);
+            } else {
+                rollbackConnection(myConnection);
+            }
+            setAutoCommitTrue(myConnection);
+
+        } catch (BatchUpdateException bex) {
+            JDBCUtilities.printBatchUpdateException(bex);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

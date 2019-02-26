@@ -1,0 +1,146 @@
+/**
+ * 
+ */
+ 
+ /***UD 用藥紀錄***/
+ 
+ var jqGridUdData = function(tableName,pagerName,arrayData){
+	 	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: 400,
+	    colModel: [
+	        { label: '序', name: 'rec_count', width: 40,key:true},
+	        { label: '用藥名稱', name: 'full_name',width: 100},
+	        { label: '單次量', name: 'qty', width: 50},
+			{ label: '單位', name: 'unit', width: 50},
+	        { label: '非常規', name: 'unuse', width: 50},
+	        { label: '常規用法', name: 'use', width: 50},
+			{ label: '單位', name: 'use_name_e', width: 50},
+			{ label: '總量', name: 'tqty', width: 50},
+			{ label: '單位', name: 'unit', width: 50},
+			{ label: '途徑', name: 'method_name_e', width: 50},
+			{ label: '開始日期', name: 'start_date', width: 50},
+			{ label: '時間', name: 'start_time', width: 50},
+			{ label: 'DC日期', name: 'end_date', width: 50},
+			{ label: '時間', name: 'end_time', width: 50}
+			
+	      
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+//	    onSelectRow:getSelectedRow,
+	    width: null,
+	    shrinkToFit: true,
+	    sortable:true,  //可否拖曳排序
+		pager: pagerName
+		
+		
+	});
+	$(tableName).jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {data: arrayData});
+	$(tableName).trigger('reloadGrid');
+//	$('#currentList').show();
+//	$('#chartBaseList').hide();
+	function getSelectedRow() {
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	  /**  if (rowKey){        
+	    	PatObj.chart_no = rowKey;
+	    	showLoading();
+	    	ajax_getChartByChartNo();
+	    	$('#collapseMain').collapse('show');
+	    	setPageVisible("queryPage",false);
+	    	setPageVisible("mainPage",true);
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }**/
+	}
+ }
+ 
+
+ 
+ 
+   function formatDateTime(cellValue, options, rowObject) {
+	   if(cellValue === undefined || cellValue === null||cellValue=="[object Window]"){
+		   return "";
+		   
+	   }else{
+  			if(cellValue.length==7){
+	   			 var y = cellValue.substring(0,3);
+	   			 var m = cellValue.substring(3,5);
+	   			 var d = cellValue.substring(5,7);
+//	   			 console.log(y+"/"+m+"/"+d);
+	   				return y+"/"+m+"/"+d;
+	   				
+	   			}else if(cellValue.length==6){
+	   			 var hh = cellValue.substring(0,2);
+	   			 var mm = cellValue.substring(2,4);
+	   			 var ss = cellValue.substring(4,6);
+//	   			 console.log(hh+":"+mm+":"+ss);
+	   				return hh+":"+mm+":"+ss;
+	   				
+	   			}else{
+	   			 var hh = cellValue.substring(0,2);
+	   			 var mm = cellValue.substring(2,4);
+//	   			 console.log(hh+":"+mm);
+	   				return hh+":"+mm;
+	   				
+	   			}
+	   }
+	  
+            };
+						
+
+function jqGrid_outNoteChangeBed(tableName,pagerName,arrayData){	//出院病摘轉床紀錄
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: 250,
+	    colModel: [
+	        { label: '轉床日期', name: 'change_date', width: 40, formatter: formatDateTime,key:true,searchoptions: {
+                sopt: ["ge","le","eq","cn"] 
+			} },
+	        { label: '轉床時間', name: 'change_time', formatter: formatDateTime, width: 40 ,searchoptions: {
+                // show search options
+                sopt: ["ge","le","eq","cn"] 
+			} },
+	        { label: '科別', name: 'div_name', width: 50},
+	        { label: '床位號碼', name: 'to_bed_no', width: 50 ,searchoptions: {
+                // show search options
+                sopt: ["ge","le","eq","cn"] 
+			} },
+	        { label: '醫師', name: 'to_doctor', width: 50}
+	      
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+//	    onSelectRow:getSelectedRow,
+	    width: null,
+	    shrinkToFit: true,
+	    sortable:true,  //可否拖曳排序
+	    caption: "轉科(床)",
+		pager: pagerName
+		
+		
+	});
+	$(tableName).jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, searchOperators:true,defaultSearch: "cn" });
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {data: arrayData});
+	$(tableName).trigger('reloadGrid');
+//	$('#currentList').show();
+//	$('#chartBaseList').hide();
+	function getSelectedRow() {
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	  /**  if (rowKey){        
+	    	PatObj.chart_no = rowKey;
+	    	showLoading();
+	    	ajax_getChartByChartNo();
+	    	$('#collapseMain').collapse('show');
+	    	setPageVisible("queryPage",false);
+	    	setPageVisible("mainPage",true);
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }**/
+	}
+}

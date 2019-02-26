@@ -1,0 +1,327 @@
+var zIndex = 10;
+var element; 
+var pageIndex = 0;
+
+function resizePage(id){
+	//$('#' + id).css('max-height',800);
+	if(id == "mainPage"){
+		$('#' + id).find('.pre-scrollable').css('height',userHeight - 330 + 'px').css('max-height',userHeight - 330 + 'px');
+//		$('#' + id).find('.pre-scrollable').css('height',userHeight -320 + 'px').css('max-height',userHeight -320 + 'px');
+		pageHeight = $("#mainPage").height();
+		pageWidth = $("#mainPage").width();
+	}else{		
+		$('#' + id).css('min-height', pageHeight +'px').css('max-height', pageHeight +'px');
+		$('#' + id).css('min-width', pageWidth +'px').css('max-width', pageWidth +'px');
+	}	
+	//alert("resizing" + id);
+}
+
+//可拖曳
+function popUpPageToggle(id,justshowFlag){	
+	if(justshowFlag == true){
+		zIndex += 1; 		
+		$('#' + id).css('z-index', zIndex);				
+		$('#' + id).draggable({ handle:'.header'});	
+		$('#' + id).addClass('freePage').addClass('popUp');	
+		$('#' + id).show();
+	}else if($('#'+ id).hasClass("ui-draggable")){	
+		$('#' + id).css('z-index', 0);
+		$('#' + id).removeClass('popUp').removeClass('freePage');
+		$('#' + id).draggable( "destroy" );		
+		$('#' + id).hide();
+	}else{
+		zIndex += 1; 		
+		$('#' + id).css('z-index', zIndex);				
+		$('#' + id).draggable({ handle:'.header'});	
+		$('#' + id).addClass('freePage').addClass('popUp');	
+		$('#' + id).show();
+	}	
+}
+
+//drag
+
+
+
+
+function popUpPageFixPos(id){
+//	console.log("popPage:"+id);
+	
+	zIndex += 1; 
+	$('#' + id).css('top', '65px');  //固定位置
+	$('#' + id).css('left', '15px'); //固定位置
+	//$('#' + id).css('height', pageHeight +'px').css('max-height', pageHeight +'px');
+	$('#' + id).css('z-index', zIndex);				
+	$('#' + id).draggable({ handle:'.header'});	
+	$('#' + id).addClass('freePage').addClass('popUp');
+	$('#' + id).show();
+	goTop(id);
+}
+
+function popUpPageNo(id){	
+	$('#' + id).css('z-index', 0);
+	$('#' + id).removeClass('popUp').removeClass('freePage');	
+	if($('#'+ id).hasClass("ui-draggable")){		
+		$('#' + id).draggable( "destroy" );		
+	}	
+	$('#' + id).hide();
+}
+
+var goTop = function(id){
+	if($('#' + id).hasClass( "popUp" ))
+	{
+		zIndex += 1;
+		$('#' + id).css('z-index', zIndex);
+	}	
+}
+
+var setPageVisible = function(page, visible) {	//***important****
+	if (visible == true) {
+		if($.inArray(page, visiPageArray) == -1)  //未顯示才 add to visiPageArray
+			visiPageArray.push(page);
+//		console.log("showPage:"+page);
+		$('#' + page).show();
+		
+	} else {
+		visiPageArray = $.grep(visiPageArray, function(value) {
+			return value != page;
+		});
+		popUpPageNo(page);
+		$('#' + page).hide();		
+	}
+	processPage();
+}
+
+var hideOtherPage = function(){
+	$.each( PageArray, function( index, value ){
+		if(value != "mainPage"){
+			popUpPageNo(value);
+		}
+	});
+}
+
+var closeOtherPage = function(){
+	$.each( PageArray, function( index, value ){
+		if(value != "mainPage"){
+			setPageVisible(value,false);
+		}
+	});
+}
+
+var processPage = function (){	//處理底部toolbar and PageResize
+			
+	$('#bottom-toolbar').html("");			
+	$.each( visiPageArray, function( index, value ) {
+		  //alert( key + ": " + value );	
+		  var title = $('#' + value + '_Title').html();	  
+		  if(title.length > 15)
+			  title = "<span title='" + title + "'>" + title.substr(0, 15) +"...</span>";// title.substr(0, 15)-->title.substr(0, 8)
+		  
+		  var btn;
+		  if(value == "mainPage"){ // col-xs-2 --> col-xs-1 縮小頁籤的寬度
+			  btn = '<div class="col-xs-2 ' + value + '" style="padding: 5px; ">' + 
+			  		'<a href="#' + value +'" class="btn btn-info btn-block" id="a_' + value +'"><span id="X_' + value +'" class="pull-right glyphicon glyphicon-remove hide"></span>'+ title+'</a>'	+			
+			  		'</div>';
+			  $('#bottom-toolbar').append(btn);
+				  
+			  $('#a_' + value).click(function() {
+				  hideOtherPage();
+			  });  
+		  }else{  //// col-xs-2 --> col-xs-1 縮小頁籤的寬度
+			  btn = '<div class="col-xs-2 ' + value + '" style="padding: 5px;">' +
+			  		'<a href="#' + value +'" class="btn btn-info btn-block" id="a_' + value +'"><span id="X_' + value +'" class="pull-right glyphicon glyphicon-remove"></span>'+ title+'</a>'	+			
+			  		'</div>';
+				 
+			  $('#bottom-toolbar').append(btn);
+				  
+			  $('#a_' + value).click(function() {		
+				  goTop(value);
+				  popUpPageToggle(value,true); //the second parameter is for not hide when clicked; 
+			  });
+				  
+			  $('#X_' + value).click(function() {
+				  closePage(value);
+			  });
+		  }	
+		  resizePage(value);		  
+	});	
+	resizeGrid();
+};
+
+var closePage = function(id){
+	setPageVisible(id, false);
+	collapseShow("mainPage");
+}
+
+var collapseHide = function(id){
+	$('#collapse_' + id).collapse('hide');
+}
+var collapseShow = function(id){
+	$('#collapse_' + id).collapse('show');
+}
+
+//查詢病患 method
+
+var callQuery = function(){
+	//collapseHide("mainPage");	
+	if ($('#currentList').is(":visible")
+			|| $('#chartBaseList').is(":visible")) {	//以查詢過則不再查詢
+
+	} else {
+		changeQueryTable();
+	}
+}
+
+var changeQueryTable = function(type) {
+	if (type == "chart_base") {
+		if (QueryObj.ptName == null && QueryObj.birth == null
+				&& QueryObj.tel == null && QueryObj.chartNo == null) {
+			alert("請至少輸入一項查詢資料");
+		} else {
+			showLoading();
+			ajax_getChartByChartNoPtNameBirthDateTel();
+		}		
+	} else {
+		if ($('#chk_queryOPD').is(":checked")) {
+			if ($('#input_OPDdays').val().length > 0
+					&& number_regex.test($('#input_OPDdays').val())) {
+				QueryObj.chkopd = true;
+				QueryObj.opddays = $('#input_OPDdays').val();
+				stateChange(true, '#input_OPDdays');
+			} else {
+				stateChange(false, '#input_OPDdays', "請輸入數字");
+			}
+		} else {
+			QueryObj.chkopd = false;
+		}
+
+		if ($('#chk_queryINP').is(":checked")) {
+			QueryObj.chkinp = true;
+			ajax_getPatientListDischarge();
+		} else {
+			QueryObj.chkinp = false;
+		}
+
+		if ($('#chk_queryDIS').is(":checked")) {
+			if ($('#input_DISdays').val().length > 0
+					&& number_regex.test($('#input_DISdays').val())) {
+				QueryObj.chkdis = true;
+				QueryObj.disdays = $('#input_DISdays').val();
+				stateChange(true, '#input_DISdays');
+			} else {
+				stateChange(false, '#input_DISdays', "請輸入數字");
+			}
+		} else {
+			QueryObj.chkdis = false;
+		}
+		mergeTable_PatList();
+		
+	}
+}
+
+var mergeTable_PatList = function() {
+	showLoading();
+	$.when(ajax_getPatientListOpd(), ajax_getPatientListInp(),
+			ajax_getPatientListDischarge()).done(
+			function(dataOpd, dataInp, dataDis) {
+				QueryPatArray =[];
+				if (QueryObj.chkopd) {
+					if (dataOpd[0].status == "Success") {
+						$.each(dataOpd[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataOpd[0].errorMessage;
+					}
+				}
+				if (QueryObj.chkinp) {
+					if (dataInp[0].status == "Success") {
+						$.each(dataInp[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataInp[0].errorMessage;
+					}
+				}
+				if (QueryObj.chkdis) {
+					if (dataDis[0].status == "Success") {
+						$.each(dataDis[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataDis[0].errorMessage;
+					}
+				}
+				jqGrid_PatList();								
+				hideLoading();
+				setPageVisible("queryPage", true);
+				popUpPageFixPos("queryPage");
+			});
+}
+
+
+//過濾手術
+var filterOpList = function(kind){
+	var myfilter = { groupOp: "AND", rules: []};
+	myfilter.rules.push({field:"code",op:"eq",data:kind});	
+	$("#OpList").setGridParam({
+		postData: { filters: JSON.stringify(myfilter)},
+		search:true
+	}).trigger('reloadGrid',[{page:1}]);
+}
+
+
+
+//ajax fail 查無資料 清除 jqGrid data
+function noDataFound(ajaxErrMsg,tableID){			
+	 if(ajaxErrMsg.includes('No Data Found')){
+		  $("#" + tableID).jqGrid("clearGridData", true).trigger("reloadGrid");	 
+	  }
+}
+
+//清除 jqGird Data
+function clearGridData(tableID){
+	$("#" + tableID).jqGrid("clearGridData", true).trigger("reloadGrid");		
+}
+
+var findSameCode = function(array,codeName){
+	
+	var count= 0;
+	for(var i=0;i<array.length;i++){
+		if(array[i]==codeName){
+			count++;
+		}
+	}	
+	return count;  
+}
+
+
+
+
+
+//設定 html 文字
+function setHtml(tag,data){
+	//用innerText 方可吃傳來字串中/n轉成<br/>
+	document.getElementById(tag).innerText=data;	
+}
+
+//過濾API 傳來的null空值
+var filterNull = function(value) {
+//	return value==null||value=="[object Window]"?"":value;
+	return (value === undefined || value === null||value=="[object Window]"?"":value); 
+}
+
+
+///----測試中  動態新增
+var giveMePanel = function(id,title){
+	zIndex +=1;
+	return  '<div id="' + id +'" class="freePage" onclick="goTop(\'' + id + '\');">' 
+			+'<div class="panel panel-success">'
+    		+ '<div class="panel-heading"><span id="' + id + '_Title">' + title +'</span>'
+    		+'<div class="pull-right">'
+			+ '<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle(\'' + id + '\');"><span class="glyphicon glyphicon-new-window"></span></button>'
+			+ '<button type="button" class="btn btn-link btn-close" onclick="closePage(\'' + id + '\');"><span class="glyphicon glyphicon-remove"></span></button>'
+			+ '</div></div>'
+    		+'<div class="panel-body"></div>'
+    		+'</div>';
+}
+

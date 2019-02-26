@@ -1,0 +1,47 @@
+		
+	 
+	     <div class="panel panel-info">
+		
+		<div class="panel-heading clearfix header">
+		      <div class="panel-title pull-left panel-tool">
+			<span id="chgBedPage_Title">病房紀錄</span>
+			<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+		      </div>
+		        <div class="pull-right">
+			<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('chgBedPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+			<button type="button" class="btn btn-link btn-close" onclick="closePage('chgBedPage')"><span class="glyphicon glyphicon-remove"></span></button>
+		       </div>
+		</div>
+		<!-- <div id="collapse_labPage" class="panel-collapse collapse in"> -->
+	               <div class="panel-body" id="chgBedBody">
+		        <!-- <div class="row" style="display:none;">
+			 <div class="col-sm-12 form-inline">
+			     <div style="display: inline" class="right" id="ChgBedMaster">
+				<button class="btn btn-primary" id="ChgBedMasterDate" onclick="ChgBedListByDate()">病房紀錄 <span class="badge">0</span></button> 
+				   <input value="5" id="ChgBedYear" type="text" class="form-control input-sm" style="max-width: 48px;"> <label for="ChgBedYear">年</label>
+				<button class="btn btn-primary" id="ChgBedMasterYear" onclick="ChgBedListByYear()">5年病房紀錄 <span class="badge">0</span></button>
+				<button class="btn btn-primary" id="ChgBedMasterAll" onclick="ChgBedListByAll()">全部病房紀錄 <span class="badge">0</span></button> &emsp;
+			     </div>
+			      &emsp;
+			     <div style="display: inline" id="ChgBedDetail"></div>
+			</div>
+		      </div>-->
+		<!--  <hr style="margin: 10px;display:none;" />-->
+		      <div class="row">
+			<div class="col-sm-12"> <!-- 病房紀錄  版面全滿 col-sm-3 -> col-sm-12 -->
+			    <table id="ChgBedList" class="table-hover"></table>
+			    <div id="ChgBedList_Pager"></div>
+			</div>
+			<!-- <div class="col-sm-9" style="display:none;">
+			   <div class="panel panel-info">
+		                <div class="panel-heading" id="ChgBedListHead">病房紀錄標題</div>
+			         <div class="panel-body pre-scrollable" id="ChgBedListBody"></div>
+			   </div>
+						
+			</div>-->
+					
+		        </div>
+		     </div>
+				<!-- </div> -->
+	  </div>
+		

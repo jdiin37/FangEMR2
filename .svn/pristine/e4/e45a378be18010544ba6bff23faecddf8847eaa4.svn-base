@@ -1,0 +1,118 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.*;
+import java.util.*;
+import static library.utility.JDBCUtilities.*;
+
+/**
+ * Created by jeffy on 2017/8/21.
+ */
+public class Invapprec {
+    private Connection con;
+
+    public Invapprec(Connection con) {
+        this.con = con;
+    }
+
+    public List<Map<String, Object>> queryInvapprecBySerialIdAndKindTypeAndStock(String serialId, String kindType, String stock) throws SQLException {
+        String queryString =
+                "SELECT a.serialid, a.kind_type, a.stock, a.kind_no, a.check_flag, a.create_date, a.create_clerk,   " +
+                "       b.emp_name create_clerk_name, a.update_date, a.update_clerk, c.emp_name update_clerk_name  " +
+                "  FROM invapprec a, employee b, employee c " +
+                " WHERE serialid = ? " +
+                "   AND kind_type = ? " +
+                "   AND stock = ? " +
+                "   AND a.create_clerk = b.emp_no(+) " +
+                "   AND a.update_clerk = c.emp_no(+) " +
+                " ORDER BY serialid, kind_type, stock, kind_no ";
+
+
+        EntityFactory invapprecEntity = new EntityFactory(con, queryString);
+        return invapprecEntity.findMultiple(new Object[]{serialId, kindType, stock});
+    }
+
+    public Map<String, Object> queryInvapprecBySerialIdAndKindTypeAndStockAndKindNo(String serialId, String kindType, String stock, String kindNo) throws SQLException {
+        String queryString =
+                "SELECT a.serialid, a.kind_type, a.stock, a.kind_no, a.check_flag, a.create_date, a.create_clerk,   " +
+                "       b.emp_name create_clerk_name, a.update_date, a.update_clerk, c.emp_name update_clerk_name  " +
+                "  FROM invapprec a, employee b, employee c " +
+                " WHERE serialid = ? " +
+                "   AND kind_type = ? " +
+                "   AND stock = ? " +
+                "   AND kind_no = ? " +
+                "   AND a.create_clerk = b.emp_no(+) " +
+                "   AND a.update_clerk = c.emp_no(+) " +
+                " ORDER BY serialid, kind_type, stock, kind_no ";
+        
+        List<Map<String, Object>> result = queryInvapprecBySerialIdAndKindTypeAndStock(serialId, kindType, stock);
+
+        EntityFactory invapprecEntity = new EntityFactory(con, queryString);
+        return invapprecEntity.findSingle(new Object[]{serialId, kindType, stock, kindNo});
+    }
+
+    public List<Integer> batchInsertInvapprec(List<List<Object>> listObjects) throws SQLException {
+        String upsertString =
+                "INSERT INTO invapprec(" +
+                "       serialid, kind_type, stock, kind_no, check_flag, create_date, create_clerk) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?) ";
+
+        EntityFactory invapprecEntity = new EntityFactory(con, upsertString);
+        return invapprecEntity.batchUpsert(listObjects);
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            Invapprec invapprec = new Invapprec(myConnection);
+
+            System.out.println("\nInvapprec.queryInvapprecBySerialIdAndKindTypeAndStock serialId='H2NPCV0011382TA' kindType='FREEZE' stock='SS' ListMap: " +
+                    invapprec.queryInvapprecBySerialIdAndKindTypeAndStock("H2NPCV0011382TA", "FREEZE", "SS"));
+
+            System.out.println("\nInvapprec.queryInvapprecBySerialIdAndKindTypeAndStock serialId='H2NPCV0011382TA' kindType='FREEZE' stock='SS' JsonArray: " +
+                    MapUtil.listMapToJsonArray(invapprec.queryInvapprecBySerialIdAndKindTypeAndStock("H2NPCV0011382TA", "FREEZE", "SS")));
+
+            System.out.println("\nInvapprec.queryInvapprecBySerialIdAndKindTypeAndStockAndKindNo serialId='H2NPCV0011382TA' kindType='FREEZE' stock='SS' kindNo='10107001' Map: " +
+                    invapprec.queryInvapprecBySerialIdAndKindTypeAndStockAndKindNo("H2NPCV0011382TA", "FREEZE", "SS", "10107001"));
+            System.out.println("\nInvapprec.queryInvapprecBySerialIdAndKindTypeAndStockAndKindNo serialId='H2NPCV0011382TA' kindType='FREEZE' stock='SS' kindNo='10107001' JsonObject: " +
+                    MapUtil.mapToJsonObject(invapprec.queryInvapprecBySerialIdAndKindTypeAndStockAndKindNo("H2NPCV0011382TA", "FREEZE", "SS", "10107001")));
+
+            // start batch insert invapprec
+            List<List<Object>> listObjects = new ArrayList<>();
+            listObjects.add(Arrays.asList("H2NPCV0011382TA1", "FREEZE", "SS", "10107001", "", "1060821", "KSPH"));
+            listObjects.add(Arrays.asList("H2NPCV0011382TA1", "FREEZE", "SS", "10108001", "", "1060821", "KSPH"));
+
+            // 1. set autoCommit -> false
+            // 2. execute batch insert
+            // 3. check if insert all success
+            // 4. if all success ? commit : rollback
+            // 5. set autoCommit -> true
+            setAutoCommitFalse(myConnection);
+            List<Integer> updateCounts = invapprec.batchInsertInvapprec(listObjects);
+            System.out.printf("Update count %s%n", updateCounts);
+
+            if (updateCounts.size() == listObjects.size() && !updateCounts.contains(Statement.EXECUTE_FAILED)) {
+                commitConnection(myConnection);
+            } else {
+                rollbackConnection(myConnection);
+            }
+            setAutoCommitTrue(myConnection);
+
+        } catch (BatchUpdateException bex) {
+            JDBCUtilities.printBatchUpdateException(bex);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

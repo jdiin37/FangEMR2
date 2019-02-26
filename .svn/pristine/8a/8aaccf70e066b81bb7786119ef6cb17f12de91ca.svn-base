@@ -1,0 +1,298 @@
+package library.utility;
+
+import com.google.gson.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.*;
+
+
+/**
+ * Created by jeffy on 2017/4/14.
+ */
+public class MapUtil {
+    public static final String VALUE_SUCCESS = "Success";
+    public static final String VALUE_FAILURE = "Failure";
+    public static final String KEY_STATUS  = "status";
+    public static final String KEY_RESULTSET = "resultSet";
+    public static final String KEY_DETAILDATA = "detailData";
+    public static final String KEY_ERRORMESSAGE = "errorMessage";
+
+
+    public static int castToInt(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).intValue();
+        if (obj instanceof BigInteger) return ((BigInteger)obj).intValue();
+        if (obj instanceof Long) return ((Long)obj).intValue();  // be careful long not > 2147483647
+        if (obj instanceof Integer) return (Integer)obj;
+        return 0;
+    }
+
+    public static Integer castToInteger(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).intValue();
+        if (obj instanceof BigInteger) return ((BigInteger)obj).intValue();
+        if (obj instanceof Long) return ((Long)obj).intValue();  // be careful long not > 2147483647
+        if (obj instanceof Integer) return (Integer)obj;
+        return null;
+    }
+
+    public static long castToLong(Object obj) {
+        if (obj == null) return 0L;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).longValue();
+        if (obj instanceof Float) return ((Float)obj).longValue();
+        if (obj instanceof Double) return ((Double)obj).longValue();
+        if (obj instanceof Long) return (Long)obj;
+        if (obj instanceof Integer) return ((Integer)obj).longValue();
+        return 0L;
+    }
+
+    public static Long castToLongObj(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).longValue();
+        if (obj instanceof Float) return ((Float)obj).longValue();
+        if (obj instanceof Double) return ((Double)obj).longValue();
+        if (obj instanceof Long) return (Long)obj;
+        if (obj instanceof Integer) return ((Integer)obj).longValue();
+        return null;
+    }
+
+    public static double castToDouble(Object obj) {
+        if (obj == null) return 0.0D;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).doubleValue();
+        if (obj instanceof Double) return (Double)obj;
+        if (obj instanceof Float) return ((Float)obj).doubleValue();
+        if (obj instanceof Long) return ((Long)obj).doubleValue();
+        if (obj instanceof Integer) return ((Integer)obj).doubleValue();
+        return 0.0D;
+    }
+
+    public static Double castToDoubleObj(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).doubleValue();
+        if (obj instanceof Double) return (Double)obj;
+        if (obj instanceof Float) return ((Float)obj).doubleValue();
+        if (obj instanceof Long) return ((Long)obj).doubleValue();
+        if (obj instanceof Integer) return ((Integer)obj).doubleValue();
+        return null;
+    }
+
+    public static float castToFloat(Object obj) {
+        if (obj == null) return 0.0F;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).floatValue();
+        if (obj instanceof Double) return ((Double)obj).floatValue();
+        if (obj instanceof Float) return (Float)obj;
+        if (obj instanceof Long) return ((Long)obj).floatValue();
+        if (obj instanceof Integer) return ((Integer)obj).floatValue();
+        return 0.0F;
+    }
+
+    public static Float castToFloatObj(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof BigDecimal) return ((BigDecimal)obj).floatValue();
+        if (obj instanceof Double) return ((Double)obj).floatValue();
+        if (obj instanceof Float) return (Float)obj;
+        if (obj instanceof Long) return ((Long)obj).floatValue();
+        if (obj instanceof Integer) return ((Integer)obj).floatValue();
+        return null;
+    }
+
+    public static String castToStr(Object obj) {
+        if (obj == null) return null;
+        return (String) obj;
+    }
+
+    public static Object nullToEmpty(Object obj) {
+        return obj == null ? "" : obj;
+    }
+
+    public static Object emptyToNull(Object obj) {
+        return obj == "" ? null : obj;
+    }
+
+    public static Object getJsonValueAsObject(JsonElement jsonElem) {
+        Object result = null;
+        if (jsonElem.isJsonNull()) {
+            result = null;
+        }
+        if (jsonElem.isJsonPrimitive()) {
+            if (jsonElem.getAsJsonPrimitive().isBoolean()) {
+                result = jsonElem.getAsBoolean();
+            }
+            if (jsonElem.getAsJsonPrimitive().isNumber()) {
+                result = jsonElem.getAsBigDecimal();
+            }
+            if (jsonElem.getAsJsonPrimitive().isString()) {
+                result = jsonElem.getAsString();
+            }
+        }
+
+        if (jsonElem.isJsonObject()) {
+            result = jsonElem.getAsJsonObject();
+        }
+
+        if (jsonElem.isJsonArray()) {
+            result = jsonElem.getAsJsonArray();
+        }
+
+        return result;
+    }
+
+    public static JsonArray listMapToJsonArray(List<Map<String, Object>> listMap) {
+        JsonArray jsonArray = new JsonArray();
+        for (Map<String, Object> map : listMap) {
+            jsonArray.add(mapToJsonObject(map));
+        }
+        return jsonArray;
+    }
+
+    public static JsonObject mapToJsonObject(Map<String, Object> map) {
+        JsonObject jsonObject = new JsonObject();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            //jsonObject.addProperty(entry.getKey(), String.valueOf(entry.getValue()));
+            if (entry.getValue() == null) {
+                jsonObject.add(entry.getKey(), JsonNull.INSTANCE);
+            }
+            if (entry.getValue() instanceof String) {
+                jsonObject.addProperty(entry.getKey(), (String)entry.getValue());
+            }
+            if (entry.getValue() instanceof Integer) {
+                jsonObject.addProperty(entry.getKey(), (Integer)entry.getValue());
+            }
+            if (entry.getValue() instanceof Long) {
+                jsonObject.addProperty(entry.getKey(), (Long)entry.getValue());
+            }
+            if (entry.getValue() instanceof BigInteger) {
+                jsonObject.addProperty(entry.getKey(), (BigInteger)entry.getValue());
+            }
+            if (entry.getValue() instanceof Float) {
+                jsonObject.addProperty(entry.getKey(), (Float)entry.getValue());
+            }
+            if (entry.getValue() instanceof Double) {
+                jsonObject.addProperty(entry.getKey(), (Double)entry.getValue());
+            }
+            if (entry.getValue() instanceof BigDecimal) {
+                jsonObject.addProperty(entry.getKey(), (BigDecimal)entry.getValue());
+            }
+            if (entry.getValue() instanceof Number) {
+                jsonObject.addProperty(entry.getKey(), (Number)entry.getValue());
+            }
+            if (entry.getValue() instanceof Boolean) {
+                jsonObject.addProperty(entry.getKey(), (Boolean)entry.getValue());
+            }
+            if (entry.getValue() instanceof Character) {
+                jsonObject.addProperty(entry.getKey(), (Character) entry.getValue());
+            }
+            if (entry.getValue() instanceof Timestamp) {
+                jsonObject.addProperty(entry.getKey(), entry.getValue().toString());
+            }
+            if (entry.getValue() instanceof Date) {
+                jsonObject.addProperty(entry.getKey(), entry.getValue().toString());
+            }
+            if (entry.getValue() instanceof Time) {
+                jsonObject.addProperty(entry.getKey(), entry.getValue().toString());
+            }
+            // need to add more type ...
+        }
+        return jsonObject;
+    }
+
+    public static JsonObject getSuccessResult(Object result) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty(MapUtil.KEY_STATUS, MapUtil.VALUE_SUCCESS);
+
+        if (result instanceof String) {
+            jsonObject.addProperty(MapUtil.KEY_RESULTSET, (String)result);
+        } else {
+            jsonObject.add(MapUtil.KEY_RESULTSET, (JsonElement)result);
+        }
+        return jsonObject;
+    }
+
+    public static JsonObject getFailureResult(Object result) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty(MapUtil.KEY_STATUS, MapUtil.VALUE_FAILURE);
+        if (result instanceof String) {
+            jsonObject.addProperty(MapUtil.KEY_ERRORMESSAGE, (String)result);
+        } else {
+            jsonObject.add(MapUtil.KEY_ERRORMESSAGE, (JsonElement)result);
+        }
+        return jsonObject;
+    }
+
+    public static Map<String, Object> jsonObjectToMap(JsonObject jsonObject) {
+        Map<String, Object> object = new LinkedHashMap<>();
+        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+            object.put(entry.getKey(), getJsonValueAsObject(entry.getValue()));
+        }
+        return object;
+    }
+
+    public static List<Map<String, Object>> jsonArrayToListMap(JsonArray jsonArray) {
+        List<Map<String, Object>> objects = new ArrayList<>();
+        for (JsonElement e : jsonArray) {
+            objects.add(jsonObjectToMap(e.getAsJsonObject()));
+        }
+        return objects;
+    }
+
+    public static JsonObject strToJsonObject(String jsonString) throws JsonSyntaxException {
+        return new JsonParser().parse(jsonString).getAsJsonObject();
+    }
+
+    public static JsonArray strToJsonArray(String jsonString) throws JsonSyntaxException {
+        return new JsonParser().parse(jsonString).getAsJsonArray();
+    }
+
+    public static <K, V> MapBuilder<K, V> asMap(K key, V value) {
+        return new MapBuilder<K, V>().entry(key, value);
+    }
+
+    public static class MapBuilder<K, V> extends LinkedHashMap<K, V> {
+        public MapBuilder<K, V> entry(K key, V value) {
+            this.put(key, value);
+            return this;
+        }
+    }
+
+
+    public static void main(String[] args) {
+        BigDecimal bd = new BigDecimal(Integer.MAX_VALUE + 1.99);
+        Double d = new Double(Integer.MAX_VALUE + 1.99);
+        Float f = new Float(Integer.MAX_VALUE + 1.99);
+        Long l = new Long(Integer.MAX_VALUE + 1);
+        Integer i = new Integer(Integer.MAX_VALUE - 1);
+
+        System.out.println("castToDouble BigDecimal:Double " + bd + "=" + castToDouble(bd));
+        System.out.println("castToFloat BigDecimal:Float " + bd + "=" + castToFloat(bd));
+        System.out.println("castToLong BigDecimal:Long " + bd + "=" + castToLong(bd));
+        System.out.println("castToInt BigDecimal:Integer " + bd + "=" + castToInt(bd));
+
+        System.out.println("castToFloat Double:Float " + d + "=" + castToFloat(d));
+        System.out.println("castToLong Double:Long " + d + "=" + castToLong(d));
+        System.out.println("castToInt Double:Integer " + d + "=" + castToInt(d));
+
+        System.out.println("castToLong Float:Long " + f + "=" + castToLong(f));
+        System.out.println("castToInt Float:Integer " + f + "=" + castToInt(f));
+
+        System.out.println("castToInt Long:Integer " + f + "=" + castToInt(l));
+
+        Map<String, Object> map = MapUtil.asMap("startPos", (Object)0)
+                .entry("endPos", 0)
+                .entry("length", 0)
+                .entry("itemValue", "13500");
+        System.out.println("\nMapUtil.asMap: " + map);
+        System.out.print("\nLength: " + castToInt(map.get("lenth")));
+        System.out.print("\nStartPos: " + castToInt(map.get("startPos")));
+        System.out.print("\nEndPos: " + castToInt(map.get("endPos")));
+        System.out.print("\nitemValue: " + map.get("itemValue"));
+
+        String str1 = "{\"idNo\":\"ORCL\",\"sessionID\":\"1806\",\"method\":\"getPatinpListInp\"}";
+
+        JsonObject jsObj = strToJsonObject(str1);
+        System.out.println("\nMapUtil.strToJsonObject: " + jsObj.toString());
+
+    }
+}

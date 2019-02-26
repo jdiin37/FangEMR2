@@ -1,0 +1,237 @@
+/**
+ * 出院病摘畫面 專用 js檔
+ */
+var OutNoteObj = { // 出院病摘物件
+	OutNoteYear : 5,
+	OutNoteSDate : "",
+	OutNoteEDate : "",
+	viewType :""
+	
+};
+
+function renderOutNote(){
+			
+	$(document).on('change', '#OutNoteYear', function(event) {
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#OutNoteYear');
+			PatObj.recentYear = $(this).val();
+			//showLoading();
+			OutNoteListByYear();	//尚未完成 1070125
+		} else {
+			stateChange(false, '#OutNoteYear', "請輸入1-100之間");
+		}
+	});	
+}
+
+
+/**
+ * 出院病摘 (尚未完成) 尚未接API
+ * */
+var callOutNote = function(flag){
+	
+	OutNoteObj.OutNoteYear = PatObj.recentYear;
+	OutNoteObj.OutNoteSDate = ViewListObj.sdate;
+	OutNoteObj.OutNoteEDate = ViewListObj.edate;
+	OutNoteObj.viewType = ViewListObj.viewType;
+	
+	if(flag == "date"){		
+		$('#OutNoteMasterDate').show();
+		document.getElementById('OutNoteMasterDate').setAttribute("title",OutNoteObj.OutNoteSDate+"-"+OutNoteObj.OutNoteEDate);
+		OutNoteListByDate();
+	}else if(flag =="year"){
+		PatObj.recentYear = $("#recentYear").val();
+		$('#OutNoteMasterDate').hide();
+		OutNoteListByYear();		
+	}else{
+		$('#OutNoteMasterDate').hide();		
+		OutNoteListByAll();		
+	}
+		
+		 setPageVisible("outNotePage", true);
+		 popUpPageFixPos("outNotePage");
+		 
+		 var title = ViewListObj.sdate + "-" +ViewListObj.edate + "&nbsp;" + (ViewListObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-出院病摘";
+		 title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+		 $('#outNotePage_Title').html(title);	//設定title內容
+	
+};
+
+
+
+
+//呼叫 OutNote 單次住院紀錄  日期範圍清單
+var OutNoteListByDate = function(){
+	//取得 日期範圍的 OutNote
+	alert("建置中---OutNoteListByDate");
+	$('#OutNoteYear').val(PatObj.recentYear);
+//	getOutNoteList("Date");
+};
+
+var OutNoteListByYear = function(){
+	//取得 年範圍的 OutNote
+//	var focusYear = $("#FocusYear").val();
+//	console.log(PatObj.recentYear);
+//	$('#FocusYear').val(PatObj.recentYear);
+	$('#OutNoteMasterYear').html( PatObj.recentYear+ '年出院病摘&nbsp;<span class="badge">'+ "test" + '</span>');
+	alert("建置中---OutNoteListByYear");
+//	getOutNoteList("Year");
+};
+
+var OutNoteListByAll = function(){
+	//取得 全部範圍的 OutNote
+	alert("建置中---OutNoteListByAll");
+//	getOutNoteList("All");
+};
+
+//取得出院病摘清單
+var getOutNoteList = function(range){
+	
+	var OutNoteArray = [];
+	$.when(ajax_getOutNoteListByChartNo(range)).done(function(data){			
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {		
+				OutNoteArray.push(obj);
+			});		
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}	
+//		jqGrid_XrayList();//需替換此行 function,改為 jqGrid_OutNoteList();		
+//		if(XrayKind != undefined)
+//		{
+//			filterXrayList(XrayKind);
+//			XrayKind = undefined;
+//		}
+//		hideLoading(); 
+//		setPageVisible("outnotePage", true);
+//		popUpPageFixPos("outnotePage");
+	});
+	
+};
+
+//使用者點下 出院病摘清單中的某一行 後 呼叫API 取得該次出院病摘的詳細資料
+function render_getOutNote(index, value) {
+	switch(index){
+		case "chart_no":
+		setHtml("outNote_chartNo",filterNull(value));
+		break;
+		
+		case "serno":
+		setHtml("outNote_serno",filterNull(value));
+		break;
+	
+		case "trans_in":
+		setHtml("outNote_transIn",filterNull(value));
+//		setHtml("outNote_transIn",(value));
+		break;
+		
+		case "pt_name":
+		setHtml("outNote_ptName",filterNull(value));
+		break;
+		
+		case "id_no":
+		setHtml("outNote_idNo",filterNull(value));
+		break;
+		
+		case "address":
+		setHtml("outNote_address",filterNull(value));
+		break;
+		
+		case "birth_date":
+		setHtml("outNote_birthDate",filterNull(formatDateTime(value)));
+		break;
+		
+		case "complete_date":
+		setHtml("outNote_finishDay",filterNull(formatDateTime(value)));
+		break;
+		
+		case "ckin_date":
+		setHtml("outNote_ckinDate",filterNull(formatDateTime(value)));
+		break;
+			
+		case "div_name":
+		setHtml("outNote_divName",filterNull(value));
+		break;
+		
+		case "bed_no":
+		setHtml("outNote_bedNo",filterNull(value));
+		break;
+		
+		case "discharge_date":
+		setHtml("outNoteDisDate",filterNull(formatDateTime(value)));
+		break;
+			
+		case "inout_day":
+		setHtml("outNoteInoutDay",filterNull(value));
+		break;
+			
+		case "out_name":
+		setHtml("outNoteOutName",filterNull(value));
+		break;
+			
+		case "in_diagnosis":
+			setHtml("outNoteInDia",filterNull(value));
+		break;
+			
+		case "out_diagnosis":
+		setHtml("outNoteOutDia",filterNull(value));
+		break;
+		
+		case "cc":
+		setHtml("outNoteCC",filterNull(value));
+		break;
+			
+		case "ph":
+		setHtml("outNotePH",filterNull(value));
+		break;
+			
+		case "ph1":
+		setHtml("outNotePH1",filterNull(value));
+		break;
+			
+		case "pe":
+		setHtml("outNotePE",filterNull(value));
+		break;
+		
+		case "or_desc":
+		setHtml("outNoteOrDesc",filterNull(value));
+		break;
+			
+		case "treatment":
+		setHtml("outNoteTreatment",filterNull(value));
+		break;
+			
+		case "complication":
+		setHtml("outNoteComp",filterNull(value));
+		break;
+			
+		case "general_lab":
+		setHtml("outNoteGeneraLab",filterNull(value));
+		break;
+			
+		case "special_lab":
+		setHtml("outNoteSpecialLab",filterNull(value));
+		break;
+
+		case "xray_rep":
+		setHtml("outNoteXrayRep",filterNull(value));
+		break;
+			
+		case "pathologic_rep":
+		setHtml("outNotePathologicRep",filterNull(value));
+		break;
+			
+		case "other":
+		setHtml("outNoteOther",filterNull(value));
+		break;
+			
+		case "out_directory":
+		setHtml("outNoteOutDirec",filterNull(value));
+		break;	
+default:
+break;
+			
+	}
+}
+
+
+

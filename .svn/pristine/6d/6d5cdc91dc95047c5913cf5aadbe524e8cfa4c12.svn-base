@@ -1,0 +1,139 @@
+		
+	 
+	     <div class="panel panel-info">
+		
+		<div class="panel-heading clearfix header">
+		      <div class="panel-title pull-left panel-tool">
+			<span id="progressPage_Title" class="EMRPurpleTitle">病程紀錄</span>
+			<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+		      </div>
+		        <div class="pull-right">
+			<!--  <button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('progressPage')"><span class="glyphicon glyphicon-new-window"></span></button>-->
+			<button type="button" class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('progressPage')"></button>
+			<button type="button" class="btn btn-link btn-close" onclick="closePage('progressPage')"><span class="glyphicon glyphicon-remove"></span></button>
+		       </div>
+		</div>
+		<!-- <div id="collapse_labPage" class="panel-collapse collapse in"> -->
+	               <div class="panel-body">
+		        <div class="row" >
+			 <div class="col-sm-12 form-inline">
+			     <div style="display:inline;"  id="ProgressMaster">
+				<button class="btn btn-primary" id="ProgressMasterDate" onclick="ProgressListByDate()">病程紀錄 <span class="badge">0</span></button> 
+				   <input value="5" id="ProgressYear" type="text" class="form-control input-sm input-center" style="max-width: 48px;"> <label class="EMRLabel" for="ProgressYear">年</label>
+				<button class="btn btn-primary" id="ProgressMasterYear" onclick="ProgressListByYear()">5年病程紀錄 <span class="badge">0</span></button>
+				<button class="btn btn-primary" id="ProgressMasterAll" onclick="ProgressListByAll()">全部病程紀錄 <span class="badge">0</span></button> &emsp;
+			     </div>
+			      &emsp;
+			     <div style="display: inline" id="ProgressDetail"></div>
+			</div>
+		      </div>
+		<hr style="margin: 10px" />
+		      <div class="row" id="ProgressCol">
+			<div class="col-sm-2">
+			    <table id="ProgressList" class="table-hover"></table>
+			    <div id="ProgressList_Pager"></div>
+			</div>
+			<div class="col-sm-10">
+			   <div class="panel panel-info">
+		                <div class="panel-heading EMRPurpleTitle" id="ProgressListHead">病程紀錄標題</div>
+			         <div class="panel-body pre-scrollable" id="ProgressListBody">
+			         
+			          <div class="row form-group">				   
+				  <div class="col-sm-12 form-inline">
+				   <span class="EMRLabelBold" >Date:&nbsp; </span><span class="spanOutline" id="progressDate"></span>&emsp;
+				    <span class="EMRLabelBold" >Time:&nbsp; </span><span class="spanOutline" id="progressTime"></span>&emsp;
+				    <span class="EMRLabelBold" >醫師:&nbsp; </span><span class="spanOutline" id="orderPDr"></span>&emsp;
+				    <span class="EMRLabelBold" >輸入人員:&nbsp; </span><span class="spanOutline" id="keyinPDr"></span>&emsp;
+				    <span class="EMRLabelBold" >Memo:&nbsp; </span><span class="spanOutline" id="progressMemo"></span>&emsp;
+				    
+				  </div>
+				 </div>
+			         
+			         	          <!--  <div class="table-responsive container-fluid" >
+	                                <div class="row form-group">
+	                                   <div class="col-sm-4 form-inline">
+                                              <label for="progressDate">Date:</label>
+                                              <span id="progressDate"></span>                          
+                                             </div>
+                                             <div class="col-sm-4 form-inline">
+                                              <label for="progressTime">Time:</label>
+                                              <span id="progressTime"></span>
+                                             </div>
+                                             <div class="col-sm-4 form-inline">
+                                             <label for="progressMemo">Memo:</label>
+                                             <span id="progressMemo"></span>
+                                             </div>
+                                          </div>
+                       
+                                         <div class="row form-group"> 
+                                             <div class="col-sm-4 form-inline">
+                                                <label for="keyinPDr">輸入人員:</label>
+                                                <span id="keyinPDr"></span>
+                                             </div>
+                                             <div class="col-sm-4 form-inline">
+                                               <label for="orderPDr">醫師:</label>
+                                               <span id="orderPDr"></span>
+                                             </div>
+                                          </div>
+	                             </div>-->
+	     
+	            <!-- DART -->
+	                         <br/>
+	                         
+	             <div class="col-sm-12 form-inline row form-group ">
+		     <label for="S" class="col-sm-1 textAlignR EMRLabel progressCol1">S:&nbsp;</label>
+	               <div class="col-sm-11 progressCol11"><div style="white-space:normal;" class="DARTOutlineMiddle"  id="contentP_S" ></div> </div>
+		   </div>
+		   
+		   <div class="col-sm-12 form-inline row form-group ">
+		     <label for="O" class="col-sm-1 textAlignR EMRLabel progressCol1">O:&nbsp;</label>
+	               <div class="col-sm-11 progressCol11"><div style="white-space:normal;" class="DARTOutlineMiddle"  id="contentP_O" ></div> </div>
+		   </div>
+		   
+		    <div class="col-sm-12 form-inline row form-group ">
+		     <label for="A" class="col-sm-1 textAlignR EMRLabel progressCol1">A:&nbsp;</label>
+	               <div class="col-sm-11 progressCol11"><div style="white-space:normal;" class="DARTOutlineMiddle"  id="contentP_A" ></div> </div>
+		   </div>
+		   
+		   <div class="col-sm-12 form-inline row form-group ">
+		     <label for="P" class="col-sm-1 textAlignR EMRLabel progressCol1">P:&nbsp;</label>
+	               <div class="col-sm-11 progressCol11"><div style="white-space:normal;" class="DARTOutlineMiddle"  id="contentP_P" ></div> </div>
+		   </div>                 
+	                         
+	                         
+		   <!--  <fieldset >
+	             <div class="form-group">
+                         <label for="S">S:</label>
+                         <div style="white-space:normal;" class="DARTOutline"  id="contentP_S" >   
+                         </div>
+                         <textarea class="form-control DARTOutline" rows="4"></textarea>
+                         
+                          <label for="O" >O:</label>
+                          <div style="white-space:pre;" class="DARTOutline" id="contentP_O">
+                          </div>
+                         <textarea class="form-control DARTOutline" rows="4"></textarea>
+                         
+                         <label for="A"  >A:</label>
+                         <div style="white-space:pre;" class="DARTOutline" id="contentP_A" >
+                         </div>
+                        <textarea class="form-control DARTOutline" rows="4"></textarea>
+                         
+                         <label for="P" >P:</label>
+                         <div style="white-space:pre;" class="DARTOutline" id="contentP_P" >
+                         </div>
+                         <textarea class="form-control DARTOutline" rows="4"></textarea>       
+                       </div>
+                       
+                                      
+                     </fieldset>-->
+			         
+			         </div>
+							</div>
+						
+						</div>
+					
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		

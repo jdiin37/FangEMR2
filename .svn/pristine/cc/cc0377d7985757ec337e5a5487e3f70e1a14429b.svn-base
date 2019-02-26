@@ -1,0 +1,605 @@
+//物件區----------------
+var nowDay = new Date()
+var today = (nowDay.getFullYear() - 1911 < 100 ? '0' : '') + (nowDay.getFullYear() - 1911) +"" + (nowDay.getMonth()+1<10 ? '0' : '') + (nowDay.getMonth()+1) +"" + (nowDay.getDate()<10 ? '0' : '') + nowDay.getDate();	
+
+var userHeight = window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+//var userWidth = window.innerWidth|| document.documentElement.clientWidth|| document.body.clientWidth;
+
+//userHeight: -150 為扣掉hearder 及 footer, -350 為EMR主頁 viewList 的高度 
+
+var pageHeight;
+var pageWidth;
+
+/**1070418 add PASViewer Obj**/
+var PacsViewObj = { // 使用者
+		idNo : "orcl",
+		password : "hakka72574",
+		url:""
+	};
+
+
+var UserObj = { // 使用者
+	emp_no : "ORCL",
+	password : "hakka72574",
+	emp_name : "",
+	session_id : 0
+};
+
+var PatObj = { // 病患客戶
+	chart_no : "",
+	pt_name : "",
+	recentYear : 1
+};
+
+var ViewListObj = { //就診清單
+	viewType:"OPD",
+	sdate:"1000101",
+	edate:"1000101",
+	serno:"",
+	desc:""
+}
+
+var QueryObj = { // 查詢物件
+	chkopd : true,
+	chkinp : true,
+	chkdis : false,
+	opddays : 0,
+	disdays : 0,
+	ptName : null,
+	birth : null,
+	tel : null,
+	chartNo : null
+}
+
+var PageArray=["mainPage","queryPage","labPage","xrayPage","opPage","inpPage","inpRecordPage","udPage","stPage","focusPage","outNotePage","xrayPosPage","progressPage","admissionPage","chgBedPage","opdRecordPage","germPage","takeHomePage","labChartPage","labSumPage","labSumChartPage","opdMedicineDetailPage","majorDiseasePage","allergyPage","opdDiseaseDARTPage"];	//所有視窗
+var visiPageArray=[];	//可視視窗
+
+var QueryPatArray= [];
+
+
+var OpKind; //for filter 手術類別
+var InpList = []; //裝載 jqGrid 住院日期清單
+
+var inpRecordArray = [{seq_no:1,date:1010101,items:["手術","住院病摘","醫囑紀錄","護理紀錄","病程紀錄","一般X光","血液","尿液"]},
+					  {seq_no:2,date:1010102,items:["住院病摘","護理紀錄"]},
+					  {seq_no:3,date:1010103,items:["一般X光","血液"]},
+					  {seq_no:4,date:1010104,items:["醫囑紀錄","護理紀錄"]},
+					  {seq_no:5,date:1010105,items:["病程紀錄","血液"]},
+					  {seq_no:6,date:1010106,items:["手術","一般X光"]}];
+//新增 裝載 popPanel Array 
+var PopPanelArray = [];
+var ajaxErrMsg = "";
+
+var ajax_url = function(path) {
+	if (path == 1)
+//	return 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent';
+	return '/FangEmrServices/servlets/ServletAgent';
+	else if (path == 2)
+		return 'servlets/ServletAgent';
+}
+
+function ajax_setPostData(serviceName,emrParam){
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxEMRData(serviceName,emrParam),
+		dataType : "json",
+		cache: false
+	});
+	
+}
+
+var getAjaxEMRData = function (serviceName,emrParam){
+	return{
+		serviceName : serviceName,
+		parameters : emrParam
+	};
+};
+
+
+
+//Login 參數
+var authObj = function(method,empNo,password){
+	this.method = method;
+	this.empNo = empNo;
+	this.password = password;
+}
+
+
+//for call DateRang
+/** 取得日期範圍的檢驗數量  LabRecordService 
+*EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,startDate,endDate,"getLabCountByChartNoDateRangeGroupByKind");*
+*
+**/
+var EMRDateRangeInputObj = function(empNo,sessionID,chartNo,startDate,endDate,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.startDate = startDate;
+	this.endDate = endDate;
+	this.method = method;
+};
+
+/**
+ * for call YearsRange
+ * */
+var EMRYearsInputObj = function(empNo,sessionID,chartNo,years,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.years = years;
+	this.method = method;		
+};
+
+/**
+ * for call All
+ * */
+var EMRAllInputObj = function(empNo,sessionID,chartNo,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.method = method;
+};
+
+
+/***1070419 add 加入 visitType INP OPD**/
+
+var EMRDateRangeVisitTypeInputObj = function(empNo,sessionID,chartNo,startDate,endDate,visitType,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.startDate = startDate;
+	this.endDate = endDate;
+	this.visitType = visitType;
+	this.method = method;
+
+};
+
+/**
+ * for call YearsRange
+ * */
+var EMRYearsVisitTypeInputObj = function(empNo,sessionID,chartNo,years,visitType,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.years = years;
+	this.visitType = visitType;
+	this.method = method;		
+};
+
+/**
+ * for call All
+ * */
+var EMRAllVisitTypeInputObj = function(empNo,sessionID,chartNo,visitType,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.visitType = visitType;
+	this.method = method;
+};
+
+/***1070419 add 加入 visitType INP OPD↑**/
+
+var EMRSernoInputObj = function(empNo,sessionID,chartNo,serno,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.serno = serno;
+	this.method = method;
+};
+
+var PacsSettingInputObj = function(empNo,sessionID,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;	
+	this.method = method;
+};
+
+
+
+
+var getAjaxData = function(method) {
+	switch (method) {
+	case "checkPasswd":		//serviceName : "AuthService",
+		return {
+			serviceName : "AuthService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"password":'
+					+ UserObj.password + ',"method":"checkPasswd"}'
+		};
+		break;
+	case "getHospName":		//serviceName : "SysparaService",
+		return {
+			serviceName : "SysparaService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"method":"getHospName"}'
+		};
+		break;
+	case "getChartByChartNo":	//serviceName : "ChartService",
+		return {
+			serviceName : "ChartService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"method":"getChartByChartNo"}'
+		};
+		break;
+	case "getChartByChartNoPtNameBirthDateTel":
+		return {
+			serviceName : "ChartService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + QueryObj.chartNo
+					+ ',"ptName":' + QueryObj.ptName + ',"birthDate":'
+					+ QueryObj.birth + ',"tel":' + QueryObj.tel
+					+ ',"method":"getChartByChartNoPtNameBirthDateTel"}'
+		}
+		break;	
+	case "getChartEMRSummaryByChartNoAndYears":	//serviceName : "EMRViewService",
+		return {
+			serviceName : "EMRViewService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"years":' + PatObj.recentYear
+					+ ',"method":"getChartEMRSummaryByChartNoAndYears"}'
+		};
+		break;
+	case "getChartEMRSummaryByChartNo":
+		return {
+			serviceName : "EMRViewService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"method":"getChartEMRSummaryByChartNo"}'
+		};
+		break;
+	case "getPatientListOpd":	//serviceName : "PatientListService",
+		return {
+			serviceName : "PatientListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"rangeOfDays":' + QueryObj.opddays
+					+ ',"method":"getPatientListOpd"}'
+		};
+		break;
+	case "getPatientListInp":
+		return {
+			serviceName : "PatientListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"rangeOfDays":' + QueryObj.opddays
+					+ ',"method":"getPatientListInp"}'
+		};
+		break;
+	case "getPatientListDischarge":
+		return {
+			serviceName : "PatientListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"rangeOfDays":' + QueryObj.disdays
+					+ ',"method":"getPatientListDischarge"}'
+		};
+		break;
+	case "getEmrViewListByYearsChartNo":	//serviceName : "EMRViewListService",
+		return {
+			serviceName : "EMRViewListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"years":' + PatObj.recentYear
+					+ ',"method":"getEmrViewListByYearsChartNo"}'
+		};
+		break;
+	case "getLabCountByChartNoDateRangeGroupByKind":	//serviceName : "LabRecordService",
+		return {
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getLabCountByChartNoDateRangeGroupByKind"}'
+		};
+		break;	
+	case "getLabCountByChartNoYearsGroupByKind":
+		return {
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"years":'+ PatObj.recentYear +',"method":"getLabCountByChartNoYearsGroupByKind"}'
+		};
+		break;
+	case "getLabCountByChartNoGroupByKind":
+		return {
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"method":"getLabCountByChartNoGroupByKind"}'
+		};
+		break;	
+	case "getLabListByChartNo":
+		return {
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"method":"getLabListByChartNo"}'
+		};
+		break;
+		
+	case "getLabListByChartNoYears":
+		return {
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"years":'+ LabObj.LabYear +',"method":"getLabListByChartNoYears"}'
+		};
+		break;
+	case "getLabListByChartNoDateRange":
+		return {		
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ LabObj.LabSDate +',"endDate":' + LabObj.LabEDate + ',"method":"getLabListByChartNoDateRange"}'
+		};
+		break;	
+	case "getPatopdOPDataByChartNoDateRange":	//serviceName : "OrRecordService",
+		return {
+			serviceName : "OrRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getPatopdOPDataByChartNoDateRange"}'
+		};
+		break;
+	case "getPatinpOPDataByChartNoDateRange":
+		return {
+			serviceName : "OrRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getPatinpOPDataByChartNoDateRange"}'
+		};
+		break;	
+	case "getXrayCountByChartNoDateRangeGroupByType":	//serviceName : "XrayReportService",
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getXrayCountByChartNoDateRangeGroupByType"}'
+		};
+	break;
+	case "getXrayCountByChartNoYearsGroupByType":
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"years":'+ PatObj.recentYear +',"method":"getXrayCountByChartNoYearsGroupByType"}'
+		};
+		break;
+	case "getXrayCountByChartNoGroupByType":
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"method":"getXrayCountByChartNoGroupByType"}'
+		};
+		break;	
+	case "getXrayListByChartNoDateRange":
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getXrayListByChartNoDateRange"}'
+		};
+		break;
+	case "getXrayListByChartNoYears":
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"years":'+ PatObj.recentYear +',"method":"getXrayListByChartNoYears"}'
+		};
+		break;
+	case "getXrayListByChartNo":
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"method":"getXrayListByChartNo"}'
+		};
+		break;	
+	case "getPatopdSummaryByChartNoDateRange":	//serviceName : "PatopdService"
+		return {
+			serviceName : "PatopdService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getPatopdSummaryByChartNoDateRange"}'
+		};
+		break;
+	case "getPatinpSummaryByChartNoSerno":	//serviceName : "PatinpService"
+		return {
+			serviceName : "PatinpService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"serno":'+ ViewListObj.serno + ',"method":"getPatinpSummaryByChartNoSerno"}'
+		};
+		break;
+	
+	case "getOPCountByChartNoDateRange":	//OrRecordService 手術 日期範圍數量	
+		var emrParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpSDate,OperationObj.OpEDate,"getOPCountByChartNoDateRange");				
+	   return {
+		 serviceName : "OrRecordService",
+		 parameters : JSON.stringify(emrParam)
+	};
+	break;
+	
+	case "getOPCountByChartNoYears":	//OrRecordService 手術 年範圍數量		
+		var emrParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpYear,"getOPCountByChartNoYears");				
+	   return {
+		 serviceName : "OrRecordService",
+		 parameters : JSON.stringify(emrParam)
+	};
+	break;
+	case "getOPCountByChartNo":	//OrRecordService 手術 全部範圍數量				
+		var emrParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getOPCountByChartNo");				
+	   return {
+		 serviceName : "OrRecordService",
+		 parameters : JSON.stringify(emrParam)
+	};
+	break;
+	
+		
+	case "getOPListByChartNoDateRange":	//OrRecordService 手術 日期範圍清單	
+		var emrParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpSDate,OperationObj.OpEDate,"getOPListByChartNoDateRange");				
+	   return {
+		 serviceName : "OrRecordService",
+		 parameters : JSON.stringify(emrParam)
+	};
+	break;
+	
+	case "getOPListByChartNoYears":	//OrRecordService 手術 年範圍清單			
+		var emrParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpYear,"getOPListByChartNoYears");				
+	   return {
+		 serviceName : "OrRecordService",
+		 parameters : JSON.stringify(emrParam)
+	};
+	break;
+	case "getOPListByChartNo":	//OrRecordService 手術 全部範圍清單				
+		var emrParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getOPListByChartNo");				
+	   return {
+		 serviceName : "OrRecordService",
+		 parameters : JSON.stringify(emrParam)
+	};
+	break;
+	default:
+		return false;
+	}
+}
+
+// -----------------
+// 資料驗證區(正規表達式)---------
+number_regex = /^\d+$/;
+years_regex = /^([1-9]?\d|100)$/;
+ROCdata_regex = /^\d{3}\d{2}\d{2}$/;
+char_regex = /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/;
+
+function stateChange(state, objID, msg) {
+	if (state) {
+		// $(objID).parent().removeClass('has-error').addClass('has-success');
+		$(objID).parent().removeClass('has-error')
+		$(objID).tooltip('destroy');
+	} else {
+		$(objID).parent().removeClass('has-success').addClass('has-error');
+		$(objID).tooltip({
+			title : msg,
+			placement : "bottom"
+		}).tooltip('show');
+	}
+}
+// ---------------
+// 顯示遮罩區 Format
+function date_format(dateString) {
+	if (dateString === null) {
+		return "";
+	}
+
+//	alert(dateString);
+
+	var rtnVal = "";
+	if (dateString.substr(0, 1) == "0") {
+		rtnVal += dateString.substr(1, 2);
+	} else {
+		rtnVal += dateString.substr(0, 3);
+	}
+
+	rtnVal += "/";
+
+	if (dateString.substr(3, 1) == "0") {
+		rtnVal += dateString.substr(4, 1);
+	} else {
+		rtnVal += dateString.substr(3, 2);
+	}
+
+	rtnVal += "/";
+
+	if (dateString.substr(5, 1) == "0") {
+		rtnVal += dateString.substr(6, 1);
+	} else {
+		rtnVal += dateString.substr(5, 7);
+	}
+
+	return rtnVal;
+}
+// ------------------------
+
+function renderIncludeHtmlURL(){
+	
+	var url="";
+	url += '?_=' + (new Date()).getTime();
+	$("#queryPage").attr("w3-include-html","../QueryPatient/QueryPatient.html"+url);
+	$("#labPage").attr("w3-include-html","../Lab/Lab.html"+url);
+	$("#labChartPage").attr("w3-include-html","../Lab/LabChart.html"+url);
+	$("#labSumPage").attr("w3-include-html","../Lab/LabSum.html"+url);
+	$("#labSumChartPage").attr("w3-include-html","../Lab/LabSumChart.html"+url);
+	$("#xrayPage").attr("w3-include-html","../Xray/Xray.html"+url);	
+	$("#opPage").attr("w3-include-html","../Operation/Operation.html"+url);	
+	$("#inpPage").attr("w3-include-html","../Inp/Inp.html"+url);	
+	$("#inpRecordPage").attr("w3-include-html","../InpRecord/InpRecord.html"+url);
+	$("#udPage").attr("w3-include-html","../UD/UD.html"+url);	
+	$("#stPage").attr("w3-include-html","../STAT/STAT.html"+url);	
+	$("#focusPage").attr("w3-include-html","../Focus/Focus.html"+url);	
+	$("#progressPage").attr("w3-include-html","../Progress/Progress.html"+url);	
+	$("#chgBedPage").attr("w3-include-html","../ChangeBed/ChangeBed.html"+url);	
+	$("#takeHomePage").attr("w3-include-html","../TakeHome/TakeHome.html"+url);	
+	$("#opdRecordPage").attr("w3-include-html","../OpdRecord/OpdRecord.html"+url);	
+	$("#opdDiseaseDARTPage").attr("w3-include-html","../OpdRecord/OpdDiseaseDART.html"+url);		
+	$("#opdMedicineDetailPage").attr("w3-include-html","../OpdRecord/OpdMedicineDetail.html"+url);	
+	$("#majorDiseasePage").attr("w3-include-html","../MajorDisease/MajorDisease.html"+url);	
+	$("#allergyPage").attr("w3-include-html","../Allergy/Allergy.html"+url);
+
+}
+
+// 畫面生成 事件設定----------
+function render() {
+	renderIncludeHtmlURL();
+	$('#currentList').hide(); // 隱藏查詢Table
+	$('#chartBaseList').hide(); // 隱藏查詢Table
+	closeOtherPage();
+	setPageVisible("mainPage",true);
+	processPage();
+
+//	$(".btn").click(function(){
+//		resizeGrid();
+//	});
+	
+	$("#btn_Searchpatient").click(
+			function() { // 切換查詢區塊
+				callQuery();
+			});
+
+	$("#btn_Diabetesmark").click(function() { // 註記1
+		alert(JSON.stringify(ViewListObj));
+	});
+//	$("#btn_Majordiseases").click(function() { // 註記2
+//		alert(JSON.stringify(PatObj));
+//	});
+	$("#btn_block3").click(function() { // 註記3
+		alert(ajaxErrMsg);
+	});
+	$("#btn_block4").click(function() { // 註記4
+		alert(JSON.stringify(QueryObj));
+	});
+	$("#btn_block5").click(function() { // 註記5
+		alert(JSON.stringify(PageObj));
+	});
+
+	//主畫面EMR-----
+	$("#recentYear").change(function() { // 搜尋範圍 (年)
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#recentYear');
+			PatObj.recentYear = $(this).val();
+			showLoading();
+			ajax_getChartEMRSummaryByChartNoAndYears();
+		} else {
+			stateChange(false, '#recentYear', "請輸入1-100之間");
+		}
+	});
+
+	
+	// ---視窗顯示
+	$(".pageControl").click(function() {
+		if ($(this).children("span").hasClass("glyphicon-ok"))
+			setPageVisible($(this).attr('id').substr(3), false);
+		else
+			setPageVisible($(this).attr('id').substr(3), true);
+	});
+	// --------------
+			
+	if (getQueryVariable("chartNo").length > 0) {
+		PatObj.chart_no = getQueryVariable("chartNo");//取得QueryString	
+	}
+}
+// ----------------------
+
+// 共用 function
+
+var countObj = function(obj) {
+	var total = Object.keys(obj).length;
+	// $('#loading-total').html(total);
+	// showLoading();
+}
+
+var showLoading = function() {
+	$('#LoadingModal').modal('show');
+}
+
+var hideLoading = function() {
+	$('#LoadingModal').modal('hide');
+}
+
+var getQueryVariable = function(variable) {
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i = 0; i < vars.length; i++) {
+		var pair = vars[i].split("=");
+		if (pair[0] == variable) {
+			return pair[1];
+		}
+	}
+	return (false);
+}
+

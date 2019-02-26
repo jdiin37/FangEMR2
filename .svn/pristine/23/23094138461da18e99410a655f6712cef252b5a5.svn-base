@@ -1,0 +1,281 @@
+/**
+ * 出院病摘
+ */
+
+
+var url = "http://172.16.2.189:8080/SHSTimaServices/servlets/ServletAgent";
+//var url = "http://61.221.172.7:8888/SHSTimaServices/servlets/ServletAgent";
+
+
+var ajax_url = function(path) {
+	if (path == 1)
+		return url;
+	else if (path == 2)
+		return 'servlets/ServletAgent';
+}
+
+/**
+ * method : 要傳入的 API Method 名稱
+ * 
+ * */
+
+function ajax_setPostData(method){
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData(method),
+		dataType : "json"
+	});
+	
+}
+
+var OutNoteInputObj = function(idNo,sessionID,chartNo,serno,method){
+	this.idNo = idNo;
+	this.sessionID =  parseInt(sessionID);
+	this.chartNo = parseInt(chartNo);
+	this.serno = parseInt(serno);
+	this.method= method;
+	
+};
+
+var getAjaxData = function(method) {
+	var outNoteParam = new OutNoteInputObj("ORCL",1806,150408,293445,"getOutnoteByChartNoSerno");
+	var outNoteChangeBedParam = new OutNoteInputObj("ORCL",1806,150408,293445,"getChgbedUnionChgdocByChartNoSerno");
+//	console.log(JSON.stringify(outNoteParam));//JS物件轉JSON
+//	console.log(JSON.stringify(outNoteChangeBedParam));//JS物件轉JSON
+	switch (method) {
+	case "getOutnoteByChartNoSerno":
+		return {
+			serviceName : "OutnoteService",
+			parameters : JSON.stringify(outNoteParam)
+		};
+		break;
+	case "getChgbedUnionChgdocByChartNoSerno":
+		return {
+			serviceName : "OutnoteService",
+			parameters : JSON.stringify(outNoteChangeBedParam)
+		};
+		break;
+	default:
+		return false;
+	}
+}
+
+
+
+function ajax_getOutNote() {
+	
+ var request = $.when(ajax_setPostData("getOutnoteByChartNoSerno")).done(
+			function(data) {
+					if (data.status == "Success") {
+						$.each(data.resultSet, function(index, obj) {
+							render_getOutNote(index, this);
+						});
+					} else {
+					  var ajaxErrMsg = data.errorMessage;
+					}							
+//				hideLoading();
+			});
+ 
+    request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+	
+	
+
+/**	var request = $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getOutnoteByChartNoSerno"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+
+			$.each(data.resultSet, function(index, obj) {
+			
+				render_getOutNote(index, this);
+
+				
+			}); 
+//			setHtml("outNote_chartNo",filterNull(data.resultSet.chart_no));
+		} else {
+			var ajaxErrMsg = data.errorMessage;
+		}
+//		hideLoading();
+	});
+	
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;   **/
+
+}
+
+
+var QueryOutNoteChangeBedArray= [];
+var getOutNoteChangeBedList = function() {
+//	showLoading();
+
+ var request = $.when(ajax_setPostData("getChgbedUnionChgdocByChartNoSerno")).done(
+			function(dataChangeBed) {
+				QueryOutNoteChangeBedArray =[];
+					if (dataChangeBed.status == "Success") {
+						$.each(dataChangeBed.resultSet, function(index, obj) {
+							QueryOutNoteChangeBedArray.push(obj);
+						});
+					} else {
+					  var ajaxErrMsg = dataChangeBed.errorMessage;
+					}
+
+					jqGrid_outNoteChangeBed("#changeBed","#changeBedPager",QueryOutNoteChangeBedArray);								
+//				hideLoading();
+			});
+ 
+    request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+
+function setHtml(tag,data){
+	//用innerText 方可吃傳來字串中/n轉成<br/>
+	document.getElementById(tag).innerText=data;
+//	document.getElementById("tag").innerHTML = data;
+//	$('#'+tag).html(data);	
+}
+
+
+var filterNull = function(value) {
+//	return value==null||value=="[object Window]"?"":value;
+	return (value === undefined || value === null||value=="[object Window]"?"":value); 
+}
+
+function render_getOutNote(index, value) {
+	switch(index){
+		case "chart_no":
+		setHtml("outNote_chartNo",filterNull(value));
+		break;
+		
+		case "serno":
+		setHtml("outNote_serno",filterNull(value));
+		break;
+	
+		case "trans_in":
+		setHtml("outNote_transIn",filterNull(value));
+//		setHtml("outNote_transIn",(value));
+		break;
+		
+		case "pt_name":
+		setHtml("outNote_ptName",filterNull(value));
+		break;
+		
+		case "id_no":
+		setHtml("outNote_idNo",filterNull(value));
+		break;
+		
+		case "address":
+		setHtml("outNote_address",filterNull(value));
+//		console.log(value);
+		break;
+		
+		case "birth_date":
+		setHtml("outNote_birthDate",filterNull(formatDateTime(value)));
+		break;
+		
+		case "complete_date":
+		setHtml("outNote_finishDay",filterNull(formatDateTime(value)));
+		break;
+		
+		case "ckin_date":
+		setHtml("outNote_ckinDate",filterNull(formatDateTime(value)));
+		break;
+			
+		case "div_name":
+		setHtml("outNote_divName",filterNull(value));
+		break;
+		
+		case "bed_no":
+		setHtml("outNote_bedNo",filterNull(value));
+		break;
+		
+		case "discharge_date":
+		setHtml("outNoteDisDate",filterNull(formatDateTime(value)));
+		break;
+			
+		case "inout_day":
+		setHtml("outNoteInoutDay",filterNull(value));
+		break;
+			
+		case "out_name":
+		setHtml("outNoteOutName",filterNull(value));
+		break;
+			
+		case "in_diagnosis":
+			setHtml("outNoteInDia",filterNull(value));
+		break;
+			
+		case "out_diagnosis":
+		setHtml("outNoteOutDia",filterNull(value));
+		break;
+		
+		case "cc":
+			setHtml("outNoteCC",filterNull(value));
+			break;
+			
+		case "ph":
+			setHtml("outNotePH",filterNull(value));
+			break;
+			
+		case "ph1":
+			setHtml("outNotePH1",filterNull(value));
+			break;
+			
+		case "pe":
+		setHtml("outNotePE",filterNull(value));
+		break;
+		
+		case "or_desc":
+			setHtml("outNoteOrDesc",filterNull(value));
+			break;
+			
+		case "treatment":
+			setHtml("outNoteTreatment",filterNull(value));
+			break;
+			
+		case "complication":
+			setHtml("outNoteComp",filterNull(value));
+			break;
+			
+		case "general_lab":
+			setHtml("outNoteGeneraLab",filterNull(value));
+			break;
+			
+		case "special_lab":
+			setHtml("outNoteSpecialLab",filterNull(value));
+			break;
+
+		case "xray_rep":
+			setHtml("outNoteXrayRep",filterNull(value));
+			break;
+			
+		case "pathologic_rep":
+			setHtml("outNotePathologicRep",filterNull(value));
+			break;
+			
+		case "other":
+			setHtml("outNoteOther",filterNull(value));
+			break;
+			
+		case "out_directory":
+			setHtml("outNoteOutDirec",filterNull(value));
+			break;	
+default:
+break;
+			
+	}
+
+
+
+}
+
+
+

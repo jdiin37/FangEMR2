@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>UD</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/Common.css" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+<script src="scripts/OutNoteajax.js"></script>
+<script src="scripts/OutNotejqGrid.js"></script>
+<link rel="stylesheet" href="html/mainEMR/styles/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="html/mainEMR/styles/ui.jqgrid-bootstrap.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="html/mainEMR/styles/EMRstyle.css" type="text/css" />
+<link rel="stylesheet" href="html/mainEMR/styles/EMRThemePurple.css" type="text/css" />
+
+<script src="scripts/i18n/grid.locale-tw.js"></script>
+<script src="scripts/jquery.jqGrid.min.js"></script>
+<script src="scripts/jquery-ui.min.js"></script>
+<script src="scripts/bootstrap.min.js"></script>
+<script>
+
+	//$.jgrid.defaults.responsive = true;
+	$.jgrid.defaults.styleUI = 'Bootstrap';
+</script>
+
+
+<script>
+$(document).ready(function(){
+	
+	
+	
+	//隱藏UDdetail
+	$("#UDdetail").hide();
+	
+	 $('#UDtable > tbody > tr').each(function () {
+	        var mWord = $.trim($(this).find("td:eq(1)").text()); //1是抓取第二欄的文字
+	        console.log(mWord);
+	        
+	    });
+	 
+	 $('#UDtable > tbody > tr').click(function(){
+	 $("#UDdetail").show();	 
+	   	 
+	 });
+	 
+	 
+	 $("#UDaccountTable >tbody >tr").click(function(){
+	  $("#UDdetail").hide();	 
+		 
+	 });
+	 
+	 
+	 $("#UDdetail").click(function(){
+	  $("#UDdetail").hide();			   
+		 
+	 });
+	 
+	 //格行變色
+	 $("tbody >tr:odd").addClass("tr_odd");
+	 //$("#UDtable >tbody > tr:odd").addClass("tr_odd");
+	 
+	 $("tbody > tr:even").addClass("tr_even");
+	 //$("#UDtable >tbody > tr:even").addClass("tr_even");  
+	 
+
+	 
+	
+	 
+	//取得Ud清單
+		ajax_getUDDataList();
+		
+		
+	
+		 $("#udAcntTable >tr>td").click(function(){
+			 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+					 
+			   }); 
+		 
+		 //選中行變色 
+		 $("#udAcntTable > tr >td").click(function(){
+		 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+		 $("#udAcntTable > tr > td").removeClass("tr_selected");
+		 /**var hasSelected=$(this).hasClass("tr_selected");
+		 $(this)[hasSelected?"removeClass":"addClass"]("tr_selected").find(":tr");**/
+			 
+		 }); 
+
+	
+		
+	});
+</script>
+
+<script>
+var rowIndex = -1; //选中行下标
+var colorIndex; //选中行原背景色
+var bgcolor; //临时储存当前行原先的颜色
+var color1 = "#CFDFFF"; //交叉颜色1
+var color2 = "#EFEFFF"; //交叉颜色2
+var onColor = "#FFEFBF"; //鼠标行颜色
+var selectColor = "#FFBFFF"; //选中行颜色
+window.onload = function () {
+   // updateColor("UDaccountTable", 1);
+}
+//参数（表格ID，跳过多少行头）
+function updateColor(id, passRow) {
+    var tb = document.getElementById(id);
+    for (var i = passRow; i < tb.rows.length; i++) {
+        var row = tb.rows[i];
+        row.onmouseover = function () {
+            bgcolorOver(this);
+        }
+        row.onmouseout = function () {
+            bgcolorOut(this);
+        }
+        row.onclick = function () {
+            rowClick(this);
+        }
+        if (i % 2 == 0) {
+            row.style.backgroundColor = color1;
+        } else {
+            row.style.backgroundColor = color2;
+        }
+    }
+}
+function bgcolorOver(obj) {
+    if (rowIndex == obj.rowIndex) {
+        return;
+    }
+    bgcolor = obj.style.backgroundColor;
+    obj.style.backgroundColor = onColor;
+}
+function bgcolorOut(obj) {
+    if (rowIndex == obj.rowIndex) {
+        return;
+    }
+    obj.style.backgroundColor = bgcolor;
+}
+function rowClick(obj) {
+    if (rowIndex != obj.rowIndex) {
+        if (rowIndex != -1) {
+            tb.rows[rowIndex].style.backgroundColor = colorIndex;
+        }
+        rowIndex = obj.rowIndex;
+        colorIndex = bgcolor;
+        obj.style.backgroundColor = selectColor;
+    }
+}
+
+
+</script>
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">  <!--row1-->
+        <div><!--區塊1-->
+             <div class="panel panel-success purple-outline"><!--區塊1外框 panel-warning;panel-danger -->
+	        <div class="panel-heading clearfix thGradient">
+	          <div class="panel-title pull-left panel-tool"><!-- panel-title panel-tool 只能點擊Title文字方可開合 -->
+		  <a data-toggle="collapse" data-parent="#accordion" href="#collapse_UDPage">UD用藥紀錄</a>
+	          </div>
+	          <div class="pull-right">
+		 <button type="button" class="btn btn-link btn-popUp"><span class="glyphicon glyphicon-new-window"></span></button>
+		 <button type="button" class="btn btn-link btn-close"><span class="glyphicon glyphicon-remove"></span></button>
+	          </div>
+	        </div>
+	        
+	       
+	        <div id="collapse_UDPage" class="panel-collapse collapse in"><!-- Collapse start -->
+	        <div class="panel-body">
+		 <!-- -->
+	        
+	        <div class="row form-group">
+		   <div class="col-sm-6 form-inline">
+		     <input value="1" id="recentYear" type="text" class="form-control input-sm" style="max-width: 48px;">
+		     <label for="recentYear">年</label>
+		      <button class="btn btn-info"><span>1</span>年UD用藥紀錄&emsp;<span class="badge" id="yearsResult">35</span></button>
+		      <button class="btn btn-info">全部UD用藥紀錄&emsp;<span class="badge" id="AllResult">40</span></button>
+		   </div>
+		 
+	        </div>
+	
+		
+	        <!--  -->
+		   
+		      
+		        
+		        <!-- 檢驗 結果區 -->
+		        
+    <div class="row"><!--row2 -->
+        <div class="col-sm-2"><!--區塊2-->
+           <div class="table-responsive"><!--響應式Table -->
+           <table id="UDaccountTable" class="table table-bordered">
+              <thead class="thGradient"><!-- 表格標頭 -->
+                <tr>
+                  <td>帳款日期</td>
+                </tr> 
+              </thead>
+              <tbody id="udAcntTable">
+               
+              </tbody>
+           </table><!--響應式Table結尾 -->
+           </div>    
+		
+        </div><!--區塊2結尾-->
+        
+        <div class="col-md-9" ><!--區塊3-->
+          <div > <!-- class="table-responsive" -->
+            <table id="udTableList" class="table table-bordered"></table>
+			<div id="udTableListPager"></div>
+          </div>   
+		
+       </div><!--區塊3結尾-->
+    
+    </div><!--row2結尾 -->
+		          
+		   </div><!-- panel-body 結尾 -->
+		         <div id="UDdetail" class="panel-footer"><!--panel-footer開頭  -->
+		          <div class="panel panel-success purple-outline"><!-- detail外框 -->
+		              <div class="table-responsive">
+		                <table class="table">
+		                 <thead>
+		                  <tr>
+		                   <td>批價代號:OERG</td>
+		                   <td></td>
+		                   <td>輸入員:王0雅</td>
+		                   <td></td>
+		                   <td>執行人員:王0楊</td>
+		                   <td></td>
+		                   <td>就醫科別:外科</td>
+		                   <td></td>
+		                  </tr>
+		                  <tr>
+		                   <td>事前審查受理編號:</td>
+		                   <td></td>
+		                   <td>庫別:B1</td>
+		                   <td></td>
+		                   <td>自費:N</td>
+		                   <td></td>
+		                   <td>次數:2/4</td>
+		                   <td></td>
+		                  </tr>
+		                  </thead>
+		                </table>
+		              </div>
+		          </div><!-- detail外框結尾 -->
+		         
+		         </div><!--panel-footer結尾  -->
+	       </div><!-- Collapse End -->
+			 
+	   </div><!--區塊1外框結尾-->
+		
+        </div><!--區塊1結尾-->
+    </div><!--row1結尾 -->
+    
+
+</div> 
+
+
+
+</body>
+</html>

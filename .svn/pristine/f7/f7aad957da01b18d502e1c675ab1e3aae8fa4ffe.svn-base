@@ -1,0 +1,404 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import library.dateutility.DateComputeUtil;
+import library.dateutility.DateUtil;
+import library.utility.JDBCUtilities;
+import library.utility.MapGroupingUtil;
+import library.utility.MapUtil;
+import library.utility.MatrixUtil;
+import model.Chart;
+import model.LabRecord;
+import model.Patopd;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static library.utility.MapUtil.*;
+
+/**
+ * Created by jeffy on 2017/10/30.
+ */
+public class LabRecordService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private LabRecord labRecord;
+    private Patopd patopd;
+    private Chart chart;
+
+    private Map<String, Object> getFirstAndLastViewDateByChartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = patopd.queryFirstAndLastViewDateByChartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private String adObjectToRocDateString(Object adDateObj) {
+        String result = "";
+        if (adDateObj != null) {
+            result = DateUtil.adDateStringToROCDateString(castToStr(adDateObj));
+        }
+        return result;
+    }
+
+    private String getRealNormalRange(int chartNo, String labDate, String normalRange) {
+        Map<String, Object> chartMap = new LinkedHashMap<>();
+        String realNoramlRange = "";
+        String birthDate = "";
+        int sex = 0;
+        int ages = 0;
+
+        try {
+            chartMap = chart.queryChartByChartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        if (!chartMap.isEmpty()) {
+            birthDate = castToStr(chartMap.get("birth_date"));
+            sex = castToInt(chartMap.get("sex"));
+            ages = DateComputeUtil.getAgesByYear(birthDate, labDate);
+
+            // 將 異常|正常|最小值
+            String[] range = normalRange.split("\\|", 3);
+
+            if (ages > 6) {
+                realNoramlRange = sex == 1 ? range[0] : range[1];
+            } else {
+                realNoramlRange = range[2];
+            }
+
+            if (range[0].equals("") && range[2].equals("")) realNoramlRange = range[1];
+
+            // replace ' ' -> '' and then '-' -> ' - '
+            realNoramlRange = realNoramlRange.replace(" ", "").replace("/", " - ");
+        }
+
+        return realNoramlRange;
+    }
+
+    public String getLabCountByChartNoDateRangeGroupByKind(int chartNo, String startDate, String endDate) {
+        JsonObject jsob = new JsonObject();
+        try {
+            objects = labRecord.queryLabCountByChartNoDateRangeGroupByKind(chartNo, startDate, endDate);
+            int count = objects.stream()
+                    .mapToInt(map -> castToInt(map.get("count")))
+                    .sum();
+
+            jsob.addProperty(MapUtil.KEY_SUMMARY, count);
+            jsob.add(MapUtil.KEY_DETAILDATA, MapUtil.listMapToJsonArray(objects));
+            jsonObject = MapUtil.getSuccessResult(jsob);
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getLabCountByChartNoYearsGroupByKind(int chartNo, int years) {
+        String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-years, ChronoUnit.YEARS));
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        return getLabCountByChartNoDateRangeGroupByKind(chartNo, startDate, endDate);
+    }
+
+    public String getLabCountByChartNoGroupByKind(int chartNo) {
+        String startDate = "0010101";
+        Map<String, Object> map = getFirstAndLastViewDateByChartNo(chartNo);
+        if (!map.isEmpty()) {
+            startDate =  castToStr(map.get("first_view_date"));
+        }
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+        return getLabCountByChartNoDateRangeGroupByKind(chartNo, startDate, endDate);
+    }
+
+    public String getLabListByChartNoDateRange(int chartNo, String startDate, String endDate) {
+        try {
+            objects = labRecord.queryLabListByChartNoDateRange(chartNo, startDate, endDate);
+
+            if (!objects.isEmpty()) {
+                for (Map<String, Object> map : objects) {
+                    map.put("years", adObjectToRocDateString(map.get("lab_date")).substring(0, 3));
+                    map.put("lab_date", adObjectToRocDateString(map.get("lab_date")));
+                }
+
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("LabRecord.queryLabListByChartNoDateRange chart_no= " + chartNo +
+                        " startDate=" + startDate + " endDate=" + endDate + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getLabListByChartNoYears(int chartNo, int years) {
+        String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-years, ChronoUnit.YEARS));
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        return getLabListByChartNoDateRange(chartNo, startDate, endDate);
+    }
+
+    public String getLabListByChartNo(int chartNo) {
+        String startDate = "0010101";
+        Map<String, Object> map = getFirstAndLastViewDateByChartNo(chartNo);
+        if (!map.isEmpty()) {
+            startDate =  castToStr(map.get("first_view_date"));
+        }
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        return getLabListByChartNoDateRange(chartNo, startDate, endDate);
+    }
+
+    public String getMatrixLabDdataByChartNoLabTypeLabItemsAndRange(int chartNo, String kindId, String range, String labItems) {
+
+        Map<String, Object> chartMap = new LinkedHashMap<>();
+        List<Map<String, Object>> matrixObjects;
+        List<Map<String, Object>> resultObjects;
+        JsonArray jsonArray;
+
+        // get start_date and end_date from range
+        List<String> dateList = DateComputeUtil.getStartDateEndDate(range);
+        String startDate = dateList.get(0);
+        String endDate = dateList.get(1);
+
+        try {
+            objects = labRecord.queryLabDdataByChartNoLabTypeLabItemsAndRange(chartNo, kindId, startDate, endDate, labItems);
+
+            String normalRange = "";
+            String labDate = "";
+
+            if (objects.size() > 0) {
+                for (Map<String, Object> map : objects) {
+                    labDate = adObjectToRocDateString(map.get("lab_date"));
+                    // convert lab_date form AD DateString to ROC DateString
+                    map.put("lab_date", labDate);
+
+                    // add real_normal_range result by normal_range & age & sex
+                    normalRange = castToStr(map.get("normal_range"));
+                    map.put("real_normal_range", emptyToNull(getRealNormalRange(chartNo, labDate, normalRange)));
+                }
+                System.out.println("\nobjects:" + listMapToJsonArray(objects));
+
+                // Create Matrix Object => Define xAxialName, yAxialName cellName
+                String xAxialName = "assay_id";
+                String yAxialName = "lab_date";
+                String cellName = "result_val";
+                MatrixUtil matrixUtil = new MatrixUtil(objects, xAxialName, yAxialName, cellName);
+                matrixObjects = matrixUtil.getMatrixObjects();
+                //System.out.println("\nmatrixObjects:" + listMapToJsonArray(matrixObjects));
+
+                // Merge other cols from source 'objects' to target 'matrixObjects'
+                List<String> keyListToAdd = Arrays.asList("chart_no", "lab_reportno", "duplicate_no", "unit",
+                        "normal_range", "report_normalrange", "real_normal_range", "kind_id", "kind_name", "kind_flag", "assay_judgetype", "lab_status",
+                        "result_kind", "result_status", "lab_status");
+                List<String> criteriaKeys = Arrays.asList("assay_id");
+                resultObjects = matrixUtil.mergeMapFromSourceToTarget(objects, matrixObjects, keyListToAdd, criteriaKeys);
+                //System.out.println("\nresultObjects:" + listMapToJsonArray(resultObjects));
+
+                // Convert 'resultObjects' to master-detail shape JsonArray
+                List<String> masterCols = Arrays.asList("assay_id", "chart_no", "lab_reportno", "kind_id", "kind_name", "kind_flag");
+                List<String> detailCols = Arrays.asList("lab_date", "result_val", "duplicate_no", "unit",
+                        "normal_range", "real_normal_range", "report_normalrange", "assay_judgetype",
+                        "lab_status", "result_kind", "result_status", "lab_status" );
+                
+                jsonArray = MapGroupingUtil.groupListMapToJsonArray(MapGroupingUtil.getGroupingResultMap(resultObjects, masterCols, detailCols));
+                //System.out.println("\njsonArray:" + jsonArray);
+
+                jsonObject = MapUtil.getSuccessResult(jsonArray);
+            } else {
+                jsonObject = MapUtil.getFailureResult("labRecord.queryLabDdataByChartNoLabTypeAndRange chartNo=" + chartNo
+                        + " kindId='" + kindId + "' startDate='" + startDate + "' endDate='" + endDate
+                        + "' No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            labRecord = new LabRecord(myConnection);
+            patopd = new Patopd(myConnection);
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            // get Lab count by chart_no then group by kind_id
+            if (method.equals("getLabCountByChartNoGroupByKind")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getLabCountByChartNoGroupByKind(chartNo);
+            }
+
+            //  get Lab count by chart_no, years then group by kind_id
+            if (method.equals("getLabCountByChartNoYearsGroupByKind")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int years = parametersJsObj.get("years").getAsInt();
+                result = getLabCountByChartNoYearsGroupByKind(chartNo, years);
+            }
+
+            //  get Lab count by chart_no, start_date, end_date then group by kind_id
+            if (method.equals("getLabCountByChartNoDateRangeGroupByKind")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                result = getLabCountByChartNoDateRangeGroupByKind(chartNo, startDate, endDate);
+            }
+
+            // get Lab list by chart_no
+            if (method.equals("getLabListByChartNo")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getLabListByChartNo(chartNo);
+            }
+
+            // get Lab list by chart_no, years
+            if (method.equals("getLabListByChartNoYears")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int years = parametersJsObj.get("years").getAsInt();
+                result = getLabListByChartNoYears(chartNo, years);
+            }
+
+            // get Lab list by chart_no, startDate, endDate
+            if (method.equals("getLabListByChartNoDateRange")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                result = getLabListByChartNoDateRange(chartNo, startDate, endDate);
+            }
+
+            // get Matrix labrecordd data by chart_no, kind_id, range and assay_id
+            if (method.equals("getMatrixLabDdataByChartNoLabTypeLabItemsAndRange")) {
+                chart = new Chart(myConnection);
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String kindId = parametersJsObj.get("kindId").getAsString();
+                String range = parametersJsObj.get("range").getAsString();
+                String labItems = parametersJsObj.get("labItems").getAsString();
+
+                result = getMatrixLabDdataByChartNoLabTypeLabItemsAndRange(chartNo, kindId, range, labItems);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+
+        String temp = "|4.2/4.9|";
+        String rangeOne = temp.substring(0, 0);
+        String rangeTwo = temp.substring(1, 8);
+        String rangeThree = temp.substring(9, 9);
+
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        LabRecordService labRecordService = new LabRecordService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("method", "getLabCountByChartNoGroupByKind");
+        resultStrng = labRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nLabRecordService.run getLabCountByChartNoGroupByKind chartNo=923833 :"  + resultStrng);
+
+
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("years", 5);
+        jsonObject.addProperty("method", "getLabCountByChartNoYearsGroupByKind");
+        resultStrng = labRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nLabRecordService.run getLabCountByChartNoYearsGroupByKind chartNo=923833 years=5 :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("startDate", "0940806");
+        jsonObject.addProperty("endDate", "1030913");
+        jsonObject.addProperty("method", "getLabCountByChartNoDateRangeGroupByKind");
+        resultStrng = labRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nLabRecordService.run getLabCountByChartNoDateRangeGroupByKind chartNo=923833 startDate='0940806' endDate='1030913' :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("method", "getLabListByChartNo");
+        resultStrng = labRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nLabRecordService.run getLabListByChartNo chartNo=923833 :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("years", 5);
+        jsonObject.addProperty("method", "getLabListByChartNoYears");
+        resultStrng = labRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nLabRecordService.run getLabListByChartNoYears chartNo=923833 years=5 :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("startDate", "0940806");
+        jsonObject.addProperty("endDate", "1030913");
+        jsonObject.addProperty("method", "getLabListByChartNoDateRange");
+        resultStrng = labRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nLabRecordService.run getLabListByChartNoDateRange chartNo=923833 startDate='0940806' endDate='1030913' :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("kindId", "A4");
+        jsonObject.addProperty("range", "1030101|1051217");
+        jsonObject.addProperty("labItems", "Albumin|Alk-p|Amylase|BUN|Blood Crea|Cl");
+        jsonObject.addProperty("method", "getMatrixLabDdataByChartNoLabTypeLabItemsAndRange");
+        resultStrng = labRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nLabRecordService.run getMatrixLabDdataByChartNoLabTypeLabItemsAndRange chartNo=912473 kineId='A4' " +
+                "range='1030101|1051217' labItems='Albumin|Alk-p|Amylase|BUN|Blood Crea|Cl' : "  + resultStrng);
+
+    }
+}
+

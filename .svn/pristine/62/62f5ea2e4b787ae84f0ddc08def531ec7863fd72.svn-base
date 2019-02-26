@@ -1,0 +1,123 @@
+package model;
+
+import library.dateutility.DateComputeUtil;
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static library.utility.MapUtil.castToInt;
+import static library.utility.MapUtil.castToStr;
+
+/**
+ * Created by FoneBote on 2017/10/12.
+ */
+public class Patopd {
+    private Connection con;
+
+    public Patopd(Connection con) {
+        this.con = con;
+    }
+
+    public List<Map<String, Object>> queryPatopdByStratEndDateChartNo(String startDate, String endDate, int chartNo) throws SQLException {
+        String queryString =
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, a.doctor_no, b.emp_name doctor_name, " +
+                "       a.div_no, c.div_name,  a.cash_type, d.name cash_type_name, " +
+                "       a.pt_type, e.type_name, a.card_seq, a.part_no, f.part_name " +
+                "  FROM patopd a, employee b, division c, justname d, pttype e, partamt f " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.card_seq IS NOT NULL " +
+                "   AND a.doctor_no = b.emp_no(+) " +
+                "   AND a.div_no = c.div_no(+) " +
+                "   AND (a.cash_type = d.no(+) and d.categories = 'CASHTYPE') " +
+                "   AND a.pt_type = e.pt_type(+) " +
+                "   AND a.part_no = f.part_no(+) " +
+                " ORDER BY a.view_date, a.chart_no, a.duplicate_no ";
+
+        EntityFactory patopdEntity = new EntityFactory(con, queryString);
+        return patopdEntity.findMultiple(new Object[]{startDate, endDate, chartNo});
+    }
+
+//    public List<Map<String, Object>> queryPatopdByViewDateChartNoDupNo(String viewDate, int chartNo, int duplicateNo) throws SQLException {
+//        List<Map<String, Object>> results = queryPatopdByStratEndDateChartNo(viewDate, viewDate, chartNo);
+//
+//        return results.stream()
+//                .filter(map -> map.get("duplicate_no") != null && castToInt(map.get("duplicate_no")) == duplicateNo)
+//                .collect(Collectors.toList());
+//    }
+
+    public Map<String, Object> queryFirstAndLastViewDateByChartNo(int chartNo) throws SQLException {
+        String queryString =
+                "SELECT MIN(a.view_date) first_view_date, MAX(a.view_date) last_view_date  " +
+                "  FROM patopd a " +
+                " WHERE a.chart_no = ? " +
+                "   AND a.card_seq IS NOT NULL ";
+
+        EntityFactory patopdEntity = new EntityFactory(con, queryString);
+        return patopdEntity.findSingle(new Object[]{chartNo});
+    }
+
+    public Map<String, Object> queryOpdCountByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT a.chart_no, COUNT(a.chart_no) count " +
+                "  FROM patopd a " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.card_seq IS NOT NULL " +
+                " GROUP BY a.chart_no ";
+
+        EntityFactory patopdEntity = new EntityFactory(con, queryString);
+        return patopdEntity.findSingle(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        List<String> lst = DateComputeUtil.getStartDateEndDate("year");
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            Patopd patopd = new Patopd(myConnection);
+
+            String startDate = "1031104";
+            String endDate = "1031104";
+            int chartNo = 912473;
+            System.out.printf("\nPatopd.queryPatopdByStratEndDateChartNo startDate='%s' endDate='%s' chartNo=%d JsonArray:%s ",
+                    startDate, endDate, chartNo, MapUtil.listMapToJsonArray(patopd.queryPatopdByStratEndDateChartNo(startDate, endDate, chartNo)).toString());
+
+//            String viewDate = "1031104";
+//            int duplicateNo = 1;
+//            System.out.printf("\nPatopd.queryPatopdByViewDateChartNoDupNo viewDate='%s' chartNo=%d duplicateNo=%d JsonArray:%s ",
+//                    viewDate, chartNo, duplicateNo, MapUtil.listMapToJsonArray(patopd.queryPatopdByViewDateChartNoDupNo(viewDate, chartNo, duplicateNo)).toString());
+
+            System.out.printf("\nPatopd.queryFirstAndLastViewDateByChartNo chartNo=%d JsonObject:%s ",
+                    chartNo, MapUtil.mapToJsonObject(patopd.queryFirstAndLastViewDateByChartNo(chartNo)).toString());
+
+            startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-4, ChronoUnit.YEARS));
+            endDate = DateUtil.dateToROCDateString(LocalDate.now());
+            System.out.printf("\nPatopd.queryOpdCountByChartNoDateRange chartNo=%d startDate=%s endDate=%s JsonObject:%s ",
+                   chartNo, startDate, endDate, MapUtil.mapToJsonObject(patopd.queryOpdCountByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}
+

@@ -1,0 +1,101 @@
+$(document).ready(function(){
+
+	
+	$("#btn_login").click(function(){
+		var empNo = $("#empNo").val().toLocaleUpperCase();
+		var password = $("#password").val();
+		var status = document.getElementById("statusMsg");
+		
+		   if(empNo.length==0&&password.length==0){			    
+			   addRemoveClass("statusMsg","failureMsg","successMsg");
+		       status.innerHTML = "請輸入帳號和密碼";
+		       addRemoveClass("btn_login","btn-danger","btn-success");
+				   
+			   }else if(empNo.length==0||password.length==0){  
+			       
+			        addRemoveClass("statusMsg","failureMsg","successMsg");
+			        status.innerHTML = "帳號或密碼不能為空值";
+			        addRemoveClass("btn_login","btn-danger","btn-success");
+	   
+			   }else{
+				   ajax_getLoginData("AuthService","checkPasswd",empNo,password);
+
+			   }
+	});
+	
+	
+	
+});
+
+
+var LoginObj = { 
+	emp_no : "",
+	password : "",
+	session_id:0,
+	emp_name:""
+		
+};
+
+
+//Login 參數
+var authObj = function(method,empNo,password){
+	this.method = method;
+	this.empNo = empNo;
+	this.password = password;
+}
+
+
+
+function addRemoveClass(elementId,addClass,removeClass){
+	$("#"+elementId).addClass(addClass);
+	$("#"+elementId).removeClass(removeClass);
+}
+
+/**
+ * ajax 取得Login 資訊
+ * */
+var ajax_getLoginData = function(serviceName,method,empNo,password){
+	var status = document.getElementById("statusMsg");
+	
+	var Authdata = new authObj(method,empNo,password);
+	
+	var request = $.when(ajax_setPostData(serviceName,JSON.stringify(Authdata))).done(function(data) {                                
+		if (data.status == "Success") {
+			LoginObj.emp_no = data.emp_no;
+			LoginObj.session_id = data.session_id;
+			LoginObj.emp_name = data.emp_name;
+			LoginObj.password = password;
+			window.localStorage.setItem("LoginObj",JSON.stringify(LoginObj));  //setItem
+			
+			
+		     addRemoveClass("statusMsg","successMsg","failureMsg");						       
+		     status.innerHTML = data.status;
+		     addRemoveClass("btn_login","btn-success","btn-danger");
+
+		     setTimeout(function(){
+		    	 var url="";
+		    	 url += '?_=' + (new Date()).getTime();
+		    	 window.location.href="/FangEmrServices/html/mainEMR/mainEMR.html"+url;
+		     }, 200);
+		     
+		     	
+		} else {
+		  var ajaxErrMsg = data.errorMessage;
+	      addRemoveClass("statusMsg","failureMsg","successMsg");
+	      status.innerHTML = ajaxErrMsg;
+          addRemoveClass("btn_login","btn-danger","btn-success");
+
+		}
+		
+    });
+
+    request.onreadystatechange = null;
+    request.abort = null;
+    request = null;
+};
+
+
+
+
+
+

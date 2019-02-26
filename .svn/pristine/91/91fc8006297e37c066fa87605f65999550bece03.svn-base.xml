@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://webservices" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="http://webservices" xmlns:intf="http://webservices" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<!--WSDL created by Apache Axis version: 1.4
+Built on Apr 22, 2006 (06:55:48 PDT)-->
+ <wsdl:types>
+  <schema elementFormDefault="qualified" targetNamespace="http://webservices" xmlns="http://www.w3.org/2001/XMLSchema">
+   <element name="main">
+    <complexType>
+     <sequence>
+      <element maxOccurs="unbounded" name="args" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="mainResponse">
+    <complexType/>
+   </element>
+   <element name="queryyestdate">
+    <complexType/>
+   </element>
+   <element name="queryyestdateResponse">
+    <complexType>
+     <sequence>
+      <element name="queryyestdateReturn" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="queryhospdate">
+    <complexType/>
+   </element>
+   <element name="queryhospdateResponse">
+    <complexType>
+     <sequence>
+      <element name="queryhospdateReturn" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="queryHospdateName">
+    <complexType/>
+   </element>
+   <element name="queryHospdateNameResponse">
+    <complexType>
+     <sequence>
+      <element name="queryHospdateNameReturn" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+  </schema>
+ </wsdl:types>
+
+   <wsdl:message name="queryhospdateRequest">
+
+      <wsdl:part element="impl:queryhospdate" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="mainRequest">
+
+      <wsdl:part element="impl:main" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="queryyestdateResponse">
+
+      <wsdl:part element="impl:queryyestdateResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="queryhospdateResponse">
+
+      <wsdl:part element="impl:queryhospdateResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="queryHospdateNameResponse">
+
+      <wsdl:part element="impl:queryHospdateNameResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="mainResponse">
+
+      <wsdl:part element="impl:mainResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="queryHospdateNameRequest">
+
+      <wsdl:part element="impl:queryHospdateName" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="queryyestdateRequest">
+
+      <wsdl:part element="impl:queryyestdate" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:portType name="ReturnOpdctl">
+
+      <wsdl:operation name="main">
+
+         <wsdl:input message="impl:mainRequest" name="mainRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:mainResponse" name="mainResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="queryyestdate">
+
+         <wsdl:input message="impl:queryyestdateRequest" name="queryyestdateRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:queryyestdateResponse" name="queryyestdateResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="queryhospdate">
+
+         <wsdl:input message="impl:queryhospdateRequest" name="queryhospdateRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:queryhospdateResponse" name="queryhospdateResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="queryHospdateName">
+
+         <wsdl:input message="impl:queryHospdateNameRequest" name="queryHospdateNameRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:queryHospdateNameResponse" name="queryHospdateNameResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:portType>
+
+   <wsdl:binding name="ReturnOpdctlSoapBinding" type="impl:ReturnOpdctl">
+
+      <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <wsdl:operation name="main">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="mainRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="mainResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="queryyestdate">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="queryyestdateRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="queryyestdateResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="queryhospdate">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="queryhospdateRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="queryhospdateResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="queryHospdateName">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="queryHospdateNameRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="queryHospdateNameResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:binding>
+
+   <wsdl:service name="ReturnOpdctlService">
+
+      <wsdl:port binding="impl:ReturnOpdctlSoapBinding" name="ReturnOpdctl">
+
+         <wsdlsoap:address location="http://localhost:8080/TimaServices/services/ReturnOpdctl"/>
+
+      </wsdl:port>
+
+   </wsdl:service>
+
+</wsdl:definitions>

@@ -1,0 +1,24 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="majorDiseasePage_Title" class="EMRPurpleTitle">重大疾病</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('majorDiseasePage')"></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('majorDiseasePage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<div class="panel-body pre-scrollable" id="majorDiseaseBody">
+				   <div class="row" id="MajorDiseaseCol">
+				      <div class="col-sm-12">
+					<table id="MajorDiseaseList" class="table-hover"></table>
+					<div id="MajorDiseaseList_Pager"></div>
+				      </div>
+				   
+				   </div>
+				
+				</div>
+			</div>
+		

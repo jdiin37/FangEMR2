@@ -1,0 +1,49 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="inpRecordPage_Title">住院紀錄</span>
+						<span id="inpRecordSerno" style="display:none;"></span><!-- 住院序號 -->
+						<span id="inpRecordStartDate" style="display:none;"></span><!-- startDate -->
+						<span id="inpRecordEndDate" style="display:none;"></span><!-- endDate -->
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('inpRecordPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('inpRecordPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<div class="panel-body fix-body">
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline">
+							<span class="EMRfont" id="inpRecordPatInfo"> </span>
+						</div>
+					</div>
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline" id="inpRecordInfo"></div>
+					</div>
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline" id="inpRecordInfo">
+							<!--  <button style="display:none;" class="btn btn-primary" onclick="callChgBed('date')">病房</button>&nbsp;
+							<button style="display:none;" class="btn btn-primary" name="admission" onclick="alert('尚未建置')">普通病房 <span class="badge">0</span></button>&nbsp;
+							<button style="display:none;" class="btn btn-primary" name="outnote" onclick="alert('尚未建置')">ICU <span class="badge">0</span></button>&nbsp;
+							<button style="display:none;" class="btn btn-primary" name="chgbed" onclick="alert('尚未建置')">恢復室 <span class="badge">0</span></button>&nbsp;-->
+
+							<div style="display: inline" id="InpRecordDetail"></div> <!-- 住院紀錄 病房篩選 -->
+							<div class="pull-right">
+								<button class="btn btn-primary" name="chgbed" onclick="callST();">STAT用藥紀錄 </button>&nbsp;
+								<button class="btn btn-primary" name="chgbed" onclick="callUD();">UD用藥紀錄 </button>&nbsp;
+								<button class="btn btn-primary" name="chgbed" onclick="callTakeHome()">出院帶藥 </button>&nbsp;
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12">
+							<table id="inpRecordList" class="table-hover">
+							</table>
+							<div id="inpRecordList_Pager"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		

@@ -1,0 +1,159 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import model.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static library.utility.MapUtil.castToInt;
+
+/**
+ * Created by jeffy on 2017/10/13.
+ */
+public class EMRViewService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Patinp patinp;
+    private Patopd patopd;
+    private OrRecord orRecord;
+    private LabRecord labRecord;
+    private XrayOrd xrayOrd;
+
+    private Map<String, Object> getOpdVisitedByChartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = patopd.queryOpdVisitedByChartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getInpVisitedBychartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = patinp.queryInpVisitedBychartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getOrVisitedBychartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = orRecord.queryOrVisitedBychartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getLabVisitedBychartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = labRecord.queryLabVisitedBychartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getXrayVisitedBychartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = xrayOrd.queryXrayVisitedBychartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    public String getChartEMRSummaryByChartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        int count = 0;
+        try {
+            object = getInpVisitedBychartNo(chartNo);
+            result.put("OPD", castToInt(object.get("count")));
+
+            object = getOpdVisitedByChartNo(chartNo);
+            result.put("INP", castToInt(object.get("count")));
+
+            object = getOrVisitedBychartNo(chartNo);
+            result.put("OR", castToInt(object.get("count")));
+
+            object = getLabVisitedBychartNo(chartNo);
+            result.put("LAB", castToInt(object.get("count")));
+
+            object = getXrayVisitedBychartNo(chartNo);
+            result.put("XRAY", castToInt(object.get("count")));
+
+            jsonObject = MapUtil.getSuccessResult(MapUtil.mapToJsonObject(result));
+
+        } catch (Exception ex) {
+            System.out.printf("\nEMRViewService.getChartEMRSummaryByChartNo chartNo:%s errorMessage:%s", chartNo, ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+
+            patopd = new Patopd(myConnection);
+            patinp = new Patinp(myConnection);
+            orRecord = new OrRecord(myConnection);
+            labRecord = new LabRecord(myConnection);
+            xrayOrd = new XrayOrd(myConnection);
+
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            int chartNo = parametersJsObj.get("chartNo").getAsInt();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get EMR View Summary by chartNo
+            if (method.equals("getChartEMRSummaryByChartNo")) {
+                result = getChartEMRSummaryByChartNo(chartNo);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        EMRViewService emrViewService = new EMRViewService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("logonDate", "1061012");
+        jsonObject.addProperty("logonTime", "133529");
+        jsonObject.addProperty("chartNo", 912473);
+
+        jsonObject.addProperty("method", "getChartEMRSummaryByChartNo");
+        resultStrng = emrViewService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nInvService.run getChartEMRSummaryByChartNo chartNo='912473' : " + resultStrng);
+
+    }
+}
+

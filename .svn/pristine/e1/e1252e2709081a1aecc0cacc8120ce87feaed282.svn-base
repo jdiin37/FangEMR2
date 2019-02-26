@@ -1,0 +1,320 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span class="EMRPurpleTitle" id="inpPage_Title">住院</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<!--  <button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('inpPage')"><span class="glyphicon glyphicon-new-window"></span></button>-->
+						<button type="button" id="extraInp" class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('inpPage')"></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('inpPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_xrayPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" id="InpMaster">
+								<button class="btn btn-primary" id="InpMasterDate" onclick="InpListByDate()">住院 <span class="badge">0</span></button>
+								<input value="5" id="InpYear" type="text" class="form-control input-sm input-center"
+									style="max-width: 48px;"> <label class="EMRLabel" for="InpYear">年</label>
+								<button class="btn btn-primary" id="InpMasterYear" onclick="InpListByYear()">5年住院 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="InpMasterAll" onclick="InpListByAll()">全部住院 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="InpDetail"></div>
+						</div>
+					</div>
+					<!--  <hr style="margin: 10px" />-->
+					<hr class="hr_noline" />
+					<div class="row" id="InpCol">
+						<div class="col-sm-6" id="InpLeft">
+							<table id="InpList" class="table-hover">
+							</table>
+							<div id="InpList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-6" id="InpRight">
+							<!--區塊3-->
+							<div class="panel panel-info " id="InpCopy">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading header EMRPurpleTitle" id="InpListHead">
+								 
+					                                   
+								</div>
+								
+								<div class="panel-body pre-scrollable" id="InpListBody"><!-- 顯示 入出院病摘 -->
+								  
+							      <div id="InpOutNoteContent">
+							       <!--  出院病摘清單-->
+							         <table id="InpOutNoteList" class="table-hover"></table>
+							         <div id="InpOutNoteList_Pager"></div>
+							         <hr class="hr_noline" />
+								  <div class="col-sm-12 form-inline row form-group ">
+							           <div class="col-sm-4 form-inline"><label class="EMRLabel" for="chartNo">病歷號碼:&nbsp;</label> <span class="spanOutline" id="outNote_chartNo"></span></div>
+								  <div class="col-sm-4 form-inline"><label class="EMRLabel" for="serno">&emsp;住院序號:&nbsp;</label> <span class="spanOutline" id="outNote_serno"></span></div>
+								 <div class="col-sm-4 form-inline"><label class="EMRLabel" for="transIn">轉入醫院:&nbsp;</label> <span class="spanOutline" id="outNote_transIn"></span></div>
+								
+							      </div>
+							
+							<div class="col-sm-12 form-inline row form-group ">
+							  <div class="col-sm-4 form-inline"><label class="EMRLabel" for="ptName">&emsp;&emsp;姓名:&nbsp;</label> <span class="spanOutline" id="outNote_ptName"></span></div>
+						            <div class="col-sm-4 form-inline"><label class="EMRLabel" for="IdNo">身分證字號:&nbsp;</label> <span class="spanOutline" id="outNote_idNo"></span></div>
+						            <div class="col-sm-4 form-inline"><label class="EMRLabel" for="birthDay">出生日期:&nbsp;</label> <span class="spanOutline" id="outNote_birthDate"></span></div>						
+							
+							</div>
+							
+							<div class="col-sm-12 form-inline row form-group ">
+							 
+						            <div class="col-sm-12 form-inline"><label class="EMRLabel" for="sourceName">住院來源:&nbsp;</label> <span class="spanOutlineMiddle" id="outNote_sourceName"></span></div>						
+							</div>
+							
+							<div class="col-sm-12 form-inline row form-group ">
+							  <div class="col-sm-4 form-inline"><label class="EMRLabel" for="vsName">主治醫師:&nbsp;</label> <span class="spanOutline" id="outNote_vsName"></span></div>
+						            <div class="col-sm-8 form-inline"><label class="EMRLabel" for="mfinishDay">主治醫師完成日期:&nbsp;</label> <span class="spanOutlineMiddle" id="outNote_mfinishDay"></span></div>
+						            
+							</div>
+							
+							<div class="col-sm-12 form-inline row form-group ">
+							 
+						            <div class="col-sm-4 form-inline"><label class="EMRLabel" for="rName">住院醫師:&nbsp;</label> <span class="spanOutline" id="outNote_rName"></span></div>
+						            <div class="col-sm-8 form-inline"><label class="EMRLabel" for="ifinishDay">住院醫師完成日期:&nbsp;</label> <span class="spanOutlineMiddle" id="outNote_mfinishDay"></span></div>						
+							  <hr class="hr_divideStyle2 col-sm-12">
+							</div>
+											<!--Top End -->
+
+											<!-- second part -->
+						<div class="col-sm-12">
+							<h4 class="EMRLabelBold">一、入院:</h4>
+							<div class="col-sm-12 form-inline row form-group ">
+							 <div class="col-sm-4 form-inline"><label class="EMRSubTitle" for="inDate">入院日期:&nbsp;</label> <span class="spanOutline" id="outNote_ckinDate"></span></div>
+						            <div class="col-sm-4 form-inline"><label class="EMRSubTitle" for="divName">&emsp;&emsp;科別:&nbsp;</label> <span class="spanOutline" id="outNote_divName"></span></div>
+						            <div class="col-sm-4 form-inline"><label class="EMRSubTitle" for="bedNo">&emsp;床位號碼:&nbsp;</label> <span class="spanOutline" id="outNote_bedNo"></span></div>						
+							</div>
+						</div>
+						<div class="col-sm-12">
+							<h4 class="EMRLabelBold">二、出院:</h4>
+							<div class="col-sm-12 form-inline row form-group ">
+							 <div class="col-sm-4 form-inline"><label class="EMRSubTitle" for="inDate">出院日期:&nbsp;</label> <span class="spanOutline" id="outNoteDisDate"></span></div>
+						            <div class="col-sm-4 form-inline"><label class="EMRSubTitle" for="divName">住院天數:&nbsp;</label> <span class="spanOutline" id="outNoteInoutDay"></span></div>
+						            <div class="col-sm-4 form-inline"><label class="EMRSubTitle" for="bedNo">出院時情況:&nbsp;</label> <span class="spanOutline" id="outNoteOutName"></span></div>						
+							</div>
+						</div>
+											<!-- second partEnd -->
+									<div id="changeBed_3" class="row form-group" style="display:none;">
+												<div class="col-sm-6 form-inline" >
+													<label class="h4">三、轉科(床):</label> <span></span>
+												</div>
+											</div>
+
+											<div class=" form-inline  purple-outline" style="display:none;">
+												<table id="changeBed" class="table table-bordered"></table>
+									            <div id="changeBedPager"></div>
+											</div>
+
+											<div class="row">
+											 <div class="col-sm-12">
+												<h4 id="ckinDia_4" class="EMRLabelBold">三、入院診斷:</h4>
+												<div style="white-space:pre;" id="outNoteInDia" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											
+											<div class="col-sm-12">
+												<h4 id="disChargeDia_5" class="EMRLabelBold">四、出院診斷:</h4>
+												<div style="white-space:pre;" id="outNoteOutDia" class="div-outline-withCorner">
+
+
+												</div>
+											</div>
+											
+											<div class="col-sm-12">
+												<h4 id="mainDia_6" class="EMRLabelBold">五、主訴:</h4>
+												<div style="white-space:normal;" id="outNoteCC" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											
+											<div class="col-sm-12">
+												<h4 id="sickness_7" class="EMRLabelBold">六、病史:</h4>
+												<div style="white-space:normal;" id="outNotePH" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											
+											<div class="col-sm-12">
+												<h4 id="passSickness_8" class="EMRLabelBold">七、體檢發現:</h4>
+												<div style="white-space:normal;" id="outNotePE" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											<!--  <div class="form-group form-inline table-responsive" style="display:none;">
+												<h4 id="physCheck_9">九、過去史:</h4>
+												<div style="white-space:pre;" id="outNotePH1" class="purple-outline-withCorner">
+
+												</div>
+											</div>-->
+											<div class="col-sm-12">
+												<h4 id="opMethod_10" class="EMRLabelBold">八、手術日期及方法(包括手術發現):</h4>
+												<div style="white-space:pre;" id="outNoteOrDesc" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="col-sm-12">
+												<h4 id="ckinHeal_11" class="EMRLabelBold">九、住院治療經過:</h4>
+												<div style="white-space:normal;" id="outNoteTreatment" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="col-sm-12">
+												<h4 id="combination_12" class="EMRLabelBold">十、合併症(手術併發症):</h4>
+												<div style="white-space:pre;" id="outNoteComp" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="col-sm-12">
+												<h4 class="EMRLabelBold">十一、檢查紀錄:</h4>
+												<p id="checkRecord_13-1" class="EMRSubTitle">1.一般檢查(如:尿液、糞便、血液、生化、細菌......之檢查):</p>
+												<div style="white-space:normal;" id="outNoteGeneraLab" class="div-outline-withCorner">
+
+												</div>
+												<br />
+												<p id="checkRecord_13-2"  class="EMRSubTitle">2.特殊檢查(如:超音波、內視鏡、呼吸、循環、神經、泌尿、耳鼻喉、眼......之檢查):</p>
+												<div style="white-space:normal;" id="outNoteSpecialLab"
+													class="div-outline-withCorner">
+													</div>
+											</div>
+
+											<div class="col-sm-12">
+												<h4 id="xRayReport_14" class="EMRLabelBold">十二、放射線報告:</h4>
+												<p id="xRayReport14-1" class="EMRSubTitle">放射線報告:</p>
+												<div style="white-space:normal;" id="outNoteXrayRep" class="div-outline-withCorner">
+
+												</div>
+												<br/>												
+												<p id="xRayReport14-2" class="EMRSubTitle">放射線報告2:</p>
+												<div style="white-space:normal;" id="outNoteXrayRep2" class="div-outline-withCorner">
+
+												</div>
+												<br/>
+												<p id="xRayReport14-3" class="EMRSubTitle">放射線報告3:</p>
+												<div style="white-space:normal;" id="outNoteXrayRep3" class="div-outline-withCorner">
+
+												</div>
+											</div>
+
+											<div class="col-sm-12">
+												<h4 id="sickReport_15" class="EMRLabelBold">十三、病理報告:</h4>
+												<div style="white-space:pre;" id="outNotePathologicRep"
+													class="div-outline-withCorner">
+													</div>
+											</div>
+											<div class="col-sm-12">
+												<h4 id="other_16" class="EMRLabelBold">十四、其它:</h4>
+												<div style="white-space:pre;" id="outNoteOther" class="div-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="col-sm-12">
+												<h4 id="outNoteDire_17" class="EMRLabelBold">十五、出院指示:</h4>
+												<div style="white-space:normal;" id="outNoteOutDirec" class="div-outline-withCorner">
+
+												</div>
+											</div>
+								
+								</div>
+								</div>
+								<!-- 入院病摘   修改-->
+							     <div id="InpAdmissionContent">
+							         <!--  入院病摘清單-->
+							         <table id="InpAdmissionList" class="table-hover"></table>
+							         <div id="InpAdmissionList_Pager"></div>
+							           <hr class="hr_noline" />
+								 <div class="col-sm-12 form-inline row form-group ">
+								  <div class="col-sm-4 form-inline"><label class="EMRLabel" for="chartNo">病歷號碼:&nbsp;</label> <span class="spanOutline" id="admin_chartNo"></span></div>
+								 <div class="col-sm-4 form-inline"><label class="EMRLabel" for="serno">住院序號:&nbsp;</label> <span class="spanOutline" id="admin_serno"></span></div>
+								 <div class="col-sm-4 form-inline"><label class="EMRLabel" for="bedNo">&emsp;&emsp;床位:&nbsp;</label> <span class="spanOutline" id="admin_bedNo"></span></div>								
+							         </div>
+								
+							<div class="col-sm-12 form-inline row form-group ">
+							           <div class="col-sm-4 form-inline"><label class="EMRLabel" for="ptName">&emsp;&emsp;姓名:&nbsp;</label> <span class="spanOutline" id="admin_ptName"></span></div>
+								  <div class="col-sm-4 form-inline"><label class="EMRLabel" for="birthDate">&emsp;&emsp;生日:&nbsp;</label> <span class="spanOutline" id="admin_birthDate"></span></div>
+								 <div class="col-sm-4 form-inline"><label class="EMRLabel" for="ckinDate">住院日期:&nbsp;</label> <span class="spanOutline" id="admin_ckinDate"></span></div>
+								
+							</div>
+							
+							<div class="col-sm-12 form-inline row form-group ">
+							  <div class="col-sm-4 form-inline"><label class="EMRLabel" for="divName">&emsp;&emsp;科別:&nbsp;</label> <span class="spanOutline" id="admin_divName"></span></div>
+						            <div class="col-sm-4 form-inline"><label class="EMRLabel" for="vsName">主治醫師:&nbsp;</label> <span class="spanOutline" id="admin_vsName"></span></div>						
+							  <hr class="hr_divideStyle2 col-sm-12">
+							</div>
+								
+								  <div class="col-sm-12">
+								   <h3 id="admin_1" class="EMRLabelBold">一、主訴:</h3>
+								      <div style="white-space:normal;" id="adminComplaint" class="div-outline-withCorner">
+								      
+								      </div>
+								 </div>
+								 
+								 <div class="col-sm-12">
+								   <h4 id="admin_2" class="EMRLabelBold">二、過去史:</h4>
+								      <div style="white-space:normal;" id="adminPathH" class="div-outline-withCorner">
+								      
+								      </div>
+								</div>
+								
+								<div class="col-sm-12">
+								   <h4 id="admin_3" class="EMRLabelBold">三、系統檢閱:</h4>
+								      <div style="white-space:normal;" id="adminSystemReview" class="div-outline-withCorner">
+								      
+								      </div>
+								</div>
+								
+								<div class="col-sm-12">
+								   <h4 id="admin_4" class="EMRLabelBold">四、病史:</h4>
+								      <div style="white-space:normal;" id="adminCharth" class="div-outline-withCorner">
+								      
+								      </div>
+								</div>
+								
+								<div class="col-sm-12">
+								   <h4 id="admin_5" class="EMRLabelBold">五、理學檢查摘要:</h4>
+								      <div style="white-space:normal;" id="adminDiagnosis" class="div-outline-withCorner">
+								      
+								      </div>
+								</div>
+								
+								<div class="col-sm-12">
+								   <h4 id="admin_6" class="EMRLabelBold">六、診斷:</h4>
+								      <div style="white-space:normal;" id="adminDiagnosisO" class="div-outline-withCorner">
+								      
+								      </div>
+								</div>
+								
+								<div class="col-sm-12">
+								   <h4 id="admin_7" class="EMRLabelBold">七、檢驗檢查:</h4>
+								      <div style="white-space:normal;" id="adminLabData" class="div-outline-withCorner">
+								      
+								      </div>
+								</div>
+								
+								<div class="col-sm-12">
+								   <h4 id="admin_8" class="EMRLabelBold">八、計劃:</h4>
+								      <div style="white-space:normal;" id="adminPlan" class="div-outline-withCorner">
+								      
+								      </div>
+								</div>
+								</div><!-- 入院病摘 Content結尾 -->
+								
+							    
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+			</div>
+		

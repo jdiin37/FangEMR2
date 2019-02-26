@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>XRay報告</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/Common.css" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+<script src="scripts/EMRfunction.js"></script>
+<script src="scripts/EMRajax.js"></script>
+
+<script>
+
+$(document).ready(function(){
+
+	//格行變色
+	$("tbody >tr:odd").addClass("tr_odd");
+	$("tbody > tr:even").addClass("tr_even");
+	
+	$("#XRayListTable >tbody >tr").click(function(){
+		 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+				 
+		   }); 
+});
+
+
+
+</script>
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">  <!--row1-->
+        <div><!--區塊1-->
+             <div class="panel panel-success purple-outline"><!--區塊1外框 panel-warning;panel-danger -->
+	        <div class="panel-heading clearfix thGradient">
+	          <div class="panel-title pull-left panel-tool"><!-- panel-title panel-tool 只能點擊Title文字方可開合 -->
+		  <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xRayPage">影像</a>
+	          </div>
+	          <div class="pull-right">
+		 <button type="button" class="btn btn-link btn-popUp"><span class="glyphicon glyphicon-new-window"></span></button>
+		 <button type="button" class="btn btn-link btn-close"><span class="glyphicon glyphicon-remove"></span></button>
+	          </div>
+	        </div>
+	       
+	       
+	        <div id="collapse_xRayPage" class="panel-collapse collapse in"><!-- Collapse start -->
+	         <div class="panel-body">
+	         
+	         <div class="row form-group">
+		   <div class="col-sm-6 form-inline">
+		     <input value="1" id="recentYear" type="text" class="form-control input-sm" style="max-width: 48px;">
+		     <label for="recentYear">年</label>
+		      <button class="btn btn-info"><span>1</span>年影像&emsp;<span class="badge" id="yearsResult">35</span></button>
+		      <button class="btn btn-info">全部影像&emsp;<span class="badge" id="AllResult">40</span></button>
+		   </div>
+	         </div>
+		
+		<!-- XRay報告 結果區 -->
+		        
+    <div class="row"><!--row2 -->
+        <div class="col-md-4"><!--區塊2-->
+           <div class="table-responsive"><!--響應式Table -->
+           <table id="XRayListTable" class="table table-bordered">
+              <thead class="thGradient"><!-- 表格標頭 -->
+                <tr>
+                  <td>看診日期</td>
+                  <td>報告類別</td>                  
+                </tr> 
+              </thead>
+              <tbody>
+                <tr class="tr_selected">
+                  <td>106/08/07</td>
+                  <td>超音波</td>
+                </tr>
+                 <tr>
+                  <td>105/08/07</td>
+                  <td>超音波</td>
+                </tr>  
+              </tbody>
+           </table><!--響應式Table結尾 -->
+           </div>    
+		
+        </div><!--區塊2結尾-->
+        
+        <div class="col-md-7" ><!--區塊3-->
+            <div class="panel panel-success purple-outline"><!--區塊3外框 panel-warning;panel-danger -->
+	       <!-- <div class="panel-heading text-center">Progress Note</div>-->
+	         <div class="panel-body">
+	            <div class="table-responsive purple-outline container-fluid" >
+	             <div class="row form-group">
+	                <div class="col-sm-6 form-inline">
+                           <label for="reportDate">報告日期:</label>
+                           <span >106/08/07&emsp;18:17</span>                          
+                        </div>
+                        <div class="col-sm-6 form-inline">
+                           <label for="reportClerk">報告人員:</label>
+                           <span>劉文彥</span>
+                        </div>
+                       </div>
+                       
+                       <div class="row form-group"> 
+                         <div class="col-sm-6 form-inline">
+                           <label for="xRayType">X光類別:</label>
+                           <span>D&emsp;超音波</span>
+                        </div>
+                        <div class="col-sm-6 form-inline">
+                           <label for="doctor">醫師:</label>
+                           <span>D32&emsp;劉文彥</span>
+                        </div>
+                       </div>
+	            </div>
+	            <!-- 照射位置  -->
+	            <br/>
+	            <div class="table-responsive">
+	              <table id="XRayPosTable" class="table purple-outline table-bordered" >
+	                <thead class="thGradient">
+	                  <tr>
+                              <td>照射位置</td>
+                              <td></td>
+                              <td>片子種類</td>
+                              <td></td>
+                              <td>片數</td>	                
+	                  </tr>
+	                </thead>
+	                <tbody>
+	                  <tr>
+	                    <td>SX0021</td>
+	                    <td>Gynecologic ultrasound</td>
+	                    <td>I</td>
+	                    <td>PACS</td>
+	                    <td>1</td>
+	                  </tr>
+	                  <tr>
+	                    <td>SX0021</td>
+	                    <td>Gynecologic ultrasound</td>
+	                    <td>I</td>
+	                    <td>PACS</td>
+	                    <td>1</td>
+	                  </tr>
+	                </tbody>
+	              </table>
+	            </div>
+	            <!-- 醫囑原因 、報告內容 -->
+	           
+		 <fieldset class="purple-outline" >
+	             <div class="row form-group container-fluid"> 
+                         <div class="col-sm-6">
+                           <label for="dianoReason">一、醫囑原因:</label>
+                           <div style="white-space:pre;">醫囑原因內文</div>
+                         </div>  
+                       </div>
+                       <div class="row form-group container-fluid"> 
+                         <div class="col-sm-6">
+                           <label for="finding">二、報告內容</label>
+                          <div style="white-space:pre;">報告內容內文</div>    
+                        </div>
+                       </div>
+                     </fieldset>
+                     
+                     
+                       
+                       
+                    
+	        
+	         </div>
+			 
+	  </div><!--區塊3外框結尾-->
+		
+       </div><!--區塊3結尾-->
+    
+    </div><!--row2結尾 -->
+		          
+	         </div><!-- panel-body 結尾 -->
+		  </div><!-- Collapse end -->
+		         <!--  <div class="panel-footer"></div>-->
+			 
+	   </div><!--區塊1外框結尾-->
+		
+        </div><!--區塊1結尾-->
+    </div><!--row1結尾 -->
+    
+
+</div> 
+
+</body>
+</html>

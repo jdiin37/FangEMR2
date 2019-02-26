@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/Common.css" type="text/css" />
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+<script src="scripts/OutNoteajax.js"></script>
+<script src="scripts/OutNotejqGrid.js"></script>
+<link rel="stylesheet" href="styles/ui.jqgrid-bootstrap.css" type="text/css" media="screen" />
+<script src="scripts/i18n/grid.locale-tw.js"></script>
+<script src="scripts/jquery.jqGrid.min.js"></script>
+<title>出院病摘</title>
+
+
+<script>
+	$.jgrid.defaults.responsive = true;
+	$.jgrid.defaults.styleUI = 'Bootstrap';
+</script>
+<script>
+$(document).ready(function(){
+	
+$("#btnOutNoteSmaller").click(function(){
+  var isVisible = $("#outNoteContent").is(":visible");;	
+  if(isVisible){  
+$("#outNoteContent").slideToggle(1000,function(){
+	$("#outNoteContent").hide();			
+		});
+			  
+  }else{
+     $("#outNoteContent").slideToggle(1000,function(){
+			$("#outNoteContent").show();			
+				});
+  }
+  	
+});
+
+
+
+
+ 
+ /** $(window).scroll(function(){
+	    
+	     //最後一頁scrollTop=body-window，50是預留空間
+	     last=$("body").height()-$(window).height()-50
+	     console.log(last);
+	     if($(window).scrollTop()>=last){
+	     $("#top-bar").show();
+	     }else{
+	     $("#top-bar").hide();	 
+	     }
+	});  **/
+
+   
+	   
+/**$(window).bind('scroll resize', function(){
+	　　var $this = $(this);
+	　　var $this_Top=$this.scrollTop();
+
+	　　//當高度小於100時，關閉區塊 
+	　　if($this_Top < 100){
+	　　　$('#top-bar').stop().animate({top:"-65px"});
+	　　　}
+	　　　　if($this_Top > 100){
+	     //if(!$("#top-bar").is(":visible")){
+	     //$("#top-bar").show();	 
+	     //}else{
+	     //$("#top-bar").hide();	 
+	     //} 	 
+	    
+	　　　　$('#top-bar').stop().animate({top:"0px"});
+	　　　 }
+	　　}).scroll();  **/
+
+$("#floatNavBar").click(function(){
+   //$("#top-bar").hide();	
+	
+});
+	
+
+
+ajax_getOutNote();
+getOutNoteChangeBedList();
+
+//Selected
+$("#changeBed > tbody >tr:odd").addClass("tr_odd");
+$("#changeBed > tbody > tr:even").addClass("tr_even");
+
+$("#outNoteListTable >tbody >tr").click(function(){
+	 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+			 
+	   }); 
+$("#changeBed >tbody >tr").click(function(){
+	 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+			 
+	   }); 	
+
+	  	   
+});
+
+
+</script>
+
+<script>
+
+	
+	
+
+
+</script>
+
+<style>
+#top-bar {
+	width: 100%;
+	height: 50px;
+	background: #32b3bf;
+	position: fixed;
+	top: -65px;
+	/* CSS3 陰影*/
+	-webkit-box-shadow: 0px 8px 15px #333;
+	-moz-box-shadow: 0px 8px 15px #333;
+	box-shadow: 0px 8px 15px #333;
+}
+</style>
+
+
+</head>
+<body>
+
+	<div class="container-fluid">
+		<div class="row">
+			<!--row1-->
+			<div>
+				<!--區塊1-->
+				<div class="panel panel-success purple-outline">
+					<!--區塊1外框 panel-warning;panel-danger -->
+					<div class="panel-heading clearfix thGradient">
+						<div class="panel-title pull-left panel-tool">
+							<!-- panel-title panel-tool 只能點擊Title文字方可開合 -->
+							<a data-toggle="collapse" data-parent="#accordion"
+								href="#collapse_OutNotePage">出院病摘</a>
+						</div>
+						<div class="pull-right">
+							<button type="button" class="btn btn-link btn-popUp">
+								<span class="glyphicon glyphicon-new-window"></span>
+							</button>
+							<button type="button" class="btn btn-link btn-close">
+								<span class="glyphicon glyphicon-remove"></span>
+							</button>
+						</div>
+					</div>
+
+
+					<div id="collapse_OutNotePage" class="panel-collapse collapse in">
+						<!-- divUDContent開頭  -->
+						<div class="panel-body">
+							<!-- -->
+
+							<div class="row form-group">
+								<div class="col-sm-6 form-inline">
+									<input value="1" id="recentYear" type="text"
+										class="form-control input-sm" style="max-width: 48px;">
+									<label for="recentYear">年</label>
+									<button class="btn btn-info">
+										1年出院病摘<span class="badge" id="yearsResult">35</span>
+									</button>
+									<button class="btn btn-info">
+										全部出院病摘<span class="badge" id="AllResult">40</span>
+									</button>
+								</div>
+
+							</div>
+
+
+
+
+							<!--  -->
+
+
+
+							<!-- 檢驗 結果區 -->
+
+							<div class="row">
+								<!--row2 -->
+								<div class="col-sm-2">
+									<!--區塊2-->
+									<div class="table-responsive">
+										<!--響應式Table -->
+										<table id="outNoteListTable" class="table table-bordered">
+											<thead class="thGradient">
+												<!-- 表格標頭 -->
+												<tr>
+													<td>病摘紀錄</td>
+												</tr>
+											</thead>
+											<tbody>
+												<tr class="tr_selected">
+													<td>106/07/16</td>
+												</tr>
+												<tr>
+													<td>106/07/15</td>
+												</tr>
+												<tr>
+													<td>106/07/14</td>
+												</tr>
+												<tr>
+													<td>106/07/13</td>
+												</tr>
+											</tbody>
+										</table>
+										<!--響應式Table結尾 -->
+									</div>
+
+								</div>
+								<!--區塊2結尾-->
+
+								<div class="col-md-10 container-fluid">
+									<!--區塊3-->
+									<div class="panel panel-success purple-outline">
+										<!--區塊3外框 panel-warning;panel-danger -->
+										<div class="panel-heading">
+										
+										</div>
+										<div class="panel-body">
+
+											<!-- Top start -->
+											<div class="table-responsive purple-outline container-fluid">
+												<div class="row form-group">
+													<div class="col-sm-3 form-inline">
+														<label for="chartNo">病歷號碼:</label> <span
+															id="outNote_chartNo"></span>
+													</div>
+													<div class="col-sm-3 form-inline">
+														<label for="serno">住院序號:</label> <span id="outNote_serno"></span>
+													</div>
+													<div class="col-sm-3 form-inline">
+														<label for="transIn">轉入醫院:</label> <span
+															id="outNote_transIn"></span>
+													</div>
+													<div class="col-sm-3 form-inline">
+														<label for="ptName">姓名:</label> <span id="outNote_ptName"></span>
+													</div>
+													<div class="col-sm-3 form-inline">
+														<label for="IdNo">身分證字號:</label> <span id="outNote_idNo"></span>
+													</div>
+													<div class="col-sm-6 form-inline">
+														<label for="address">住址:</label> <span
+															id="outNote_address"></span>
+													</div>
+													<div class="col-sm-3 form-inline">
+														<label for="birthDay">出生日期:</label> <span
+															id="outNote_birthDate"></span>
+													</div>
+													<div class="col-sm-3 form-inline">
+														<label for="finishDay">完成日期:</label> <span
+															id="outNote_finishDay"></span>
+													</div>
+												</div>
+											</div>
+											<!--Top End -->
+
+											<!-- second part -->
+											<div class=" form-inline table-responsive ">
+												<table class="table">
+													<thead>
+														<tr id="ckin_1">
+															<td class="h4">一、入院:</td>
+															<td>入院日期:<span id="outNote_ckinDate"></span></td>
+															<td>科別:<span id="outNote_divName"></span></td>
+															<td>床位號碼:<span id="outNote_bedNo"></span></td>
+														</tr>
+														<tr id="disCharge_2">
+															<td class="h4">二、出院:</td>
+															<td>出院日期:<span id="outNoteDisDate"></td>
+															<td>住院天數:<span id="outNoteInoutDay"></span></td>
+															<td>出院時情況:<span id="outNoteOutName"></span></td>
+														</tr>
+													</thead>
+												</table>
+											</div>
+											<!-- second partEnd -->
+
+											<div id="changeBed_3" class="row form-group">
+												<div class="col-sm-6 form-inline">
+													<label for="xRayType" class="h4">三、轉科(床):</label> <span>1筆</span>
+												</div>
+											</div>
+
+											<div class=" form-inline  purple-outline">
+												<table id="changeBed" class="table table-bordered"></table>
+									            <div id="changeBedPager"></div>
+											</div>
+
+											<div class="form-group form-inline table-responsive">
+												<h4 id="ckinDia_4">四、入院診斷:</h4>
+												<div id="outNoteInDia" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+
+											<div class="form-group form-inline table-responsive">
+												<h4 id="disChargeDia_5">五、出院診斷:</h4>
+												<div id="outNoteOutDia" class="purple-outline-withCorner">
+
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="mainDia_6">六、主訴:</h4>
+												<div id="outNoteCC" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="sickness_7">七、病史:</h4>
+												<div id="outNotePH" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="passSickness_8">八、過去史:</h4>
+												<div id="outNotePH1" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="physCheck_9">九、理學檢查:</h4>
+												<div id="outNotePE" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="opMethod_10">十、手術日期及方法(包括手術發現):</h4>
+												<div id="outNoteOrDesc" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="ckinHeal_11">十一、住院治療經過:</h4>
+												<div id="outNoteTreatment" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="combination_12">十二、合併症(手術併發症):</h4>
+												<div id="outNoteComp" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive ">
+												<h4>十三、檢查紀錄:</h4>
+												<p id="checkRecord_13-1">1.一般檢查(如:尿液、糞便、血液、生化、細菌......之檢查):</p>
+												<div id="outNoteGeneraLab" class="purple-outline-withCorner">
+
+												</div>
+												<br />
+												<p id="checkRecord_13-2">2.特殊檢查(如:超音波、內視鏡、呼吸、循環、神經、泌尿、耳鼻喉、眼......之檢查):</p>
+												<div id="outNoteSpecialLab"
+													class="purple-outline-withCorner"></div>
+											</div>
+
+											<div class="form-group form-inline table-responsive">
+												<h4 id="xRayReport_14">十四、放射線報告:</h4>
+												<div id="outNoteXrayRep" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+
+											<div class="form-group form-inline table-responsive">
+												<h4 id="sickReport_15">十五、病理報告:</h4>
+												<div id="outNotePathologicRep"
+													class="purple-outline-withCorner"></div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="other_16">十六、其它:</h4>
+												<div id="outNoteOther" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+											<div class="form-group form-inline table-responsive">
+												<h4 id="outNoteDire_17">十七、出院指示:</h4>
+												<div id="outNoteOutDirec" class="purple-outline-withCorner">
+
+												</div>
+											</div>
+
+
+
+
+										</div>
+										<!--區塊3外框結尾-->
+
+									</div>
+									<!--區塊3結尾-->
+
+								</div>
+								<!--row2結尾 -->
+
+
+
+							</div>
+						</div>
+						<!-- panel-body 結尾 -->
+
+					</div>
+					<!-- Collapse end -->
+
+					<!-- id="top-bar" style="display:none;width:auto;height:50px;position:relative;x-index:3" -->
+					<!--<div class="container" id="top-bar" display:none>底部導航GoToStart
+                   <div class="row clearfix">
+                     <div class="col-md-12 footer-services">
+                        <ul class="nav nav-justified" id="floatNavBar">
+                          <li><a href="#ckin_1">入院</a></li>
+		      <li><a href="#disCharge_2">出院</a></li>
+		      <li><a href="#changeBed_3">轉科(床)</a></li>
+		      <li><a href="#ckinDia_4">入院診斷</a></li>
+		      <li><a href="#disChargeDia_5">出院診斷</a></li>
+		      <li><a href="#mainDia_6">主訴</a></li>
+		      <li><a href="#sickness_7">病史</a></li>
+		      <li><a href="#passSickness_8">過去史</a></li>
+		      <li><a href="#physCheck_9">理學檢查</a></li>
+		      <li><a href="#opMethod_10">手術日期</a></li>
+		      <li><a href="#ckinHeal_11">住院治療</a></li>
+		      <li><a href="#combination_12">合併症</a></li>
+		      <li><a href="#checkRecord_13-1">一般檢查</a></li>
+		      <li><a href="#checkRecord_13-2">特殊檢查</a></li>
+		      <li><a href="#xRayReport_14">放射線報告</a></li>
+		      <li><a href="#sickReport_15">病理報告</a></li>
+		      <li><a href="#other_16">其他</a></li>
+		      <li><a href="#outNoteDire_17">出院指示</a></li>
+                       </ul>
+                     </div>
+                  </div>
+               </div> 底部導航GoToEnd-->
+
+
+				</div>
+				<!--區塊1外框結尾-->
+
+			</div>
+			<!--區塊1結尾-->
+		</div>
+		<!--row1結尾 -->
+
+
+	</div>
+
+
+	<nav class="navbar navbar-default navbar-fixed-bottom"
+		role="navigation">
+		<div class="container-fluid">
+			<div class="row clearfix" id="bottom-toolbar">
+				<div class="col-md-12 footer-services">
+					<ul class="nav nav-justified" id="floatNavBar">
+						<li><a href="#ckin_1">入院</a></li>
+						<li><a href="#disCharge_2">出院</a></li>
+						<li><a href="#changeBed_3">轉科(床)</a></li>
+						<li><a href="#ckinDia_4">入院診斷</a></li>
+						<li><a href="#disChargeDia_5">出院診斷</a></li>
+						<li><a href="#mainDia_6">主訴</a></li>
+						<li><a href="#sickness_7">病史</a></li>
+						<li><a href="#passSickness_8">過去史</a></li>
+						<li><a href="#physCheck_9">理學檢查</a></li>
+						<li><a href="#opMethod_10">手術日期</a></li>
+						<li><a href="#ckinHeal_11">住院治療</a></li>
+						<li><a href="#combination_12">合併症</a></li>
+						<li><a href="#checkRecord_13-1">一般檢查</a></li>
+						<li><a href="#checkRecord_13-2">特殊檢查</a></li>
+						<li><a href="#xRayReport_14">放射線報告</a></li>
+						<li><a href="#sickReport_15">病理報告</a></li>
+						<li><a href="#other_16">其他</a></li>
+						<li><a href="#outNoteDire_17">出院指示</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+
+</body>
+</html>

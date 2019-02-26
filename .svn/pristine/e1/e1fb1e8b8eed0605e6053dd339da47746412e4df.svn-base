@@ -1,0 +1,59 @@
+		
+			<div class="panel panel-info">
+				<!--檢驗 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="labSumChartPage_Title">檢驗彙總趨勢圖</span>
+						<span id="strLabSumChartItem" style="display:none;"></span>
+						<span id="strLabSumChartKindId" style="display:none;"></span>
+						
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('labSumChartPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('labSumChartPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				
+				<div class="panel-body pre-scrollable" id="labSumChartListBody">
+					
+					 <div id="labSumChartRadioGroup" class="labRadioGroup pull-right col-sm-12" style="display:block;"><!-- 預設1個月  自訂 7天 --> 
+								    <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumChartRadio" checked="checked" value="month">1個月</label>
+								    <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumChartRadio" value="season">3個月</label>
+                                                    			    <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumChartRadio" value="halfYear">半年</label>
+                                                    			    <label class="radio-inline EMRLabelBold"><input type="radio" name="labSumChartRadio" value="year">1年</label>
+                                                    			    <!-- 預設7天 -->
+                                                    			    <label class="radio-inline form-inline text-center EMRLabelBold">
+                                                    			     <input type="radio" name="labSumChartRadio" value="自訂">自訂:
+                                                    			     </label>
+                                                    			     <input  id="inputLabSumChartStartDate" type="text" class="form-inline input-sm EMRLabel LabStartEndDateInputWidth"><!-- Now-7days -->
+                                                    			     <input  id="inputLabSumChartEndDate" type="text" class="form-inline input-sm EMRLabel LabStartEndDateInputWidth"><!-- Now -->  
+                                                    			     
+
+                          
+								</div> 
+					
+					<div class="row" id="LabSumChartCol">
+						<div class="col-sm-12">
+						 <div id="LabSumLineChartContainer" style="display:block;">
+						     <canvas id="LabSumLineChart" style="display:none;"></canvas>
+						     <span class="EMRLabelBold" id="SumlineChartMsg" style="display:none;"></span>
+						</div>
+							
+						</div>
+					</div>
+				</div>
+				
+	<!--  <nav style="display:none;" class="navbar navbar-default" role="navigation">
+		<div class="container-fluid">
+			<div class="row clearfix" id="labLineChart-toolbar">
+				<div class="col-md-12 footer-services">
+					<ul class="nav nav-justified" id="labLineChartBar">
+						
+					</ul>
+				</div>
+			</div>
+		</div>
+	</nav>-->
+			
+			</div>
+		

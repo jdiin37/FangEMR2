@@ -1,0 +1,39 @@
+<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="opdDiseaseDARTPage_Title" class="EMRPurpleTitle">主訴、理學、診斷、病史彙總</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('opdDiseaseDARTPage')"></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('opdDiseaseDARTPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<div class="panel-body pre-scrollable" id="OpdDiseaseDARTBody">
+				   <div class="row" id="OpdDiseaseDARTCol">
+				      <button class="btn btn-primary" id="btn_opdSearchMedicine-2"><img alt="查醫藥囑" src="/FangEmrServices/img/24_SearchMedicine.png" style="margin-top:2px;"> 查醫藥囑</button>
+					<hr class="hr_noline">								    
+				        <div class="col-sm-12 form-inline row form-group ">
+		     			<div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">主訴:&nbsp;</label></div>
+	               			<div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdComplaint-2" ></div></div>					
+		  		        </div>
+		  						    
+		  			<div class="col-sm-12 form-inline row form-group ">
+		     			  <div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">理學:&nbsp;</label></div>
+	               			  <div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdDiagnosis-2" ></div></div>					
+		  			</div>
+		  						    
+		  			<div class="col-sm-12 form-inline row form-group ">
+		     			   <div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">診斷:&nbsp;</label></div>
+	               			   <div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdDiagnosis1-2" ></div></div>					
+		  			</div>
+		  						    
+		  			<div class="col-sm-12 form-inline row form-group ">
+		     			  <div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">病史:&nbsp;</label></div>
+	               			  <div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdChartHistory-2" ></div></div>					
+		  			</div>
+				   </div>				
+				</div>
+				
+				
+</div>

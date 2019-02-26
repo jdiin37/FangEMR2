@@ -1,0 +1,99 @@
+//正規表達式--------資料驗證區
+years_regex = /^\d+$/;
+
+function stateChange(state,objID,msg) {
+    if (state) {
+        $(objID).parent().removeClass('has-error').addClass('has-success');
+        $(objID).tooltip('destroy');
+    }
+    else {
+        $(objID).parent().removeClass('has-success').addClass('has-error');
+        $(objID).tooltip({title: msg, placement: "bottom"}).tooltip('show');
+    }
+}
+//---------------
+
+var timesCnt = 0;
+
+function showTimeLine() {
+
+	timesCnt++;
+
+	var content = "<div class='panel panel-info'>"
+			+ "<div class='panel-heading'>"
+			+ "<a data-toggle='collapse' id='link_time_" + timesCnt
+			+ "' data-parent='#timeLine' href='#time_" + timesCnt + "'>"
+			+ "<h4 class='panel-title'>" + timesCnt + "</h4>" + "</a>"
+			+ "</div>" + "<div id='time_" + timesCnt
+			+ "' class='panel-collapse collapse'>" + "<div class='panel-body'>"
+			+ "body" + "</div>" + "</div>"
+	"</div>";
+
+	$("#timeLine").append(content);
+	$("#link_time_" + timesCnt).click(function() {
+		// alert( $(this).attr('id') );
+		$('#LoadingModal').modal('show');
+		setTimeout(function() {
+			$("#LoadingModal").modal('hide');
+		}, 1000);
+	});
+	if (timesCnt <= 10)
+		setTimeout("showTimeLine()", 500);
+}
+
+function getQueryPatList() {
+	for (i = 0; i < 11; i++) {
+		var htmltr = "";
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row'>";
+		htmltr += "<td title='" + i + i + i + "'>" + i + i + i + "</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "</tr>";
+		$('#queryBlock3TableRow').append(htmltr);
+	}
+}
+
+function queryDetail(dom) {
+	$('#loading-msg').text($(dom).find('td').eq(0).html());
+	$('#LoadingModal').modal('show');
+	setTimeout(function() {
+		$("#LoadingModal").modal('hide');
+		$('#queryPage').hide();
+		$('#loading-msg').text("");
+	}, 1000);
+}
+
+function filter_qeuryPat() {
+	// Declare variables
+	var input, filter, table, tr, td, i;
+	input = document.getElementById("input_filter");
+	filter = input.value.toUpperCase();
+	table = document.getElementById("table_queryPat");
+	tr = table.getElementsByTagName("tr");
+
+	// Loop through all table rows, and hide those who don't match the search
+	// query
+	for (i = 0; i < tr.length; i++) {
+		td = tr[i].getElementsByTagName("td")[0];
+		if (td) {
+			if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+				tr[i].style.display = "";
+			} else {
+				tr[i].style.display = "none";
+			}
+		}
+	}
+}

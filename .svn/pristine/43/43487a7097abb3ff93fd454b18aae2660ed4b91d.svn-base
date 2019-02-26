@@ -1,0 +1,180 @@
+package library.dateutility;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+
+import java.sql.*;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/3/22.
+ */
+public class DateUtil {
+    public static boolean isInteger(String s) {
+        try {
+            Integer.parseInt(s);
+        } catch(NumberFormatException e) {
+            return false;
+        } catch(NullPointerException e) {
+            return false;
+        }
+        // only got here if we didn't return false
+        return true;
+    }
+
+    public static String adjustDate(String rocDateStr) {
+        if (rocDateStr.startsWith("-") && isInteger(rocDateStr.substring(1))) {
+            return String.format("-%1$06d", Integer.parseInt(rocDateStr.substring(1)));
+        }
+
+        if (isInteger(rocDateStr)) {
+            return String.format("%07d", Integer.parseInt(rocDateStr));
+        }
+
+        return "ERROR";
+    }
+
+    public static String adDateStringToROCDateString(String adDateString) {
+        String rocDateString =
+                Integer.toString(Integer.parseInt(adDateString.substring(0, 4)) - 1911) +  adDateString.substring(4);
+        return String.format("%07d", Integer.parseInt(rocDateString));
+    }
+
+    public static String adDateTimeStringToROCDateTimeString(String adDateTimeString) {
+        String adDateString = adDateTimeString.split(" ")[0];
+        String adTimeString = adDateTimeString.split(" ")[1];
+        return DateUtil.adDateStringToROCDateString(adDateString) + " " + adTimeString;
+    }
+
+    public static String rocDateStringToADDateString(String rocDateString) {
+        return Integer.toString(Integer.parseInt(rocDateString.substring(0, 3)) + 1911) +
+                rocDateString.substring(3);
+    }
+
+    public static String rocDateTimeStringToADDateTimeString(String rocDateTimeString) {
+        return Integer.toString(Integer.parseInt(rocDateTimeString.substring(0, 3)) + 1911) +
+                rocDateTimeString.substring(3);
+    }
+
+    public static String dateToROCDateString(LocalDate date) {
+        return adDateStringToROCDateString(dateToADDateString(date));
+    }
+
+    public static String dateTimeToROCDateTimeString(LocalDateTime dateTime) {
+        return adDateTimeStringToROCDateTimeString(dateTimeToADDateTimeString(dateTime));
+    }
+
+    public static String dateToADDateString(LocalDate date) {
+        return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    public static String dateTimeToADDateTimeString(LocalDateTime dateTime) {
+        return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd HHmmss"));
+    }
+
+    public static LocalDate rocDateStringToDate(String rocDateString) {
+        return LocalDate.parse(rocDateStringToADDateString(rocDateString),
+                                DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    public static LocalDate rocDateTimeStringToDate(String rocDateTimeString) {
+        return LocalDate.parse(rocDateTimeStringToADDateTimeString(rocDateTimeString),
+                DateTimeFormatter.ofPattern("yyyyMMdd HHmmss"));
+    }
+
+    public static LocalDateTime rocDateTimeStringToDateTime(String rocDateTimeString) {
+        return LocalDateTime.parse(rocDateTimeStringToADDateTimeString(rocDateTimeString),
+                DateTimeFormatter.ofPattern("yyyyMMdd HHmmss"));
+    }
+
+    public static LocalDate adDateStringToDate(String adDateString) {
+        return LocalDate.parse(adDateString, DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    public static LocalDate adDateTimeStringToDate(String adDateTimeString) {
+        return LocalDate.parse(adDateTimeString, DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    public static LocalDateTime adDateTimeStringToDateTime(String adDateTimeString) {
+        return LocalDateTime.parse(adDateTimeString, DateTimeFormatter.ofPattern("yyyyMMdd HHmmss"));
+    }
+
+    public static String getSystemADDateTimeString(Connection conn) throws SQLException, ParseException {
+        return dateTimeToADDateTimeString(getSystemDateTime(conn).toLocalDateTime());
+    }
+
+    public static String getSystemROCDateTimeString(Connection conn) throws SQLException, ParseException {
+        return dateTimeToROCDateTimeString(getSystemDateTime(conn).toLocalDateTime());
+    }
+
+    public static Timestamp getSystemDateTime(Connection con) throws SQLException {
+        Timestamp systemDateTime;
+        String queryString = "SELECT sysdate FROM DUAL ";
+
+        EntityFactory dumpEntity = new EntityFactory(con, queryString);
+        Map<String, Object> map = dumpEntity.findSingle(new Object[]{});
+        systemDateTime = (Timestamp) map.get("sysdate");
+        return systemDateTime;
+    }
+
+    public static void main(String[] args) {
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        Connection myConnection = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+
+            System.out.println("-10121: " + adjustDate("-10121"));
+            System.out.println("-101213: " + adjustDate("-101213"));
+            System.out.println("91012: " + adjustDate("91012"));
+            System.out.println("0961012: " + adjustDate("0961012"));
+
+            LocalDate date = LocalDate.now();
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            String adDateString = dateToADDateString(date);
+            System.out.println("dateToADDateString: " + date + "=" + adDateString);
+            String adDateTimeString = dateTimeToADDateTimeString(dateTime);
+            System.out.println("dateTimeToADDateTimeString: " + dateTime + "=" + adDateTimeString);
+            String rocDateString = dateToROCDateString(date);
+            System.out.println("dateToROCDateString: " + date + "=" + rocDateString);
+            String rocDateTimeString = dateTimeToROCDateTimeString(dateTime);
+            System.out.println("dateTimeToROCDateTimeString: " + dateTime + "=" + rocDateTimeString);
+
+            adDateString = "19151215";
+            adDateTimeString = "19141215 122530";
+            System.out.println("adDateStringToDate: " + adDateString + "=" + adDateStringToDate(adDateString));
+            System.out.println("adDateTimeStringToDate: " + adDateTimeString + "=" + adDateTimeStringToDate(adDateString));
+            System.out.println("adDateTimeStringToDateTime: " + adDateTimeString + "=" + adDateTimeStringToDateTime(adDateTimeString));
+
+            rocDateString = "0041215";
+            rocDateTimeString = "0041215 151210";
+            System.out.println("rocDateStringToDate: " + rocDateString + "=" + rocDateStringToDate(rocDateString));
+            System.out.println("rocDateTimeStringToDate: " + rocDateTimeString + "=" + rocDateTimeStringToDate(rocDateTimeString));
+            System.out.println("rocDateTimeStringToDateTime: " + rocDateTimeString + "=" + rocDateTimeStringToDateTime(rocDateTimeString));
+
+            System.out.println("adDateStringToROCDateString: " + adDateString + "=" + adDateStringToROCDateString(adDateString));
+            System.out.println("adDateTimeStringToROCDateTimeString: " + adDateTimeString + "=" + adDateTimeStringToROCDateTimeString(adDateTimeString));
+
+            System.out.println("rocDateStringToADDateString: " + rocDateString + "=" + rocDateStringToADDateString(rocDateString));
+            System.out.println("rocDateTimeStringToADDateTimeString: " + rocDateTimeString + "=" + rocDateTimeStringToADDateTimeString(rocDateTimeString));
+
+            System.out.println("getSystemADDateTimeString: " + getSystemADDateTimeString(myConnection));
+            System.out.println("getSystemROCDateTimeString: " + getSystemROCDateTimeString(myConnection));
+
+    } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+    } catch (ParseException ex) {
+            ex.printStackTrace();
+    } finally {
+        if (myConnection != null) {
+            JDBCUtilities.closeConnection(myConnection);
+        }
+    }
+
+    }
+}

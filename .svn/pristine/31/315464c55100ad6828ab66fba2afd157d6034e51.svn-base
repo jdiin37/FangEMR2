@@ -1,0 +1,17 @@
+@charset "UTF-8";
+#hrLine{
+
+text-align:center;
+
+}
+
+.btn-info {
+  color: #fff;
+  background-color: #7C2DC3;
+  border-color: #7C2DC3;
+}
+
+.btn-info .badge {
+  color: #A2A1A1;
+  background-color: #FEFEFE;
+}

@@ -1,0 +1,221 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import library.dateutility.DateComputeUtil;
+import library.dateutility.DateUtil;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import model.Chart;
+import model.ChtContact;
+import model.Patopd;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import static library.utility.MapUtil.castToStr;
+
+/**
+ * Created by jeffy on 2017/10/11.
+ */
+
+public class ChartService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Chart chart;
+    private Patopd patopd;
+    private ChtContact chtContact;
+
+    private int getAge(String birthDate) {
+        int age = 0;
+        String dateString = DateUtil.isVaildDate(birthDate);
+        if (!(dateString == null || dateString.isEmpty())) {
+            String today = DateUtil.dateToROCDateString(LocalDate.now());
+            age = DateComputeUtil.getAgesByYear(dateString, today);
+        }
+
+        return age;
+    }
+
+    private Map<String, Object> getFirstAndLastViewDateByChartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = patopd.queryFirstAndLastViewDateByChartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> getViewDivision(String viewDate, int chartNo) {
+        try {
+            objects = patopd.queryPatopdByViewDateChartNo(viewDate, chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return objects;
+    }
+
+    private Map<String, Object> getViewDivision(String viewDate, int chartNo, boolean isFirst) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        Optional<Map<String, Object>> map;
+        Object divNo = null;
+        Object divName = null;
+
+        List<Map<String, Object>> maps = getViewDivision(viewDate, chartNo);
+
+        if (maps.size() > 0) {
+            if (isFirst) {
+                map = maps.stream().reduce((first, second) -> first);
+            } else {
+                map = maps.stream().reduce((first, second) -> second);
+            }
+
+            if (map.isPresent()) {
+                divNo = map.get().get("div_no");
+                divName = map.get().get("div_name");
+            }
+        }
+
+        if (isFirst) {
+            result.put("first_div_no", divNo);
+            result.put("first_div_name", divName);
+        } else {
+            result.put("last_div_no", divNo);
+            result.put("last_div_name", divName);
+        }
+
+        return result;
+    }
+
+    private Map<String, Object> getPhoneNoByChartNo(int chartNo) {
+        return chtContact.getPhoneNoByChartNo(chartNo);
+    }
+
+    public String getChartByChartNo(int chartNo) {
+        try {
+            object = chart.queryChartByChartNo(chartNo);
+
+            if (object.size() > 0) {
+                // add first_view_date and last_view_date
+                object.putAll(getFirstAndLastViewDateByChartNo(chartNo));
+
+                // add first_div_no & first_div_name
+                String firstViewDate = castToStr(object.get("first_view_date"));
+                object.putAll(getViewDivision(firstViewDate, chartNo, true));
+
+                // add last_div_no & last_div_name
+                String lastViewDate = castToStr(object.get("last_view_date"));
+                object.putAll(getViewDivision(lastViewDate, chartNo, false));
+
+                // add mobile and home phone number
+                object.putAll(getPhoneNoByChartNo(chartNo));
+
+                jsonObject = MapUtil.getSuccessResult(MapUtil.mapToJsonObject(object));
+            } else {
+                jsonObject = MapUtil.getFailureResult("chart.queryChartByChartNo chart_no= " + chartNo + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getChartByChartNoPtNameBirthDateTel(int chartNo, String ptName, String birthDate, String tel) {
+        try {
+            objects = chart.queryChartByChartNoPtNameBirthDateTel(chartNo, ptName, birthDate, tel);
+
+            if (objects.size() > 0) {
+                // add age
+                objects.forEach(map -> map.put("age", getAge(castToStr(map.get("birth_date")))));
+
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("Chart.queryChartByChartNoPtNameBirthDateTel chartNo=" + chartNo
+                        + " ptName=" + ptName + " birthDate=" + birthDate + " tel=" + tel + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            chart = new Chart(myConnection);
+            patopd = new Patopd(myConnection);
+            chtContact = new ChtContact(myConnection);
+
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get chart data by chart_no
+            if (method.equals("getChartByChartNo")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getChartByChartNo(chartNo);
+            }
+
+            // get chart list by chart_no, pt_name, birth_date, tel
+            if (method.equals("getChartByChartNoPtNameBirthDateTel")) {
+                Integer chartNo = parametersJsObj.get("chartNo").isJsonNull() ? 0 : parametersJsObj.get("chartNo").getAsInt();
+                String ptName = parametersJsObj.get("ptName").isJsonNull() ? null : "%" + parametersJsObj.get("ptName").getAsString() + "%";
+                String birthDate = parametersJsObj.get("birthDate").isJsonNull() ? null : parametersJsObj.get("birthDate").getAsString();
+                String tel = parametersJsObj.get("tel").isJsonNull() ? null : parametersJsObj.get("tel").getAsString();
+                result = getChartByChartNoPtNameBirthDateTel(chartNo, ptName, birthDate, tel);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        ChartService chartService = new ChartService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 912473);
+
+        jsonObject.addProperty("method", "getChartByChartNo");
+        resultStrng = chartService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nchartService.run getChartByChartNo chartNo='912473' : " + resultStrng);
+
+//        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.add("chartNo", JsonNull.INSTANCE);
+//        jsonObject.add("ptName", JsonNull.INSTANCE);
+        jsonObject.addProperty("ptName", "陳");
+        jsonObject.add("birthDate", JsonNull.INSTANCE);
+        jsonObject.add("tel", JsonNull.INSTANCE);
+        jsonObject.addProperty("method", "getChartByChartNoPtNameBirthDateTel");
+        resultStrng = chartService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nchartService.run getChartByChartNoPtNameBirthDateTel chartNo='912473' : " + resultStrng);
+
+    }
+}
+

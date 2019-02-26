@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>住院</title>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/Common.css" type="text/css" />
+<link rel="stylesheet" href="css/InspectionReport.css" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+<script src="scripts/EMRfunction.js"></script>
+<script src="scripts/EMRajax.js"></script>
+
+
+
+<script>
+$(document).ready(function(){
+	
+
+//Selected
+
+$("tbody >tr:odd").addClass("tr_odd");
+$("tbody > tr:even").addClass("tr_even");
+
+$("#InHospitalTable >tbody >tr").click(function(){
+	 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+			 
+	   }); 
+	
+});
+
+</script>
+
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">  <!--row1-->
+        <div><!--區塊1-->
+             <div class="panel panel-success purple-outline"><!--區塊1外框 panel-warning;panel-danger -->
+	        <div class="panel-heading clearfix thGradient">
+	          <div class="panel-title pull-left panel-tool"><!-- panel-title panel-tool 只能點擊Title文字方可開合 -->
+		  <a data-toggle="collapse" data-parent="#accordion" href="#collapse_inHospPage">住院</a>
+	          </div>
+	         <div class="pull-right">
+		 <button type="button" class="btn btn-link btn-popUp"><span class="glyphicon glyphicon-new-window"></span></button>
+		 <button type="button" class="btn btn-link btn-close"><span class="glyphicon glyphicon-remove"></span></button>
+	         </div>
+	        </div>
+	        
+	       
+	        <div id="collapse_inHospPage" class="panel-collapse collapse in"><!-- Collapse start -->
+	        <div class="panel-body" id="inspectionContent">
+		 <!-- -->
+	        
+	        <div class="row form-group">
+		   <div class="col-sm-6 form-inline">
+		     <input value="1" id="recentYear" type="text" class="form-control input-sm" style="max-width: 48px;">
+		     <label for="recentYear">年</label>
+		      <button class="btn btn-info"><span>1</span>年住院 <span class="badge" id="yearsResult">35</span></button>
+		      <button class="btn btn-info">全部住院 <span class="badge" id="AllResult">40</span></button>
+		     
+		     
+		  </div>
+		 
+	       </div>
+	        
+		
+	        <!--  -->
+		   
+		      
+		        
+		        <!-- 檢驗 結果區 -->
+		        
+    <div class="row"><!--row2 -->
+        <div class="col-md-6"><!--區塊2-->
+           <div class="table-responsive"><!--響應式Table -->
+           <table id="InHospitalTable" class="table table-bordered">
+              <thead class="thGradient"><!-- 表格標頭 -->
+                <tr>
+                  <td>年份</td>
+                  <td>住院期間</td>
+                  <td>主因</td>
+                  <td>主治醫師</td>
+                  <td>科別</td>
+                  <td>出院病摘</td>
+                </tr> 
+              </thead>
+              <tbody>
+                <tr class="tr_selected">
+                  <td>106</td>
+                  <td>106/06/10 ~ 106/07/15</td>
+                  <td>高血壓、心臟病</td>
+                  <td>黃醫師</td>
+                  <td>心臟科</td>
+                  <td><input type="button" class="btn btn-info" value="出院病摘"></td>
+                </tr>
+                 <tr>
+                  <td>106</td>
+                  <td>106/05/15 ~ 106/06/01</td>
+                  <td>高血壓、心臟病</td>
+                  <td>黃醫師</td>
+                  <td>心臟科</td>
+                  <td><input type="button" class="btn btn-info" value="出院病摘"></td>
+                 </tr>
+          <!--  <tr>
+                  <td>106</td>
+                  <td>106/04/15 ~ 106/04/20</td>
+                  <td>高血壓、心臟病</td>
+                  <td>黃醫師</td>
+                  <td>心臟科</td>
+                  <td><input type="button" class="btn btn-info" value="出院病摘"></td>
+                </tr>
+                 <tr>
+                  <td>105</td>
+                  <td>105/08/10 ~ 106/08/14</td>
+                  <td>高血壓、心臟病</td>
+                  <td>黃醫師</td>
+                  <td>心臟科</td>
+                  <td><input type="button" class="btn btn-info" value="出院病摘"></td>
+                </tr>
+                <tr>
+                  <td>104</td>
+                  <td>104/12/11 ~ 104/12/21</td>
+                  <td>高血壓、心臟病</td>
+                  <td>黃醫師</td>
+                  <td>心臟科</td>
+                  <td><input type="button" class="btn btn-info" value="出院病摘"></td>
+                </tr>
+                <tr>
+                  <td>104</td>
+                  <td>104/10/09 ~ 104/10/18</td>
+                  <td>高血壓、心臟病</td>
+                  <td>黃醫師</td>
+                  <td>心臟科</td>
+                  <td><input type="button" class="btn btn-info" value="出院病摘"></td>
+                </tr>
+                <tr>
+                  <td>104</td>
+                  <td>104/07/07 ~ 104/07/18</td>
+                  <td>高血壓、心臟病</td>
+                  <td>黃醫師</td>
+                  <td>心臟科</td>
+                  <td><input type="button" class="btn btn-info" value="出院病摘"></td>
+                </tr>   -->       
+              </tbody>
+           </table><!--響應式Table結尾 -->
+           </div>    
+		
+        </div><!--區塊2結尾-->
+        
+        <div class="col-md-6" ><!--區塊3-->
+            <div class="panel panel-success purple-outline"><!--區塊3外框 panel-warning;panel-danger -->
+	       <div style="white-space:pre;" class="panel-heading">106/06/10 ~ 106/07/15    住院病患:78078978   陳乾坤   男   50歲</div>
+	        <div class="panel-body">住院內容</div>
+			 
+	  </div><!--區塊3外框結尾-->
+		
+       </div><!--區塊3結尾-->
+    
+    </div><!--row2結尾 -->
+		          
+		   </div><!-- panel-body 結尾 -->
+		 </div><!-- Collapse End -->  
+		         <!--  <div class="panel-footer"></div>-->
+			 
+	   </div><!--區塊1外框結尾-->
+		
+        </div><!--區塊1結尾-->
+    </div><!--row1結尾 -->
+    
+
+</div> 
+
+
+</body>
+</html>

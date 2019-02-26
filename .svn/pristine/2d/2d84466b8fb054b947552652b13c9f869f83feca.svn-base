@@ -1,0 +1,439 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapEntryUtil;
+import library.utility.MapUtil;
+import library.utility.TableUtil;
+import model.Order;
+
+import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/8/29.
+ */
+public class OrderMADService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Order order;
+    private TableUtil tableUtil;
+    private List<String> pkColNames;
+    private List<String> noNullColNames;
+    private List<String> tableColNames;
+    private List<Map<String, Object>> tableMetaData;
+    private String resultString;
+
+    public void getTableConstrains(String tableName, TableUtil tableUtil) throws SQLException {
+        pkColNames = tableUtil.getPKColNames(tableName);
+        tableMetaData =  tableUtil.getTableMetaData(tableName);
+        noNullColNames = tableUtil.getNoNullColNames(tableMetaData);
+        tableColNames = tableUtil.getTableColNames(tableMetaData);
+    }
+
+
+    public String batchInsertOrder2Log(Connection conn, List<Map<String, Object>> dataParametersListMap) {
+        List<String> keyList = Arrays.asList(
+                "stock", "order_no", "item_no", "rec_count", "supp_no", "order_date", "delivery_date", "orig_unit",
+                "sale_unit", "ratio", "price", "orig_price", "order_saleunit_qty", "order_origunit_qty",
+                "send_rate", "send_qty", "tot_qty", "effect_date", "rec_price", "rec_qty", "invoice_amt", "invoice_no",
+                "invoice_date", "rec_pe_no", "pad_date", "pad_clerk", "trans_date", "trans_clerk");
+
+        List<Integer> updateCounts;
+        int errorIndex = 0;
+        String origStock = "";
+        String origOrderNo = "";
+        String currStock;
+        String currOrderNo;
+        int recCount = 1;
+
+        List<List<Object>> listInputObjects = new ArrayList<>();
+
+        try {
+            JDBCUtilities.setAutoCommitFalse(conn);
+            for (Map<String, Object> map : dataParametersListMap) {
+                // Only insert update_flag_pad = 'Y' means stock counted
+                // re-arrange rec_count value
+                if (map.get("update_flag_pad").equals("Y")) {
+                    currStock = MapUtil.castToStr(map.get("stock"));
+                    currOrderNo = MapUtil.castToStr(map.get("order_no"));
+                    if (!(currStock.equals(origStock) && currOrderNo.equals(origOrderNo))) {
+                        recCount = order.getOrder2LogMaxRecCountByStockOrderNo(currStock, currOrderNo);
+                    }
+
+                    map.put("rec_count", recCount);
+                    origStock = currStock;
+                    origOrderNo = currOrderNo;
+                    listInputObjects.add(MapEntryUtil.getMapValuesByKeyList(map, keyList));
+                    recCount += 1;
+                }
+            }
+
+            updateCounts = order.batchInsertOrder2Log(listInputObjects);
+
+            if (updateCounts.size() == listInputObjects.size() && !updateCounts.contains(Statement.EXECUTE_FAILED)) {
+                JDBCUtilities.commitConnection(conn);
+                resultString = String.format("Success Insert %d record.", updateCounts.size());
+                jsonObject = MapUtil.getSuccessResult(resultString);
+            } else {
+                JDBCUtilities.rollbackConnection(conn);
+
+                if (updateCounts.size() == 0 || updateCounts.size() < listInputObjects.size()) {
+                    errorIndex = updateCounts.size();
+                }
+
+                if (updateCounts.contains(Statement.EXECUTE_FAILED)) {
+                    errorIndex = updateCounts.indexOf(Statement.EXECUTE_FAILED);
+                }
+                resultString = String.format("Error Insert on row= %d  DataRecord= %s", errorIndex + 1 ,listInputObjects.get(errorIndex));
+                jsonObject = MapUtil.getFailureResult(resultString);
+            }
+        } catch (BatchUpdateException bex) {
+            JDBCUtilities.printBatchUpdateException(bex);
+            resultString = bex.getMessage();
+            jsonObject = MapUtil.getFailureResult(resultString);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            resultString = ex.getMessage();
+            jsonObject = MapUtil.getFailureResult(resultString);
+        } finally {
+            JDBCUtilities.setAutoCommitTrue(conn);
+        }
+        return jsonObject.toString();
+    }
+
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+        JsonObject dataParametersJsObj;
+        JsonArray dataParametersJsArray;
+        Map<String, Object> dataParametersMap;
+        List<Map<String, Object>> dataParametersListMap;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            tableUtil = new TableUtil(myConnection);
+            order = new Order(myConnection);
+
+            String method = parametersJsObj.get("method").getAsString();
+
+            if (method.equals("batchInsertOrder2Log")) {
+                dataParametersJsArray = parametersJsObj.get("dataParameters").getAsJsonArray();
+                dataParametersListMap = MapUtil.jsonArrayToListMap(dataParametersJsArray);
+                String checkMessages = "";
+
+                this.getTableConstrains("order2_log", tableUtil);
+
+                for (Map<String, Object> map : dataParametersListMap) {
+                    checkMessages = checkMessages
+                            + tableUtil.checkPKColsMissing(pkColNames, map) + " "
+                            + tableUtil.checkNoNullColsMissing(noNullColNames, map) + " "
+                            + tableUtil.checkValueConstrains(tableMetaData, map);
+                }
+
+                System.out.println(checkMessages.trim().isEmpty()
+                        ? "checkPKColsMissing & checkNoNullColsMissing & dataCheck.checkValueConstrains Passed"
+                        : "checkMessage: " + checkMessages);
+
+                if (checkMessages.trim().isEmpty()) {
+                    result = batchInsertOrder2Log(myConnection, dataParametersListMap);
+                } else {
+                    result = MapUtil.getFailureResult(checkMessages).toString();
+                }
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        JsonObject dataJsonObject = new JsonObject();
+        JsonArray dataJsonArray = new JsonArray();
+        //Map<String, String> map = new LinkedHashMap<>();
+        OrderMADService orderMADService = new OrderMADService();
+        String resultStrng;
+
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601002");
+        dataJsonObject.addProperty("item_no", "ODO50");
+        dataJsonObject.addProperty("rec_count", 1);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "TAB");
+        dataJsonObject.addProperty("sale_unit", "TAB");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 1.66);
+        dataJsonObject.addProperty("orig_price", 1.66);
+        dataJsonObject.addProperty("order_saleunit_qty", 4000);
+        dataJsonObject.addProperty("order_origunit_qty", 4000);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 4000);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601002");
+        dataJsonObject.addProperty("item_no", "ODP");
+        dataJsonObject.addProperty("rec_count", 2);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "TAB");
+        dataJsonObject.addProperty("sale_unit", "TAB");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 7.51);
+        dataJsonObject.addProperty("orig_price", 7.51);
+        dataJsonObject.addProperty("order_saleunit_qty", 15000);
+        dataJsonObject.addProperty("order_origunit_qty", 15000);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 15000);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601002");
+        dataJsonObject.addProperty("item_no", "ODP200");
+        dataJsonObject.addProperty("rec_count", 3);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "TAB");
+        dataJsonObject.addProperty("sale_unit", "TAB");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 3.02);
+        dataJsonObject.addProperty("orig_price", 3.02);
+        dataJsonObject.addProperty("order_saleunit_qty", 12000);
+        dataJsonObject.addProperty("order_origunit_qty", 12000);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 12000);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601002");
+        dataJsonObject.addProperty("item_no", "ODPS");
+        dataJsonObject.addProperty("rec_count", 4);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "BOT");
+        dataJsonObject.addProperty("sale_unit", "BOT");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 231);
+        dataJsonObject.addProperty("orig_price", 231);
+        dataJsonObject.addProperty("order_saleunit_qty", 60);
+        dataJsonObject.addProperty("order_origunit_qty", 60);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 60);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601002");
+        dataJsonObject.addProperty("item_no", "OSOL");
+        dataJsonObject.addProperty("rec_count", 5);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "TAB");
+        dataJsonObject.addProperty("sale_unit", "TAB");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 28.44);
+        dataJsonObject.addProperty("orig_price", 28.44);
+        dataJsonObject.addProperty("order_saleunit_qty", 2400);
+        dataJsonObject.addProperty("order_origunit_qty", 2400);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 2400);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601002");
+        dataJsonObject.addProperty("item_no", "OSOL50");
+        dataJsonObject.addProperty("rec_count", 6);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "TAB");
+        dataJsonObject.addProperty("sale_unit", "TAB");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 10.9);
+        dataJsonObject.addProperty("orig_price", 10.9);
+        dataJsonObject.addProperty("order_saleunit_qty", 360);
+        dataJsonObject.addProperty("order_origunit_qty", 360);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 360);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601004");
+        dataJsonObject.addProperty("item_no", "OARI10");
+        dataJsonObject.addProperty("rec_count", 1);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "TAB");
+        dataJsonObject.addProperty("sale_unit", "TAB");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 63.96);
+        dataJsonObject.addProperty("orig_price", 63.96);
+        dataJsonObject.addProperty("order_saleunit_qty", 980);
+        dataJsonObject.addProperty("order_origunit_qty", 980);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 980);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("order_no", "10601004");
+        dataJsonObject.addProperty("item_no", "OLO");
+        dataJsonObject.addProperty("rec_count", 2);
+        dataJsonObject.addProperty("supp_no", "D0000095");
+        dataJsonObject.addProperty("order_date", "1060103");
+        dataJsonObject.addProperty("delivery_date", "1060110");
+        dataJsonObject.addProperty("orig_unit", "TAB");
+        dataJsonObject.addProperty("sale_unit", "TAB");
+        dataJsonObject.addProperty("ratio", 1);
+        dataJsonObject.addProperty("price", 11.8);
+        dataJsonObject.addProperty("orig_price", 11.8);
+        dataJsonObject.addProperty("order_saleunit_qty", 4000);
+        dataJsonObject.addProperty("order_origunit_qty", 4000);
+        dataJsonObject.addProperty("send_rate", 0);
+        dataJsonObject.addProperty("send_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 4000);
+        dataJsonObject.add("effect_date", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("rec_price", 1.1);
+        dataJsonObject.addProperty("rec_qty", 30000);
+        dataJsonObject.addProperty("invoice_amt", 33000);
+        dataJsonObject.add("invoice_no", JsonNull.INSTANCE);
+        dataJsonObject.add("invoice_date", JsonNull.INSTANCE);
+        dataJsonObject.add("rec_pe_no", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        jsonObject.addProperty("empNo", "KSPH");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("serialId", "H2NPCV0011382TA");
+        jsonObject.add("dataParameters", dataJsonArray);
+        jsonObject.addProperty("method", "batchInsertOrder2Log");
+        resultStrng = orderMADService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nOrderMADService.run batchInsertOrder2Log : " + resultStrng);
+    }
+}
+

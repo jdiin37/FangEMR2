@@ -1,0 +1,299 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import library.dateutility.DateUtil;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import model.Patopd;
+import model.XrayReport;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static library.utility.MapUtil.castToInt;
+import static library.utility.MapUtil.castToStr;
+
+/**
+ * Created by jeffy on 2017/11/1.
+ */
+public class XrayReportService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private XrayReport xrayReport;
+    private Patopd patopd;
+
+    private Map<String, Object> getFirstAndLastViewDateByChartNo(int chartNo) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = patopd.queryFirstAndLastViewDateByChartNo(chartNo);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    public String getXrayCountByChartNoDateRangeGroupByType(int chartNo, String startDate, String endDate) {
+        JsonObject jsob = new JsonObject();
+        try {
+            objects = xrayReport.queryXrayCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+            int count = objects.stream()
+                    .mapToInt(map -> castToInt(map.get("count")))
+                    .sum();
+
+            jsob.addProperty(MapUtil.KEY_SUMMARY, count);
+            jsob.add(MapUtil.KEY_DETAILDATA, MapUtil.listMapToJsonArray(objects));
+            jsonObject = MapUtil.getSuccessResult(jsob);
+//            if (objects.size() > 0) {
+//                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+//            } else {
+//                jsonObject = MapUtil.getFailureResult("XrayReport.queryXrayCountByChartNoDateRangeGroupByType chart_no= " + chartNo +
+//                        " startDate=" + startDate + " endDate=" + endDate + " No Data Found ");
+//            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getXrayCountByChartNoYearsGroupByType(int chartNo, int years) {
+        String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-years, ChronoUnit.YEARS));
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        return getXrayCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+    }
+
+    public String getXrayCountByChartNoGroupByType(int chartNo) {
+        String startDate = "0010101";
+        Map<String, Object> map = getFirstAndLastViewDateByChartNo(chartNo);
+        if (!map.isEmpty()) {
+            startDate =  castToStr(map.get("first_view_date"));
+        }
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        return getXrayCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+    }
+
+    public String getXrayListByChartNoDateRange(int chartNo, String startDate, String endDate) {
+        try {
+            objects = xrayReport.queryXrayListByChartNoDateRange(chartNo, startDate, endDate);
+
+            if (!objects.isEmpty()) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("XrayReport.queryXrayListByChartNoDateRange chart_no= " + chartNo +
+                        " startDate=" + startDate + " endDate=" + endDate + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getXrayListByChartNoYears(int chartNo, int years) {
+        String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-years, ChronoUnit.YEARS));
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        return getXrayListByChartNoDateRange(chartNo, startDate, endDate);
+    }
+
+    public String getXrayListByChartNo(int chartNo) {
+        String startDate = "0010101";
+        Map<String, Object> map = getFirstAndLastViewDateByChartNo(chartNo);
+        if (!map.isEmpty()) {
+            startDate =  castToStr(map.get("first_view_date"));
+        }
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        return getXrayListByChartNoDateRange(chartNo, startDate, endDate);
+    }
+
+    public String getXrayReportByPrimaryKeys(String xrayType, String inpOpd, String viewDate, int chartNo, int serno, int seqNo) {
+        try {
+            object = xrayReport.queryXrayReportByPrimaryKeys(xrayType, inpOpd, viewDate, chartNo, serno, seqNo);
+
+            if (!object.isEmpty()) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.mapToJsonObject(object));
+            } else {
+                jsonObject = MapUtil.getFailureResult("XrayReport.queryXrayReportByPrimaryKeys xray_type= " + xrayType +
+                        " inp_opd= " + inpOpd + " view_date= " + viewDate + " chart_no= " + chartNo +
+                        " serno= " + serno + " seq_no= " + seqNo + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            xrayReport = new XrayReport(myConnection);
+            patopd = new Patopd(myConnection);
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get xray data by chart_no, start_date, end_date then group by xray_type
+            if (method.equals("getXrayCountByChartNoDateRangeGroupByType")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                result = getXrayCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+            }
+
+            //  get xray data by chart_no, years then group by xary_type
+            if (method.equals("getXrayCountByChartNoYearsGroupByType")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int years = parametersJsObj.get("years").getAsInt();
+                result = getXrayCountByChartNoYearsGroupByType(chartNo, years);
+            }
+
+            //  get xray data by chart_no then group by xary_type
+            if (method.equals("getXrayCountByChartNoGroupByType")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getXrayCountByChartNoGroupByType(chartNo);
+            }
+
+            //  get xray data by chart_no, start_date, end_date
+            if (method.equals("getXrayListByChartNoDateRange")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                result = getXrayListByChartNoDateRange(chartNo, startDate, endDate);
+            }
+
+            //  get xray data by chart_no, years
+            if (method.equals("getXrayListByChartNoYears")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int years = parametersJsObj.get("years").getAsInt();
+                result = getXrayListByChartNoYears(chartNo, years);
+            }
+
+            //  get xray data by chart_no
+            if (method.equals("getXrayListByChartNo")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getXrayListByChartNo(chartNo);
+            }
+
+            // get xray report by primary keys => xray_type, inp_opd, view_date, chart_no, serno, seq_no
+            if (method.equals("getXrayReportByPrimaryKeys")) {
+                String xrayType = parametersJsObj.get("xrayType").getAsString();
+                String inpOpd = parametersJsObj.get("inpOpd").getAsString();
+                String viewDate = parametersJsObj.get("viewDate").getAsString();
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int serno = parametersJsObj.get("serno").getAsInt();
+                int seqNo = parametersJsObj.get("seqNo").getAsInt();
+                result = getXrayReportByPrimaryKeys(xrayType, inpOpd, viewDate, chartNo, serno, seqNo);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        XrayReportService xrayReportService = new XrayReportService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("startDate", "0940806");
+        jsonObject.addProperty("endDate", "1030913");
+        jsonObject.addProperty("method", "getXrayCountByChartNoDateRangeGroupByType");
+        resultStrng = xrayReportService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nXrayReportService.run getXrayCountByChartNoDateRangeGroupByType chartNo=923833 startDate='0940806' endDate='1030913' :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("years", 5);
+        jsonObject.addProperty("method", "getXrayCountByChartNoYearsGroupByType");
+        resultStrng = xrayReportService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nXrayReportService.run getXrayCountByChartNoYearsGroupByType chartNo=923833 years=5 :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("method", "getXrayCountByChartNoGroupByType");
+        resultStrng = xrayReportService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nXrayReportService.run getXrayCountByChartNoGroupByType chartNo=923833 :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("startDate", "0940806");
+        jsonObject.addProperty("endDate", "1030913");
+        jsonObject.addProperty("method", "getXrayListByChartNoDateRange");
+        resultStrng = xrayReportService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nXrayReportService.run getXrayListByChartNoDateRange chartNo=923833 startDate='0940806' endDate='1030913' :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("years", 5);
+        jsonObject.addProperty("method", "getXrayListByChartNoYears");
+        resultStrng = xrayReportService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nXrayReportService.run getXrayListByChartNoYears chartNo=923833 years=5 :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 923883);
+        jsonObject.addProperty("method", "getXrayListByChartNo");
+        resultStrng = xrayReportService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nXrayReportService.run getXrayListByChartNo chartNo=923833 :"  + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("xrayType", "FG01");
+        jsonObject.addProperty("inpOpd", "I");
+        jsonObject.addProperty("viewDate", "1030505");
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("serno", 94771);
+        jsonObject.addProperty("seqNo", 1);
+        jsonObject.addProperty("method", "getXrayReportByPrimaryKeys");
+        resultStrng = xrayReportService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nXrayReportService.run getXrayReportByPrimaryKeys xrayType='FG01' inpOpd='I' viewDate='10350505' " +
+                "chartNo=912473 serno=94771 seqNo=1 :"  + resultStrng);
+
+    }
+}

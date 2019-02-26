@@ -1,0 +1,236 @@
+/**
+ * 病程紀錄畫面 專用 js檔
+ */
+var ProgressObj = { // 病程紀錄物件
+	ProgressYear : 5,
+	ProgressSDate : "",
+	ProgressEDate : "",
+	viewType :"",
+	serno:0
+	
+};
+
+function renderProgress(){
+			
+	$(document).on('change', '#ProgressYear', function(event) {
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#ProgressYear');
+			ProgressObj.ProgressYear = $(this).val();
+			//showLoading();
+			ProgressListByYear();	//尚未完成 1070125
+		} else {
+			stateChange(false, '#ProgressYear', "請輸入1-100之間");
+		}
+	});	
+}
+
+
+/**
+ * 病程紀錄 (尚未完成) 尚未接API
+ * */
+var callProgress = function(flag){
+	
+	ProgressObj.ProgressYear = PatObj.recentYear;
+	ProgressObj.ProgressSDate = ViewListObj.sdate;
+	ProgressObj.ProgressEDate = ViewListObj.edate;
+	ProgressObj.viewType = ViewListObj.viewType;
+	ProgressObj.serno = ViewListObj.serno;
+	
+	if(flag == "date"){		
+		$('#ProgressMasterDate').show();
+		document.getElementById('ProgressMasterDate').setAttribute("title",ProgressObj.ProgressSDate+"-"+ProgressObj.ProgressEDate);
+		ProgressListByDate();
+	}else if(flag =="year"){
+		PatObj.recentYear = $("#recentYear").val();
+		$('#ProgressMasterDate').hide();
+		ProgressListByYear();		
+	}else{
+		$('#ProgressMasterDate').hide();		
+		ProgressListByAll();		
+	}
+		
+		 setPageVisible("progressPage", true);
+		 popUpPageFixPos("progressPage");
+		 
+		
+		 
+		 
+	
+};
+
+
+
+
+//呼叫 病程紀錄   日期範圍清單
+var ProgressListByDate = function(){
+	//取得 日期範圍的 OutNote
+	alert("建置中---ProgressListByDate");
+	$('#ProgressYear').val(ProgressObj.ProgressYear);
+	var title = ProgressObj.ProgressSDate + "-" +ProgressObj.ProgressEDate + "&nbsp;" + (ProgressObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-病程紀錄";
+	 title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+	 $('#progressPage_Title').html(title);	//設定title內容
+//	ajax_getProgressListData("Date");
+};
+
+var ProgressListByYear = function(){
+	//取得 年範圍的 病程紀錄
+//	var focusYear = $("#FocusYear").val();
+//	console.log(PatObj.recentYear);
+//	$('#FocusYear').val(PatObj.recentYear);
+	var title = "病程紀錄" + $('#PatInfo').text();
+	$('#progressPage_Title').html(title);	//設定title內容
+	
+	$('#ProgressMasterYear').html( ProgressObj.ProgressYear+ '年病程紀錄&nbsp;<span class="badge">'+ "test" + '</span>');
+	alert("建置中---ProgressListByYear");
+//	ajax_getProgressListData("Year");
+};
+
+var ProgressListByAll = function(){
+	//取得 全部範圍的 病程紀錄
+	var title = "病程紀錄" + $('#PatInfo').text();
+	$('#progressPage_Title').html(title);	//設定title內容
+	alert("建置中---ProgressListByAll");
+//	ajax_getProgressListData("All");
+};
+
+
+
+
+//取得病程紀錄 清單
+/**var getProgressList = function(range){
+	
+	var ProgressArray = [];
+	$.when(ajax_getOutNoteListByChartNo(range)).done(function(data){			
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {		
+				ProgressArray.push(obj);
+			});		
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}	
+		jqGrid_ProgressList("#ProgressList","#ProgressList_Pager",ProgressArray);		
+//		hideLoading(); 
+//		setPageVisible("progressPage", true);
+//		popUpPageFixPos("progressPage");
+	});
+	
+};**/
+
+//ajax 取得 病程紀錄 清單資料 (尚未完成  需接API)
+var ajax_getProgressListData = function(flag,serviceName,ProgressYear){
+	showLoading();
+	var ProgressArray = [];
+	if(flag=="year"){
+		var cmParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,ProgressYear,"getPatinpListByChartNoYears");	
+	}else if(flag=="date"){		
+		var cmParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,ProgressObj.ProgressSDate,ProgressObj.ProgressEDate,"getLabCountByChartNoDateRangeGroupByKind");	
+	}else{
+		var cmParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getPatinpListByChartNo");//取得全部 病程紀錄
+	}
+	
+	 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+				function(data) {
+					if (data.status == "Success") {
+						
+						if(data.resultSet.length==0&&flag=="year"){
+						$('#ProgressMasterYear').html(InpYear + '年病程紀錄&nbsp;<span class="badge">'+ 0 + '</span>');
+						}else{
+							$.each(data.resultSet, function(index, obj) {		
+								ProgressArray.push(obj);
+								 if(flag=="year"){
+								  $('#ProgressMasterYear').html(InpYear + '年病程紀錄&nbsp;<span class="badge">'+ data.resultSet.length + '</span>');
+								 }											
+								});	
+						}
+						
+						
+					} else {
+						var ajaxErrMsg = data.errorMessage;
+						 if(flag=="year"){
+					     $('#ProgressMasterYear').html(InpYear + '年病程紀錄&nbsp;<span class="badge">'+ 0 + '</span>');
+						}
+						 noDataFound(ajaxErrMsg,"ProgressList");
+					}	
+
+					jqGrid_ProgressList("#ProgressList","#ProgressList_Pager",ProgressArray);
+					hideLoading();
+					setPageVisible("progressPage", true);
+					popUpPageFixPos("progressPage");		
+											
+
+				});
+	 
+	    request.onreadystatechange = null;
+		request.abort = null;
+		request = null;
+	
+	
+};
+
+
+// jqGrid 病程紀錄清單
+
+function jqGrid_ProgressList(tableName,pagerName,dataArray){		
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 220,
+	    colModel: [
+	        { label: '年分', name: 'years', width: 45 },
+	        { label: '手術日期', name: 'op_date', width: 80 },
+	        { label: '病歷號', name: 'chart_no', width: 90,hidden:true },
+	        { label: '住院序號', name: 'serno', width: 90,hidden:true },
+	        { label: '手術時間', name: 'times', width: 90,hidden:true },
+	        { label: 'inp_opd', name: 'inp_opd', width: 90,hidden:true },
+	        { label: 'code', name: 'code', width: 90,hidden:true },
+	        { label: '手術名稱', name: 'full_name_c', width: 120,hidden:true },	       
+	        { label: '手術名稱', name: 'full_name_c', width: 306 ,formatter: function(cellvalue, options, rowobject){
+	        	if(cellvalue.length>25){
+	        	return '<button type="button" class="btn btn-primary btn-sm">'+ cellvalue.substr(0, 25)+"..." +'</button>';
+	        	}else{
+		            return '<button type="button" class="btn btn-primary btn-sm">'+ cellvalue +'</button>';	
+	        	}
+//	            return '<button type="button"  onclick="XrayTypeBtnClick('+"\'" + rowobject.cat_type+"\'"+');" class="btn btn-primary btn-sm">'+ cellvalue +'</button>';
+//	        	return '<button type="button"  onclick="XrayTypeBtnClick('+"\'" + rowobject.cat_type+"\'"+",\'"+rowobject.chart_no+"\'"+",\'"+rowobject.xray_type+"\'"+');"class="btn btn-primary btn-sm">'+ cellvalue +'</button>';
+	        }},
+	        
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        width: null,
+        rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit:false,
+	    sortable: false,
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: dataArray});
+	$(tableName).trigger('reloadGrid');
+	//$("#XrayList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	
+	function getSelectedRow() {
+		
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+	    	$('#ProgressListHead').html($(tableName).jqGrid('getCell',rowKey,'op_date') + " " + $(tableName).jqGrid('getCell',rowKey,'full_name_c') + " 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+
+	    		    		    
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+
+
+
+

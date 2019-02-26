@@ -1,0 +1,496 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="opPage_Title" class="EMRPurpleTitle">手術</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('opPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('opPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_xrayPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" id="OpMaster">
+								<button class="btn btn-primary" id="OpMasterDate" onclick="OpListByDate()">手術 <span class="badge">0</span></button> <input value="5" id="OpYear" type="text" class="form-control input-sm input-center"
+									style="max-width: 48px;"> <label class="EMRLabel" for="OpYear">年</label>
+								<button class="btn btn-primary" id="OpMasterYear" onclick="OpListByYear()">5年手術 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="OpMasterAll" onclick="OpListByAll()">全部手術 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="OpDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row" id="OpCol">
+						<div class="col-sm-3">
+							<table id="OpList" class="table-hover">
+							</table>
+							<div id="OpList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-9">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading EMRPurpleTitle" id="OpListHead">手術標題</div>
+								<div class="panel-body" id="OpListBody">
+								<!-- 手術頁籤 -->
+								<div id="">
+								<ul id="op_detailPage" class="nav nav-pills" >  								  
+  								  <li class="active"><a data-toggle="tab" href="#OpPersonalContent">基本資料</a></li> 
+  								  <li><a data-toggle="pill" href="#OpDataContent">手術資料</a></li>
+  								  <li><a data-toggle="pill" href="#OpAntibioContent">抗生素使用記錄</a></li>
+  								  <li><a data-toggle="pill" href="#OpBackOpRoomContent">重返手術室記錄</a></li>
+  								  <li><a data-toggle="pill" href="#OpArtificialContent">人工關節植入物記錄</a></li>     							 
+								</ul>
+								</div>
+								
+								<div id="op_detailPage_content" class="tab-content">
+  								   
+  								   <div id="OpPersonalContent" class="tab-pane fade in active TabContentOutline pre-scrollable"><!-- 基本資料 -->
+    								      <div class="row form-group">
+    								      
+    								      
+    								 <!-- <div class="col-sm-12 form-inline row form-group ">
+								   <div class="col-sm-3 form-inline"><label class="EMRLabel">門/住:&nbsp;</label><span class="spanOutline" id="opInpOpd"></span></div>
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="opSerno">序號:&nbsp;</label> <span class="spanOutline" id="opSerno"></span></div>
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="opTimes">當日開刀次:&nbsp;</label> <span class="spanOutline" id="opTimes"></span></div>
+								  <div class="col-sm-3 form-inline"><label class="EMRLabel" for="opBedNo">床位/診號:&nbsp;</label> <span class="spanOutline" id="opBedNo"></span></div>
+								</div>-->
+    								      
+    								      
+    								    <div class="col-sm-3 form-inline">
+								       <label for="opInpOpd" class="EMRLabel">門/住:</label> <span id="opInpOpd" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label for="opSerno" class="EMRLabel">序號:</label> <span id="opSerno" class="spanOutline"></span>
+								     </div>
+								      <div class="col-sm-3 form-inline">
+								       <label for="opTimes" class="EMRLabel">當日開刀次:</label> <span id="opTimes" class="spanOutline"></span>
+								     </div>
+								      <div class="col-sm-3 form-inline">
+								       <label for="opBedNo" class="EMRLabel">床位/診號:</label> <span id="opBedNo" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label for="opDivName" class="EMRLabel">科別:</label> <span id="opDivName" class="spanOutline"></span>
+								     </div>
+								      <div class="col-sm-3 form-inline">
+								       <label for="opPtType" class="EMRLabel">身分:</label> <span id="opPtType" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label for="opPlaceName" class="EMRLabel">手術房別:</label> <span id="opPlaceName" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label for="opStartDateTime" class="EMRLabel">手術起始日期/時間:</label> <span id="opStartDateTime" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label for="opEndDateTime" class="EMRLabel">手術結束日期/時間:</label> <span id="opEndDateTime" class="spanOutline"></span>
+								     </div>
+								      <div class="col-sm-3 form-inline">
+								       <label for="opDuration" class="EMRLabel">開刀總時數:</label> <span id="opDuration" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label for="anStartDateTime" class="EMRLabel">麻醉起始日期/時間:</label> <span id="anStartDateTime" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label for="anEndDateTime" class="EMRLabel">麻醉結束日期/時間:</label> <span id="anEndDateTime" class="spanOutline"></span>
+								     </div>
+								     
+								     <div class="col-sm-3 form-inline">
+								       <label for="outOpRoomDateTime" class="EMRLabel">出手術室日期/時間:</label> <span id="outOpRoomDateTime" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline"> <!-- 此欄位 資料庫無 -->
+								       <label for="opEnterDateTime" class="EMRLabel">手術進入日期/時間:</label> <span id="opEnterDateTime" class="spanOutline"></span>
+								     </div>
+								     
+								      <div class="col-sm-3 form-inline"> <!-- 此欄位 資料庫無 -->
+								       <label for="anFisishDateTime" class="EMRLabel">麻醉完成日期/時間:</label> <span id="anFisishDateTime" class="spanOutline"></span>
+								     </div>
+								     
+								      <div class="col-sm-3 form-inline"> <!-- 此欄位 資料庫無 -->
+								       <label for="timeoutDateTime" class="EMRLabel">time out日期/時間:</label> <span id="timeoutDateTime" class="spanOutline"></span>
+								     </div>
+								     
+								     
+								     <div class="col-sm-12 form-inline" id="opPreventAntiLayout">
+								        <div class="col-sm-6 form-inline"> 
+								       <label for="propDateTime" class="EMRLabel">預防性抗生素使用日期/時間:</label> 
+								        <div class="radio EMRSubTitle">
+      									<label><input type="radio" id="propY" name="opRadio" checked="checked">是</label>
+      									<label><input type="radio" id="propN" name="opRadio">否</label>&emsp;
+    								        </div>    									      									     									
+								       <span id="propDateTime" class="spanOutline"></span>
+								     </div>
+								     
+								     <div class="col-sm-3 form-inline"> 
+								       <label for="opWound" class="EMRLabel">傷口:</label> <span id="opWound" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline"> 
+								       <label for="opOthersWound" class="EMRLabel">是否有其他傷口:</label> <span id="opOthersWound" class="spanOutline"></span>
+								     </div>
+								     
+								     <hr class="hr_divideStyle2 col-sm-10">
+								     </div>
+								     
+								     
+								     
+								     
+								     
+    								     </div>
+    								     
+    								     <div class="row form-group">
+    								     
+    								     <div class="col-sm-4">
+    								      <div class="">     								          								      
+								       <label for="opDoc1" class="EMRLabel">開刀醫師一:</label> <span id="opDoc1" class="spanOutline"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="opDoc2" class="EMRLabel">開刀醫師二:</label> <span id="opDoc2" class="spanOutline"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="opDoc3" class="EMRLabel">開刀醫師三:</label> <span id="opDoc3" class="spanOutline"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="opDoc4" class="EMRLabel">開刀醫師四:</label> <span id="opDoc4" class="spanOutline"></span>
+								      </div>
+    								     </div>
+    								     
+    								     <div class="col-sm-4">
+    								      <div class="">     								          								      
+								       <label for="opOrderDoc" class="EMRLabel">&emsp;開單醫師:</label> <span id="opOrderDoc" class="spanOutline"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="anDoc1" class="EMRLabel">麻醉醫師一:</label> <span id="anDoc1" class="spanOutline"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="anDoc2" class="EMRLabel">麻醉醫師二:</label> <span id="anDoc2" class="spanOutline"></span>
+								      </div>
+								      <div class=""> 
+								       <label  for="anType" class="EMRLabel">&emsp;麻醉方式:</label> <span id="anType" class="spanOutline"></span>
+								      </div>
+    								     </div>
+    								     
+    								     <div class="col-sm-4">
+    								      <div class="">     								          								      
+								       <label for="nsScrub1" class="EMRLabel">刷手護士1:</label> <span id="nsScrub1" class="spanOutline"></span>
+								       <label for="nsScrub2" class="EMRLabel">&nbsp;刷手護士2:</label> <span id="nsScrub2" class="spanOutline"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="nsCircu1" class="EMRLabel">流動護士1:</label> <span id="nsCircu1" class="spanOutline"></span>
+								       <label for="nsCircu2" class="EMRLabel">&nbsp;流動護士2:</label> <span id="nsCircu2" class="spanOutline"></span>
+								      </div>
+								       <div class=""> 
+								       <label for="nsAn1" class="EMRLabel">麻醉護士1:</label> <span id="nsAn1" class="spanOutline"></span>
+								       <label for="nsAn2" class="EMRLabel">&nbsp;麻醉護士2:</label> <span id="nsAn2" class="spanOutline"></span>
+								      </div>
+								      <div class=""> 
+								       <label for="assist1" class="EMRLabel">&emsp;&emsp;助手1:</label> <span id="assist1" class="spanOutline"></span>
+								       <label for="assist2" class="EMRLabel">&emsp;&emsp;&nbsp;助手2:</label> <span id="assist2" class="spanOutline"></span>
+								      </div>
+    								     </div>
+    								     
+    								     </div>
+    								      <hr class="hr_noline" />
+    								     <div class="row form-group">
+    								      <div class="col-sm-6">
+    								      
+    								      <div class=""> 
+								       <label class="EMRLabel" for="anCode">&emsp;麻醉代號:</label> <span class="spanOutline" id="anCode"></span>&emsp;
+								       <label   for="anCodeName"></label> <span class="spanOutlineMiddle" id="anCodeName"></span>
+								      </div>
+								      
+								      <div class=""> 
+								       <label class="EMRLabel" for="codeM1">&emsp;&emsp;主刀一:</label> <span class="spanOutline" id="codeM1"></span>&emsp;
+								       <label for="codeM1Name"></label> <span class="spanOutlineMiddle" id="codeM1Name"></span>
+								      </div>
+								      
+								      <div class=""> 
+								       <label class="EMRLabel" for="codeM2">&emsp;&emsp;主刀二:</label> <span class="spanOutline" id="codeM2"></span>&emsp;
+								       <label  for="codeM2Name"></label> <span class="spanOutlineMiddle" id="codeM2Name"></span>
+								      </div>
+								      
+								       <div class=""> 
+								       <label class="EMRLabel" for="codeM3">&emsp;&emsp;主刀三:</label> <span class="spanOutline" id="codeM3"></span>&emsp;
+								       <label for="codeM3Name"></label> <span class="spanOutlineMiddle" id="codeM3Name"></span>
+								      </div>
+								      
+								      <div class=""> 
+								       <label class="EMRLabel" for="codeD1">&emsp;&emsp;副刀一:</label> <span class="spanOutline" id="codeD1"></span>&emsp;
+								       <label for="codeD1Name"></label> <span class="spanOutlineMiddle" id="codeD1Name"></span>
+								      </div>
+								      
+								      <div class=""> 
+								       <label class="EMRLabel" for="codeD2">&emsp;&emsp;副刀二:</label> <span class="spanOutline" id="codeD2"></span>&emsp;
+								       <label for="codeD2Name"></label> <span class="spanOutlineMiddle" id="codeD2Name"></span>
+								      </div>
+								      
+								      <div class=""> 
+								       <label class="EMRLabel" for="treatCode1">&emsp;處置碼一:</label> <span class="spanOutline" id="treatCode1"></span>&emsp;
+								       <label for="treatCode1Name"></label> <span class="spanOutlineMiddle" id="treatCode1Name"></span>
+								      </div>
+								      
+								      <div class=""> 
+								       <label class="EMRLabel" for="treatCode2">&emsp;處置碼二:</label> <span class="spanOutline" id="treatCode2"></span>&emsp;
+								       <label for="treatCode2Name"></label> <span class="spanOutlineMiddle" id="treatCode2Name"></span>
+								      </div>
+								      
+								      
+    								      
+    								      </div>
+    								      
+    								      <div class="col-sm-6">
+    								      
+    								       <div class="col-sm-12"> 
+								       <label class="EMRLabel" for="opName">手術名稱:</label> <span class="spanOutlineMiddle" id="opName"></span>
+								     </div>
+								     
+								     <div class="col-sm-12" id="opBloodCCLayout">
+								       <div class="col-sm-5 form-inline"> 
+								       <label class="EMRLabel" for="outBlood">失血量:</label> <span class="spanOutline" id="outBlood"></span>CC
+								     </div>
+								     <div class="col-sm-5 form-inline"> 
+								       <label class="EMRLabel" for="inBlood">&nbsp;&nbsp;輸血量:</label> <span class="spanOutline" id="inBlood"></span>CC
+								     </div>
+								     
+								     <div class="col-sm-4 form-inline"> 
+								       <label class="EMRLabel" for="washQty">沖洗量:</label> <span class="spanOutline" id="washQty"></span>
+								     </div>
+								     
+								     </div>
+								     
+								      
+								     
+								     <div class="col-sm-12"> 
+								       <label class="EMRLabel" for="orRate1">副刀打折1:</label> <span class="spanOutline" id="orRate1"></span>&emsp;
+								       <label class="EMRLabel" for="orRate2">副刀打折2:</label> <span class="spanOutline" id="orRate2"></span>
+								      </div>
+								      
+								       <div class="col-sm-12"> 
+								       <label class="EMRLabel" for="labPiece">病理切片:</label> <span class="spanOutline" id="labPiece"></span>&emsp;
+								       <label for="labPieceCode"></label> <span class="spanOutline" id="labPieceCode"></span>
+								     </div>
+								     
+								     <div class="col-sm-12 "> 
+								       <label class="EMRLabel" for="keyinDatetime">輸入日期/人員:</label> <span class="spanOutline" id="keyinDatetime"></span>&emsp;
+								       <label for="keyinClerk"></label> <span class="spanOutline" id="keyinClerk"></span>
+								     </div>
+								     
+								      <div class="col-sm-12"> 
+								       <label class="EMRLabel" for="orSerno">流水號:</label> <span class="spanOutline" id="orSerno"></span>								       
+								     </div>
+								      
+								     
+    								      </div>
+    								     
+    								     </div>   
+    								         
+    								
+  								   </div>
+  								   <div id="OpDataContent" class="tab-pane fade TabContentOutline pre-scrollable"><!-- 手術資料-->
+  								   <div class="row">
+  								   <!-- 術前診斷 左側 -->
+  								   <hr class="hr_noline" />
+  								   
+  								 <div class="col-sm-8 form-inline row form-group ">
+								  <div class="form-inline col-sm-8"><label class="EMRLabel">&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;醫師代碼:&emsp;</label><span class="spanOutline" id="opEmpNo"></span>
+								  <label class="EMRLabel">&nbsp;範本代碼:&nbsp;</label> <span class="spanOutline" id="opCompose"></span></div>
+								  
+								</div>
+								
+								 <div class="col-sm-12 form-inline row form-group ">
+								 <label for="opDiagnosis_o" class="col-sm-1 textAlignR EMRLabel">術前診斷I:&nbsp;</label>
+								 <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opDiagnosis_o" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								 <label for="opDiagnosis_o2" class="col-sm-1 textAlignR EMRLabel">II:&nbsp;</label>
+								 <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opDiagnosis_o2" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <label for="opDiagnosis_f" class="col-sm-1 textAlignR EMRLabel">術後診斷I:&nbsp;</label>
+								       <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opDiagnosis_f" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <label for="opDiagnosis_f2" class="col-sm-1 textAlignR EMRLabel">II:&nbsp;</label>
+								  <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opDiagnosis_f2" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <label for="opLabsSmple" class="col-sm-1 textAlignR EMRLabel">體檢:&nbsp;</label>
+								  <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opLabsSmple" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <label for="opMode" class="col-sm-1 textAlignR EMRLabel">手術方式:&nbsp;</label>
+								  <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opMode" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <label for="opDescribe" class="col-sm-1 textAlignR EMRLabel">開刀體位,經過,發現:&nbsp;</label>
+								  <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opDescribe" ></div> </div>
+								</div>
+
+
+
+  				
+  								   
+  								  
+  								   
+                                                                                    
+                                                                                   
+  								   </div>
+    								     
+    								      	    	
+  								   </div>
+  								   
+  								   <div id="OpAntibioContent" class="tab-pane fade TabContentOutline pre-scrollable"><!-- 抗生素使用記錄-->
+    								     
+    								     <!-- <hr class="hr_noline" />-->
+								      <table id="OpAntibioList" class="table-hover"></table>
+								       <div id="OpAntibioList_Pager"></div>	
+  								   </div>
+  								   
+  								    <div id="OpBackOpRoomContent" class="tab-pane fade TabContentOutline pre-scrollable"><!-- 重返手術室記錄-->
+  								    <hr class="hr_noline" />
+  								  <div class="row">
+  								 <div class="col-sm-12 form-inline row form-group ">
+								  <label for="backOpRoom" class="col-sm-1 textAlignR EMRLabel">重返手術室:&nbsp;</label>
+								  <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="backOpRoom" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <label for="backOpRoomReason" class="col-sm-1 textAlignR EMRLabel">原因:&nbsp;</label>
+								  <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutlineLarge"  id="backOpRoomReason" ></div> </div>
+								</div>
+								
+								<div class="col-sm-12 form-inline row form-group ">
+								  <label for="backOpRoomRemark" class="col-sm-1 textAlignR EMRLabel">備註:&nbsp;</label>
+								  <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutlineLarge"  id="backOpRoomRemark" ></div> </div>
+								</div>
+  								  
+  								  
+  								  </div>
+  								    
+  								
+  								    
+    								  
+    								      	    	
+  								   </div>
+  								   
+  							        <div id="OpArtificialContent" class="tab-pane fade TabContentOutline pre-scrollable"><!-- 人工關節植入物記錄-->
+  								  <div class="row">
+  								     <hr class="hr_noline" />
+  								   
+  								      <!--  <div class="well well-sm marginLR15" >
+								       <div class="form-group"> 
+    								     <div class="col-sm-3 form-inline">
+								       <label class="EMRLabel" for="opWeight">體重:</label> <span id="opWeight" class="spanOutline"></span>
+								     </div>
+								     <div class="col-sm-3 form-inline">
+								       <label class="EMRLabel" for="opHeight">身高:</label> <span id="opHeight" class="spanOutline"></span>
+								     </div>
+								      <div class="col-sm-3 form-inline">
+								       <label class="EMRLabel" for="opASA">麻醉危險分級:</label> <span id="opASA" class="spanOutline"></span>
+								     </div>
+								     </div>
+    								     </div>-->
+    								     
+    								     
+    								 <div class="col-sm-12 form-inline row form-group ">
+								  <label class="EMRLabel" for="opWeight">&emsp;體重:</label> <span id="opWeight" class="spanOutline"></span>
+								  <label class="EMRLabel" for="opHeight">&emsp;身高:</label> <span id="opHeight" class="spanOutline"></span>
+								  <label class="EMRLabel" for="opASA">&emsp;麻醉危險分級:</label> <span id="opASA" class="spanOutline"></span>
+								</div>
+    								     
+    								     
+    								     <!-- 部位側別1 -->
+    								     <div class="form-group col-sm-12">
+    								     <hr style="padding-bottom:10px;">
+    								      <div class="col-sm-1">
+								       <label class="EMRLabel" for="opOtherSide1">部位側別1:</label> 
+								       <span id="opOtherSide1" class="spanOutline"></span>
+								     </div>
+								     
+								     <div class="col-sm-10">
+								     <div class="form-group row">
+								       <label for="opAjisur1" class="col-sm-2 textAlignR EMRLabel">術別1:&emsp;</label>
+								       <div class="col-sm-10"><div style="white-space:normal;" class="DARTOutline"  id="opAjisur1" ></div> </div>
+                                                                                         
+                                                                                     </div>
+                                                                                      <div class="form-group row">
+                                                                                       <label for="opAjiapp1" class="col-sm-2 textAlignR EMRLabel">入路途徑1:&emsp;</label>
+                                                                                       <div class="col-sm-10">
+                                                                                         <div style="white-space:normal;" class="DARTOutline"  id="opAjiapp1" ></div>
+                                                                                       </div>  
+                                                                                      </div>
+                                                                                      <div class="form-group row">
+                                                                                         <label for="opMatbarcode1" class="col-sm-2 textAlignR EMRLabel">特材條碼1:&emsp;</label>
+                                                                                         <div class="col-sm-10">
+                                                                                         <div style="white-space:normal;" class="DARTOutline"  id="opMatbarcode1" ></div>
+                                                                                         </div>
+                                                                                      </div>     
+                                                                                     </div>
+								     </div>
+								    
+								      <!-- 部位側別2 -->
+    								     <div class="form-group col-sm-12">
+    								      <hr style="padding-bottom:10px;">
+    								      <div class="col-sm-1">
+								       <label for="opOtherSide2" class="EMRLabel">部位側別2:</label> 
+								       <span id="opOtherSide2" class="spanOutline"></span>
+								     </div>
+								     
+								     <div class="col-sm-10">
+								     <div class="form-group row">
+								       <label for="opAjisur2" class="col-sm-2 textAlignR EMRLabel">術別2:&emsp;</label>
+								       <div class="col-sm-10">
+                                                                                         <div style="white-space:normal;" class="DARTOutline"  id="opAjisur2" ></div>
+                                                                                       </div>  
+                                                                                     </div>     
+                                                                                     <div class="form-group row">  
+                                                                                       <label for="opAjiapp2" class="col-sm-2 textAlignR EMRLabel">入路途徑2:&emsp;</label>
+                                                                                       <div class="col-sm-10">
+                                                                                         <div style="white-space:normal;" class="DARTOutline"  id="opAjiapp2" ></div>
+                                                                                       </div>  
+                                                                                     </div>    
+                                                                                      <div class="form-group row">   
+                                                                                        <label for="opMatbarcode2" class="col-sm-2 textAlignR EMRLabel">特材條碼2:&emsp;</label>
+                                                                                       <div class="col-sm-10">
+                                                                                         <div style="white-space:normal;" class="DARTOutline"  id="opMatbarcode2" ></div>
+                                                                                       </div>
+                                                                                      </div>     
+                                                                                     </div>
+								     </div>
+								     
+								
+    								     
+    								     </div>
+    								     
+  								    
+  								    </div>
+  								    
+    								     
+    								      	    	
+  								   </div>
+  								   
+  								   
+								 </div>	
+								
+								
+								
+								</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			
+		

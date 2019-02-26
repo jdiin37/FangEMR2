@@ -1,0 +1,64 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/11/7.
+ */
+public class DrProgress {
+    private Connection con;
+
+    public DrProgress(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryDrProgressCountByChartNoSerno(int chartNo, int serno) throws SQLException {
+        String queryString =
+                "SELECT count(a.chart_no) count " +
+                        "  FROM drprogress a " +
+                        " WHERE a.chart_no = ? " +
+                        "   AND a.serno = ? ";
+
+        EntityFactory drProgressEntity = new EntityFactory(con, queryString);
+        return drProgressEntity.findSingle(new Object[]{chartNo, serno});
+    }
+
+    public List<Map<String, Object>> queryDrProgressByMultiple() throws SQLException {
+        String queryString =
+                "";
+
+        EntityFactory drProgressEntity = new EntityFactory(con, queryString);
+        return drProgressEntity.findMultiple(new Object[]{});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            DrProgress drProgress = new DrProgress(myConnection);
+
+            System.out.println("\nDrProgress.queryChartByChartNo chartNo=912473 JsonObject: " +
+                    MapUtil.mapToJsonObject(drProgress.queryDrProgressCountByChartNoSerno(912473, 94771)));
+
+//            System.out.println("\nDrProgress.queryDrProgressByMultiple chartNo=912473 JsonArray: " +
+//                    MapUtil.listMapToJsonArray(drProgress.queryDrProgressByMultiple()));
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

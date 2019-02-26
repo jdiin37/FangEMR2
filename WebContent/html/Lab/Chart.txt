@@ -1,0 +1,370 @@
+﻿[
+        {
+            "assay_id": "APTT",
+            "detailData": [
+                {
+                    "result_val": "29.5",
+                    "unit": "sec",
+                    "lab_status": "N",
+                    "instr_kind": "ELECRTA-750",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "30.2",
+                    "unit": "sec",
+                    "lab_status": "N",
+                    "instr_kind": "ELECRTA-750",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "28.0",
+                    "unit": "sec",
+                    "lab_status": "N",
+                    "instr_kind": "ELECRTA-750",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "26.7",
+                    "unit": "sec",
+                    "lab_status": "N",
+                    "instr_kind": "ELECRTA-750",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "27.6",
+                    "unit": "sec",
+                    "lab_status": "N",
+                    "instr_kind": "ELECRTA-750",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "26.4",
+                    "unit": "sec",
+                    "lab_status": "N",
+                    "instr_kind": "ELECRTA-750",
+                    "result_status": "N"
+                }
+            ]
+        },
+        {
+            "assay_id": "Albumin",
+            "detailData": [
+                {
+                    "result_val": "4.4",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.6",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.8",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.7",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.3",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.5",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.4",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.3",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "4.7",
+                    "unit": "g/dL",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                }
+            ]
+        },
+        {
+            "assay_id": "GOT",
+            "detailData": [
+                {
+                    "result_val": "87",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "80",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "196",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "147",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "122",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "125",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "86",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "71",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "174",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "82",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "44",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                }
+            ]
+        },
+        {
+            "assay_id": "GPT",
+            "detailData": [
+                {
+                    "result_val": "49",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "39",
+                    "unit": "U/L",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "96",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "109",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "70",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "80",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "77",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "54",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "85",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "66",
+                    "unit": "U/L",
+                    "lab_status": "H",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "44",
+                    "unit": "U/L",
+                    "lab_status": "N",
+                    "instr_kind": "TOSHIBA-20R",
+                    "result_status": "N"
+                }
+            ]
+        },
+        {
+            "assay_id": "MCV",
+            "detailData": [
+                {
+                    "result_val": "82.6",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "81.2",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "85.7",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "83.5",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "81.1",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "79.7",
+                    "unit": "fL",
+                    "lab_status": "L",
+                    "instr_kind": "K-1000",
+                    "result_status": "E"
+                },
+                {
+                    "result_val": "87.9",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "85.4",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "87.3",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "87.5",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "92.5",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                },
+                {
+                    "result_val": "83.7",
+                    "unit": "fL",
+                    "lab_status": "N",
+                    "instr_kind": "K-1000",
+                    "result_status": "N"
+                }
+            ]
+        }
+    ]

@@ -1,0 +1,74 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/10/13.
+ */
+public class XrayOrd {
+    private Connection con;
+
+    public XrayOrd(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryXrayVisitedBychartNo(int chartNo) throws SQLException {
+        String queryString =
+                "SELECT COUNT(*) count " +
+                "  FROM xrayord a " +
+                " WHERE a.chart_no = ? ";
+
+        EntityFactory xrayOrdEntity = new EntityFactory(con, queryString);
+        return xrayOrdEntity.findSingle(new Object[]{chartNo});
+    }
+
+    public Map<String, Object> queryXrayVisitedBychartNoAndYears(String startDate, String endDate, int chartNo) throws SQLException {
+        String queryString =
+                "SELECT COUNT(*) count " +
+                "  FROM xrayord a " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? ";
+
+        EntityFactory xrayOrdEntity = new EntityFactory(con, queryString);
+        return xrayOrdEntity.findSingle(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            XrayOrd xrayOrd = new XrayOrd(myConnection);
+
+            int chartNo = 912473;
+
+            System.out.printf("\nXrayOrd.queryXrayVisitedBychartNo chartNo=%d JsonObject:%s ",
+                    chartNo, MapUtil.mapToJsonObject(xrayOrd.queryXrayVisitedBychartNo(chartNo)).toString());
+
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-4, ChronoUnit.YEARS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+            System.out.printf("\nXrayOrd.queryXrayVisitedBychartNoAndYears startDate=%s endDate=%s chartNo=%d JsonObject:%s ",
+                    startDate, endDate, chartNo, MapUtil.mapToJsonObject(xrayOrd.queryXrayVisitedBychartNoAndYears(startDate, endDate,chartNo)).toString());
+
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

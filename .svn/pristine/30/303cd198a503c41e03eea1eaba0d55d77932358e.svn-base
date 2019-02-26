@@ -1,0 +1,73 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="stPage_Title" class="EMRPurpleTitle">STAT用藥紀錄</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('stPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('stPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_labPage" class="panel-collapse collapse in"> -->
+				<div class="panel-body">
+					<!--  <div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="UDMaster">
+								<button class="btn btn-primary" id="UDMasterDate" onclick="">UD用藥紀錄 <span class="badge">0</span></button> <input value="5" id="UDYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="UDYear">年</label>
+								<button class="btn btn-primary" id="UDMasterYear" onclick="">5年UD用藥紀錄<span class="badge">0</span></button>
+								<button class="btn btn-primary" id="UDMasterAll" onclick="">全部用藥紀錄 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="UDDetail"></div>
+						</div>
+					</div>-->
+					<!--  <hr style="margin: 10px" />-->
+					
+					<div class="row" id="StatCol">
+						<div class="col-sm-1">
+							<table id="StatList" class="table-hover"></table>
+							<div id="StatList_Pager"></div>
+							
+							<form class="form-inline" style="margin-top:12px;">
+					<div class="form-group">
+						第: <select class="form-control" id="StatList_pager"></select> 頁
+					</div>
+					<div class="form-group">
+						,共 <span id="StatList_tot"></span> 頁
+					</div>
+				</form>	
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-10">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading EMRPurpleTitle" id="StatListHead"></div>
+								<div class="panel-body pre-scrollable" id="StatListBody">
+								 <div class="row">
+								   <div class="col-sm-12">
+								   <div class="stRadioGroup">
+								    <label class="radio-inline EMRLabelBold"><input type="radio" name="stRadio" checked="checked" value="全部">全部</label>
+								    <label class="radio-inline EMRLabelBold"><input type="radio" name="stRadio" value="藥品">藥品</label>
+                                                    			    <label class="radio-inline EMRLabelBold"><input type="radio" name="stRadio" value="處置">處置</label>
+                                                    			    <label class="radio-inline EMRLabelBold"><input type="radio" name="stRadio" value="材料">材料</label>
+                                                    			    <span style="display:none;" id="stRadioValue"></span>
+                                                    			    <span style="display:none;" id="stAcntValue"></span>
+								    </div>
+								    <table id="StatDetailList" class="table-hover"></table>
+							              <div id="StatDetailList_Pager"></div>
+								   </div>
+								 </div>
+								</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		

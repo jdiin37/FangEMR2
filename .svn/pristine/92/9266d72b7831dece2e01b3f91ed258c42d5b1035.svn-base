@@ -1,0 +1,161 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import library.utility.MapEntryUtil;
+import model.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.*;
+
+import static library.utility.MapUtil.castToStr;
+import static library.utility.MapUtil.castToInt;
+
+/**
+ * Created by jeffy on 2017/11/7.
+ */
+public class PatinpService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Admission admission;
+    private OutNote outNote;
+    private Chgbed chgbed;
+    private NurseProgress nurseProgress;
+    private DrProgress drProgress;
+
+    private Map<String, Object> getAdmissionCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = admission.queryAdmissionCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getOutnoteCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = outNote.queryOutnoteCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getChgbedCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = chgbed.queryChgbedCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getNurseProgressCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = nurseProgress.queryNurseProgressCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getDrProgressCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = drProgress.queryDrProgressCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    public String getPatinpSummaryByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        int count = 0;
+        try {
+            object = getAdmissionCountByChartNoSerno(chartNo, serno);
+            result.put("admission", castToInt(object.get("count")));
+
+            object = getOutnoteCountByChartNoSerno(chartNo, serno);
+            result.put("outnote", castToInt(object.get("count")));
+
+            object = getChgbedCountByChartNoSerno(chartNo, serno);
+            result.put("chgbed", castToInt(object.get("count")));
+
+            object = getNurseProgressCountByChartNoSerno(chartNo, serno);
+            result.put("nurseprogress", castToInt(object.get("count")));
+
+            object = getDrProgressCountByChartNoSerno(chartNo, serno);
+            result.put("drprogress", castToInt(object.get("count")));
+
+            jsonObject = MapUtil.getSuccessResult(MapUtil.mapToJsonObject(result));
+
+        } catch (Exception ex) {
+            System.out.printf("\nPatinpService.getPatinpSummaryByChartNoSerno chartNo:%d serno:%d errorMessage:%s", chartNo, serno, ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            admission = new Admission(myConnection);
+            outNote = new OutNote(myConnection);
+            chgbed = new Chgbed(myConnection);
+            nurseProgress = new NurseProgress(myConnection);
+            drProgress = new DrProgress(myConnection);
+
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            // get patient's admission, outNote, chgbed, nurseProgress, drProgress count
+            if (method.equals("getPatinpSummaryByChartNoSerno")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int serno = parametersJsObj.get("serno").getAsInt();
+                result = getPatinpSummaryByChartNoSerno(chartNo, serno);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        PatinpService patinpService = new PatinpService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("serno", 94771);
+
+        jsonObject.addProperty("method", "getPatinpSummaryByChartNoSerno");
+        resultStrng = patinpService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPatinpService.run getPatinpSummaryByChartNoSerno chartNo='912473' serno='94771': " + resultStrng);
+
+    }
+}

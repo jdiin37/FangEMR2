@@ -1,0 +1,237 @@
+function getHospName(para) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "SysparaService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"method":"getHospName"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getHospName(index, this);
+					});
+				}
+			});
+
+}
+
+function parse_getHospName(index, value) {
+	if (index == "no") {
+	} else if (index == "name") {
+	} else if (index == "value") {
+		$("#hospName").html(value);
+	}
+}
+
+function getChartByChartNo(paraChartNo) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "ChartService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"chartNo":' +paraChartNo+',"method":"getChartByChartNo"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getChartByChartNo(index, this);
+					});
+					$("#timeLine").html("");
+				}
+			});
+}
+
+function parse_getChartByChartNo(index, value) {
+	if (index == "chart_no") {
+		$("#chart_no").html(value);
+		$("search_year").val("1");
+		getChartEMRSummaryByChartNoAndYears(value, 1); // 取得查詢範圍筆數 預設1年
+		getChartEMRSummaryByChartNo(value); // 取得查詢範圍筆數 全部
+	} else if (index == "pt_name") {
+		$("#pt_name").html(value);
+	} else if (index == "sex_name") {
+		$("#sex_name").html(value);
+	} else if (index == "age") {
+		$("#age").html(value);
+	} else if (index == "first_view_date") {
+		$("#first_view_date").html(date_format(value));
+	} else if (index == "last_view_date") {
+		$("#last_view_date").html(date_format(value));
+	} else if (index == "first_div_name") {
+		$("#first_div_name").html(value);
+	} else if (index == "last_div_name") {
+		$("#last_div_name").html(value);
+	}
+}
+
+function date_format(dateString) {
+	var rtnVal = "";
+	if (dateString.substr(0, 1) == "0") {
+		rtnVal += dateString.substr(1, 2);
+	} else {
+		rtnVal += dateString.substr(0, 3);
+	}
+
+	rtnVal += "/";
+
+	if (dateString.substr(3, 1) == "0") {
+		rtnVal += dateString.substr(4, 1);
+	} else {
+		rtnVal += dateString.substr(3, 2);
+	}
+
+	rtnVal += "/";
+
+	if (dateString.substr(5, 1) == "0") {
+		rtnVal += dateString.substr(6, 1);
+	} else {
+		rtnVal += dateString.substr(5, 7);
+	}
+
+	return rtnVal;
+}
+
+function getChartEMRSummaryByChartNoAndYears(paraChartNo, paraYears) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "EMRViewService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"chartNo":'
+									+ paraChartNo
+									+ ',"years":'
+									+ paraYears
+									+ ',"method":"getChartEMRSummaryByChartNoAndYears"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getChartEMRSummaryByChartNoAndYears(index, this);
+					});
+					$("#LoadingModal").modal('hide');
+				}
+			});
+}
+
+function parse_getChartEMRSummaryByChartNoAndYears(index, value) {
+	if (index == "OPD") {
+		$("#yearsOPD").html(value);
+	} else if (index == "INP") {
+		$("#yearsINP").html(value);
+	} else if (index == "OR") {
+		$("#yearsOR").html(value);
+	} else if (index == "LAB") {
+		$("#yearsLAB").html(value);
+	} else if (index == "XRAY") {
+		$("#yearsXRAY").html(value);
+	}
+}
+
+function getChartEMRSummaryByChartNo(paraChartNo) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "EMRViewService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"chartNo":'
+									+ paraChartNo
+									+ ',"method":"getChartEMRSummaryByChartNo"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getChartEMRSummaryByChartNo(index, this);
+					});
+					$("#LoadingModal").modal('hide');
+				}
+			});
+}
+
+function parse_getChartEMRSummaryByChartNo(index, value) {
+	if (index == "OPD") {
+		$("#allOPD").html(value);
+	} else if (index == "INP") {
+		$("#allINP").html(value);
+	} else if (index == "OR") {
+		$("#allOR").html(value);
+	} else if (index == "LAB") {
+		$("#allLAB").html(value);
+	} else if (index == "XRAY") {
+		$("#allXRAY").html(value);
+	}
+}
+
+function getPatientListOpdAndInp(paraDays) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "PatientListService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"rangeOfDays":'
+									+ paraDays
+									+ ',"method":"getPatientListOpdAndInp"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getPatientListOpdAndInp(index, obj);
+					});
+					$('#table_queryPat').DataTable().destroy();
+					$('#table_queryPat').DataTable();
+					//$('#table_queryPat_filter').hide();
+					$("#LoadingModal").modal('hide');
+					$("#table_queryPat").show();
+				}
+			});
+}
+
+function parse_getPatientListOpdAndInp(index, obj) {
+	var htmltr = "";
+	var type ="";
+	if(obj.visit_type == "OPD"){
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row info'>";
+		type = "門";
+	}else if(obj.visit_type == "INP"){
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row warning'>";
+		type = "住";
+	}
+	else if(obj.visit_type == "DIS"){
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row success'>";
+		type = "出";
+	}
+	htmltr += "<td title='" + type + "'>" + type + "</td>";
+	htmltr += "<td title='" + obj.chart_no + "'>" + obj.chart_no + "</td>";
+	htmltr += "<td title='" + obj.pt_name + "'>" + obj.pt_name + "</td>";
+	htmltr += "<td title='" + obj.sex_name + "'>" + obj.sex_name + "</td>";
+	htmltr += "<td title='" + obj.age + "'>" + obj.age + "</td>";
+	htmltr += "<td title='" + obj.id_no + "'>" + obj.id_no + "</td>";
+	htmltr += "<td title='" + obj.tel + "'>" + obj.tel + "</td>";
+	htmltr += "<td title='" + obj.view_date + "'>" + obj.view_date + "</td>";
+	htmltr += "<td title='" + obj.birth_date + "'>" + obj.birth_date + "</td>";
+	htmltr += "<td title='" + obj.ckin_date + "'>" + obj.ckin_date + "</td>";
+	htmltr += "<td title='" + obj.discharge_date + "'>" + obj.discharge_date + "</td>";
+	htmltr += "<td title='" + obj.doctor_name + "'>" + obj.doctor_name + "</td>";
+	htmltr += "<td title='" + obj.div_name + "'>" + obj.div_name + "</td>";
+	htmltr += "<td title='" + obj.apn_name + "'>" + obj.apn_name + "</td>";
+	htmltr += "<td title='" + obj.clinic + "'>" + obj.clinic + "</td>";
+	htmltr += "<td title='" + obj.bed_no + "'>" + obj.bed_no + "</td>";
+	htmltr += "<td title='" + obj.ns + "'>" + obj.ns + "</td>";
+	htmltr += "</tr>";
+	$('#queryBlock3TableRow').append(htmltr);
+}

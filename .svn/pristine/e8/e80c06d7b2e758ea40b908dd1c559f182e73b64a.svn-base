@@ -1,0 +1,88 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/10/13.
+ */
+public class OrRecord {
+    private Connection con;
+
+    public OrRecord(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryOPCountByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT a.chart_no, COUNT(a.chart_no) count " +
+                "  FROM or1 a " +
+                " WHERE a.op_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND op_start_time IS NOT NULL " +
+                " GROUP BY a.chart_no ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findSingle(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public List<Map<String, Object>> queryOPDataByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT a.op_date, a.chart_no, a.serno, a.times, a.inp_opd, a.div_no, b.div_name, " +
+                "       a.op_doctor, c.emp_name op_doctor_name, a.op_start_time, a.op_end_time, a.op_durat, " +
+                "       a.code1, (select p.full_name_c from price p where p.code = a.code1) as full_name_1, " +
+                "       a.code2, (select p.full_name_c from price p where p.code = a.code2) as full_name_2, " +
+                "       a.code3, (select p.full_name_c from price p where p.code = a.code3) as full_name_3 " +
+                "  FROM or1 a, division b, employee c " +
+                " WHERE a.op_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.op_start_time IS NOT NULL " +
+                "   AND a.div_no = b.div_no(+) " +
+                "   AND a.op_doctor = c.emp_no(+) " +
+                " ORDER BY a.op_date desc ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findMultiple(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            OrRecord orRecord = new OrRecord(myConnection);
+
+            int chartNo = 912473;
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-5, ChronoUnit.YEARS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+            System.out.printf("\nOrRecord.queryOPCountByChartNoDateRange chartNo=%d startDate=%s endDate=%s JsonObject:%s ",
+                    chartNo, startDate, endDate, MapUtil.mapToJsonObject(orRecord.queryOPCountByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+            startDate = "0940806";
+            endDate = "1030913";
+            chartNo = 923883;
+            System.out.printf("\nOrRecord.queryOPDataByChartNoDateRange chartNo=%d startDate=%s endDate=%s JsonArray:%s ",
+                    chartNo, startDate, endDate, MapUtil.listMapToJsonArray(orRecord.queryOPDataByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}
+
+

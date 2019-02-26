@@ -1,0 +1,371 @@
+var zIndex = 100;
+var element; 
+var pageIndex = 0;
+
+//可拖曳
+function popUpPageToggle(id){	
+	if($('#'+ id).hasClass("ui-draggable")){		
+		$('#' + id).css('top', 0);
+		$('#' + id).css('left', 0);
+		$('#' + id).css('z-index', 0);
+		$('#' + id).removeClass('popUp').removeClass('freePage');
+		$('#' + id).draggable( "destroy" );			
+	}else{
+		zIndex += 10; 		
+		$('#' + id).css('top', '20%');  //固定位置
+		$('#' + id).css('left', '20px'); //固定位置
+		$('#' + id).css('z-index', zIndex);				
+		$('#' + id).draggable();	
+		$('#' + id).addClass('freePage').addClass('popUp');			
+	}	
+}
+
+function popUpPageYes(id){	
+	zIndex += 10; 
+	$('#' + id).css('top', '20%');  //固定位置
+	$('#' + id).css('left', '20px'); //固定位置
+	$('#' + id).css('z-index', zIndex);				
+	$('#' + id).draggable();	
+	$('#' + id).addClass('freePage').addClass('popUp');
+	goTop(id);
+}
+
+function popUpPageNo(id){	
+	$('#' + id).css('top', 0);
+	$('#' + id).css('left', 0);
+	$('#' + id).css('z-index', 0);
+	$('#' + id).removeClass('popUp').removeClass('freePage');	
+	if($('#'+ id).hasClass("ui-draggable")){		
+		$('#' + id).draggable( "destroy" );		
+	}	
+}
+
+var goTop = function(id){
+	if($('#' + id).hasClass( "popUp" ))
+	{
+		zIndex += 10;
+		$('#' + id).css('z-index', zIndex);
+	}	
+}
+
+var setPageVisible = function(page, visible) {	//***important****
+	PageObj[page] = visible;
+	if (visible == true) {
+		$('#' + page).show();
+		$('#collapse_' + page).collapse('show');
+	} else {
+		popUpPageNo(page);
+		$('#' + page).hide();		
+		$('#collapse_' + page).collapse('hide');
+	}
+	processPage();
+}
+
+var processPage = function (){	//處理底部toolbar
+	$('#bottom-toolbar').html("");
+	$.each( PageObj, function( key, value ) {
+		  //alert( key + ": " + value );		  
+		  if(value){
+			  var title = $('#' + key + '_Title').html();	  
+			  if(title.length > 25)
+				  title = "<span title='" + title + "'>" + title.substr(0, 25) +"...</span>";
+			  
+			  var btn;
+			  if(key =="mainPage"){
+				  btn = '<div class="col-xs-2 ' + key + '" style="padding: 5px; ">' +
+			  		'<a href="#' + key +'" class="btn btn-info btn-block" id="a_' + key +'">'+ title+'<button class="pull-right btn-link btn-close hide" id="X_' + key +'"><span class="glyphicon glyphicon-remove"></span></button></a>'	+			
+			  		'</div>';			
+			  }else{
+				  btn = '<div class="col-xs-2 ' + key + '" style="padding: 5px;">' +
+			  		'<a href="#' + key +'" class="btn btn-info btn-block" id="a_' + key +'">'+ title+'<button class="pull-right btn-link btn-close" id="X_' + key +'"><span class="glyphicon glyphicon-remove"></span></button></a>'	+			
+			  		'</div>';
+				 
+			  }
+			  $('#bottom-toolbar').append(btn);
+			  
+			  $('#a_' + key).click(function() {
+				  setPageVisible(key,true);
+				  goTop(key);
+			  });
+			  
+			  $('#X_' + key).click(function() {
+				  closePage(key);
+			  });
+		  }else{			  
+			  $('#' + key).hide();
+		  }		
+		 
+	});
+};
+
+var closePage = function(id){
+	setPageVisible(id, false);
+	collapseShow("mainPage");
+}
+
+var collapseHide = function(key){
+	$('#collapse_' + key).collapse('hide');
+}
+var collapseShow = function(key){
+	$('#collapse_' + key).collapse('show');
+}
+
+//查詢病患 method
+
+var callQuery = function(){
+	//collapseHide("mainPage");
+	setPageVisible("queryPage", true);
+	popUpPageYes("queryPage");
+	if ($('#currentList').is(":visible")
+			|| $('#chartBaseList').is(":visible")) {
+
+	} else {
+		changeQueryTable();
+	}
+}
+
+var changeQueryTable = function(type) {
+	if (type == "chart_base") {
+		if (QueryObj.ptName == null && QueryObj.birth == null
+				&& QueryObj.tel == null && QueryObj.chartNo == null) {
+			alert("請至少輸入一項查詢資料");
+		} else {
+			showLoading();
+			ajax_getChartByChartNoPtNameBirthDateTel();
+		}		
+	} else {
+		if ($('#chk_queryOPD').is(":checked")) {
+			if ($('#input_OPDdays').val().length > 0
+					&& number_regex.test($('#input_OPDdays').val())) {
+				QueryObj.chkopd = true;
+				QueryObj.opddays = $('#input_OPDdays').val();
+				stateChange(true, '#input_OPDdays');
+			} else {
+				stateChange(false, '#input_OPDdays', "請輸入數字");
+			}
+		} else {
+			QueryObj.chkopd = false;
+		}
+
+		if ($('#chk_queryINP').is(":checked")) {
+			QueryObj.chkinp = true;
+			ajax_getPatientListDischarge();
+		} else {
+			QueryObj.chkinp = false;
+		}
+
+		if ($('#chk_queryDIS').is(":checked")) {
+			if ($('#input_DISdays').val().length > 0
+					&& number_regex.test($('#input_DISdays').val())) {
+				QueryObj.chkdis = true;
+				QueryObj.disdays = $('#input_DISdays').val();
+				stateChange(true, '#input_DISdays');
+			} else {
+				stateChange(false, '#input_DISdays', "請輸入數字");
+			}
+		} else {
+			QueryObj.chkdis = false;
+		}
+		mergeTable_PatList();
+		
+	}
+}
+
+var mergeTable_PatList = function() {
+	showLoading();
+	$.when(ajax_getPatientListOpd(), ajax_getPatientListInp(),
+			ajax_getPatientListDischarge()).done(
+			function(dataOpd, dataInp, dataDis) {
+				QueryPatArray =[];
+				if (QueryObj.chkopd) {
+					if (dataOpd[0].status == "Success") {
+						$.each(dataOpd[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataOpd[0].errorMessage;
+					}
+				}
+				if (QueryObj.chkinp) {
+					if (dataInp[0].status == "Success") {
+						$.each(dataInp[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataInp[0].errorMessage;
+					}
+				}
+				if (QueryObj.chkdis) {
+					if (dataDis[0].status == "Success") {
+						$.each(dataDis[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataDis[0].errorMessage;
+					}
+				}
+				jqGrid_PatList();								
+				hideLoading();
+			});
+}
+
+//-----------------
+
+
+//檢驗method
+
+var callLab = function(flag){
+	
+	//測試中-- 動態 append panel
+	//pageIndex++;
+	//var divId = 'labPage' + pageIndex ;
+	//$('#pageContainer').append(giveMePanel(divId,title));	
+	//setPageVisible(divId, true);
+	//popUpPageToggle(divId);		
+	
+	var title = "檢驗";		
+		
+	if(flag == "date"){		
+		$('#LabMasterDate').show();
+		title = ViewListObj.sdate + "-" +ViewListObj.edate + "&nbsp;" + (ViewListObj.type == "OPD" ? '門急紀錄':'住院紀錄') + "-檢驗";
+		title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+		LabgetDate();
+	}else if(flag =="year"){
+		PatObj.recentYear = $("#recentYear").val();
+		$('#LabMasterDate').hide();
+		LabgetYear();		
+	}else{
+		$('#LabMasterDate').hide();
+		LabgetAll();		
+	}
+	$('#labPage_Title').html(title);	//設定title內容	
+	$('#LabYear').val(PatObj.recentYear);
+	$('#LabMasterYear').html(PatObj.recentYear + '年檢驗&nbsp;<span class="badge">'+ $("#yearsLAB").html() + '</span>');
+	$('#LabMasterAll').find("span").html($("#allLAB").html());  //先帶入全部的count值
+	
+	setPageVisible("labPage", true);
+	popUpPageYes("labPage");
+}
+
+var LabgetYear = function(){	
+	showLoading();
+	$.when(ajax_getLabCountByChartNoYearsGroupByKind()).done(function(dataLab){
+		if (dataLab.status == "Success") {
+			var box = "";
+			$.each(dataLab.resultSet, function(index, obj) {				
+				if(index == "summary"){
+					//alert(obj);
+					$('#LabYear').val(PatObj.recentYear);
+					$('#LabMasterYear').html(PatObj.recentYear + '年檢驗&nbsp;<span class="badge">'+ obj + '</span>');
+				}else{
+					$.each(obj, function(index, obj_d){
+						box += '&nbsp;<button class="btn btn-info" onclick="filterLabList(\'' + obj_d.kind_id + '\');">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+					});
+				}
+				//alert(index + ":" + obj);
+			});
+			$('#LabDetail').html(box);
+			box = null;
+			getLabList('Year');
+		} else {
+			ajaxErrMsg = dataLab.errorMessage;
+		}		
+	});
+}
+
+var LabgetDate = function(){
+	showLoading();
+	$.when(ajax_getLabCountByChartNoDateRangeGroupByKind()).done(function(dataLab){
+		if (dataLab.status == "Success") {
+			var box = "";
+			$.each(dataLab.resultSet, function(index, obj) {
+				
+				if(index == "summary"){
+					//alert(obj);
+					$('#LabMasterDate').html('檢驗&nbsp;<span class="badge">'+ obj + '</span>')
+				}else{
+					$.each(obj, function(index, obj_d){
+						box += '&nbsp;<button class="btn btn-info" onclick="filterLabList(\'' + obj_d.kind_id + '\');">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+					});
+				}
+				//alert(index + ":" + obj);
+			});
+			$('#LabDetail').html(box);
+			box = null;
+			getLabList('Date');
+		} else {
+			ajaxErrMsg = dataLab.errorMessage;
+		}		
+	});
+}
+
+var LabgetAll = function(){
+	showLoading();
+	$.when(ajax_getLabCountByChartNoGroupByKind()).done(function(dataLab){
+		if (dataLab.status == "Success") {
+			var box = "";
+			$.each(dataLab.resultSet, function(index, obj) {				
+				if(index == "summary"){
+					//alert(obj);
+					$('#LabMasterAll').find("span").html(obj);
+				}else{
+					$.each(obj, function(index, obj_d){
+						box += '&nbsp;<button class="btn btn-info" onclick="filterLabList(\'' + obj_d.kind_id + '\');">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+					});
+				}
+				//alert(index + ":" + obj);
+			});
+			$('#LabDetail').html(box);
+			box = null;
+			getLabList('All');
+		} else {
+			ajaxErrMsg = dataLab.errorMessage;
+		}		
+	});
+}
+
+var getLabList = function(range){
+	LabArray = [];
+	$.when(ajax_getLabListByChartNo(range)).done(function(dataLabList){			
+		if (dataLabList.status == "Success") {
+			$.each(dataLabList.resultSet, function(index, obj) {		
+				LabArray.push(obj);
+			});		
+		} else {
+			ajaxErrMsg = dataLabList.errorMessage;
+		}	
+		jqGrid_LabList();								
+		hideLoading();
+	});
+}
+
+var filterLabList = function(kind){
+	var myfilter = { groupOp: "AND", rules: []};
+	myfilter.rules.push({field:"kind_id",op:"eq",data:kind});	
+	$("#LabList").setGridParam({
+		postData: { filters: JSON.stringify(myfilter)},
+		search:true
+	}).trigger('reloadGrid');
+}
+
+//-----------------
+
+var callXray = function(){
+	collapseHide("mainPage");
+	setPageVisible("XrayPage", true);
+}
+
+///----測試中  動態新增
+var giveMePanel = function(id,title){
+	zIndex +=10;
+	return  '<div id="' + id +'" class="freePage" onclick="goTop(\'' + id + '\');">' 
+			+'<div class="panel panel-success">'
+    		+ '<div class="panel-heading"><span id="' + id + '_Title">' + title +'</span>'
+    		+'<div class="pull-right">'
+			+ '<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle(\'' + id + '\');"><span class="glyphicon glyphicon-new-window"></span></button>'
+			+ '<button type="button" class="btn btn-link btn-close" onclick="closePage(\'' + id + '\');"><span class="glyphicon glyphicon-remove"></span></button>'
+			+ '</div></div>'
+    		+'<div class="panel-body"></div>'
+    		+'</div>';
+}
+

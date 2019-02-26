@@ -1,0 +1,13 @@
+dbms = oracle
+driver = oracle.jdbc.driver.OracleDriver
+dbName = tima
+userName = orcl
+password = unimaxorcl
+serverName = 172.16.1.61
+portNumber = 1521
+urlString = jdbc:oracle:thin:@172.16.1.18:1521:fang
+dbConnectionType=JNDI
+#dbConnectionType=JDBC
+sessionTimeOut=30
+context = java:/comp/env
+dataSource = jdbc/fangdb

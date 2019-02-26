@@ -1,0 +1,20 @@
+/**
+ * 住院紀錄
+ */
+
+// call INPrecord
+var callINPrecord = function(){
+	$('#inpRecordPatInfo').html("最初門診日期:" + PatObj.first_view_date +"&emsp;" + PatObj.first_div_name +"&emsp;最近門診日期:"+ PatObj.last_view_date +"&emsp;" + PatObj.last_div_name );
+	
+	var title = ViewListObj.desc;
+	var inpRercordInfo = "<div class='panel panel-info'>"
+		+ "<div class='panel-heading EMRfont'>"+title+"</div></div>";	
+		
+	$('#inpRecordInfo').html(inpRercordInfo);
+	
+	
+	jqGrid_inpRecordList();
+	
+	setPageVisible("inpRecordPage", true);
+	popUpPageFixPos("inpRecordPage");
+}

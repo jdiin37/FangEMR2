@@ -1,0 +1,34 @@
+$(document).ready(function() {
+	$("#myButton").click(function(e) {
+		var empNo = $("input#empNo").val();
+		var password = $("input#password").val();
+		$.ajax({
+			type : 'POST',
+			url : 'servlets/ServletAgent',
+			data : {
+				serviceName : 'AuthService',
+				parameters : '{"empNo":"'+empNo+'","password":"'+password+'","method":'+'"checkPasswd"'+ '}'
+			},
+			dataType : 'json',
+			success : function(data,textStatus, jqXHR) {
+				//alert('ajax calling ervlets/ServletAgent success and return:' + data.status);
+
+				if (data.status=='Success') {
+					//alert('return Message : Login Success');
+					$("#ajaxResponse").html("<div><b>return Message : Login Success</b></div>");
+
+				}else{
+					//alert('errorMessage: '+data.errorMessage);
+					$("#ajaxResponse").html("<div><b>return errorMessage:"+ data.errorMessage+ "</b></div>");
+				}
+					
+			},
+			error : function(jqXHR, textStatus,	errorThrown) {
+				//alert('error');
+				console.log("Something really bad happened "+ textStatus);
+                $("#ajaxResponse").html(jqXHR.responseText);
+
+			},
+		});
+	});
+});

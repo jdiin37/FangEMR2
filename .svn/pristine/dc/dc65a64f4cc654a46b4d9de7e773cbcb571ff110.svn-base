@@ -1,0 +1,446 @@
+/**
+ * 檢驗畫面 專用 js檔
+ */
+
+var LabArray =[]; //裝載 jqGrid 檢驗日期清單
+var LabKind; //for filter 檢驗類別
+var LabObj = {
+	LabYear : 5,
+	LabSDate : "",
+	LabEDate : "",
+	viewType: ""	
+};
+
+function renderLab(){
+			
+	$(document).on('change', '#LabYear', function(event) {
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#LabYear');
+			LabObj.LabYear = $(this).val();
+			//showLoading();
+			LabListByYear();
+		} else {
+			stateChange(false, '#LabYear', "請輸入1-100之間");
+		}
+	});
+	
+}
+
+/**關閉 趨勢圖 彈跳視窗 **/
+function close_chartModal(){
+	$('#chartModal').css('display',"none");
+}
+
+
+var callLab = function(flag,kind){
+	
+	LabObj.LabYear = PatObj.recentYear;
+	LabObj.LabSDate = ViewListObj.sdate;
+	LabObj.LabEDate = ViewListObj.edate;
+	LabObj.viewType = ViewListObj.viewType;
+			
+	LabKind = kind;	
+	if(flag == "date"){		
+		$('#LabMasterDate').show();
+		document.getElementById('LabMasterDate').setAttribute("title",LabObj.LabSDate+"-"+LabObj.LabEDate); 
+		LabListByDate();
+	}else if(flag =="year"){
+		PatObj.recentYear = $("#recentYear").val();
+		$('#LabMasterDate').hide();
+		LabListByYear();		
+	}else{
+		$('#LabMasterDate').hide();		
+		LabListByAll();		
+	}
+		
+	$('#LabYear').val(LabObj.LabYear);
+	$('#LabMasterYear').html(LabObj.LabYear + '年檢驗&nbsp;<span class="badge">'+ $("#yearsLAB").html() + '</span>');
+	$('#LabMasterAll').find("span").html($("#allLAB").html());  //先帶入全部的count值
+	
+	//collapseHide("mainPage");
+}
+
+/**
+ * 取得 檢驗年 數量 & 年清單
+ * ajax_getLabCountYearsListData("LabRecordService");
+ * */
+var ajax_getLabCountYearsListData = function(serviceName){
+	
+	showLoading();	
+	var cmParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,LabObj.LabYear,"getLabCountByChartNoYearsGroupByKind");	
+		 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+					function(dataLab) {
+						if (dataLab.status == "Success") {
+							var box = "";
+							$.each(dataLab.resultSet, function(index, obj) {				
+								if(index == "summary"){
+									//alert(obj);
+									$('#LabYear').val(LabObj.LabYear);
+									$('#LabMasterYear').html(LabObj.LabYear + '年檢驗&nbsp;<span class="badge">'+ obj + '</span>');
+								}else{
+									$.each(obj, function(index, obj_d){
+										box += '&nbsp;<button class="btn btn-primary" onclick="filterLabList(\'' + obj_d.kind_id + '\');">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}
+								//alert(index + ":" + obj);
+							});
+							$('#LabDetail').html(box);
+							box = null;
+							
+							var title ="檢驗 " + $('#PatInfo').text();			
+							$('#labPage_Title').html(title);	//設定title內容
+							
+							ajax_getLabList("LabRecordService","Year");
+						} else {
+							ajaxErrMsg = dataLab.errorMessage;
+							noDataFound(ajaxErrMsg,"LabList");
+						}
+												
+
+					});
+		 
+		    request.onreadystatechange = null;
+			request.abort = null;
+			request = null;
+		
+	};
+
+
+
+
+
+/**Button onClick 監聽器 __年檢驗 **/
+var LabListByYear = function(){	
+	ajax_getLabCountYearsListData("LabRecordService");
+	
+}
+
+/**取得 影像 日期範圍 數量 & 日期範圍 清單
+ * serviceName=XrayReportService
+ * ajax_getLabCountDateRangeListData("LabRecordService");
+ * */
+var ajax_getLabCountDateRangeListData = function(serviceName){
+	
+showLoading();	
+var cmParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,LabObj.LabSDate,LabObj.LabEDate,"getLabCountByChartNoDateRangeGroupByKind");	
+
+	 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+				function(dataLab) {
+					if (dataLab.status == "Success") {
+						var box = "";
+						$.each(dataLab.resultSet, function(index, obj) {
+							
+							if(index == "summary"){
+								//alert(obj);
+								$('#LabMasterDate').html('檢驗&nbsp;<span class="badge">'+ obj + '</span>')
+							}else{
+								$.each(obj, function(index, obj_d){
+									box += '&nbsp;<button class="btn btn-primary" onclick="filterLabList(\'' + obj_d.kind_id + '\');">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+								});
+							}
+							//alert(index + ":" + obj);
+						});
+						$('#LabDetail').html(box);
+						box = null;
+						
+						
+						
+						var title = LabObj.LabSDate + "-" +LabObj.LabEDate + "&nbsp;" + (LabObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-檢驗";
+						title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;		
+						$('#labPage_Title').html(title);	//設定title內容
+						
+
+						ajax_getLabList("LabRecordService","Date");
+					} else {
+						ajaxErrMsg = dataLab.errorMessage;
+						noDataFound(ajaxErrMsg,"LabList");
+					}	
+											
+
+				});
+	 
+	    request.onreadystatechange = null;
+		request.abort = null;
+		request = null;
+	
+};
+
+
+
+/**Button onClick 監聽器 日期範圍檢驗 **/
+var LabListByDate = function(){
+	
+	ajax_getLabCountDateRangeListData("LabRecordService");
+}
+
+/**
+ * ajax 取得檢驗全部數量 
+ * */
+var ajax_getLabCountAllListData = function(serviceName){
+	
+	showLoading();	
+	var cmParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getLabCountByChartNoGroupByKind");
+
+		 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+					function(dataLab) {
+						
+						if (dataLab.status == "Success") {
+							var box = "";
+							$.each(dataLab.resultSet, function(index, obj) {				
+								if(index == "summary"){
+									//alert(obj);
+									$('#LabMasterAll').find("span").html(obj);
+								}else{
+									$.each(obj, function(index, obj_d){
+										box += '&nbsp;<button class="btn btn-primary" onclick="filterLabList(\'' + obj_d.kind_id + '\');">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}
+								//alert(index + ":" + obj);
+							});
+							$('#LabDetail').html(box);											
+							box = null;
+							
+							var title ="檢驗 " + $('#PatInfo').text();			
+							$('#labPage_Title').html(title);	//設定title內容	
+							
+//							getLabList('All');
+							ajax_getLabList("LabRecordService","All");
+						} else {
+							ajaxErrMsg = dataLab.errorMessage;
+							noDataFound(ajaxErrMsg,"LabList");
+						}
+						
+												
+
+					});
+		 
+		    request.onreadystatechange = null;
+			request.abort = null;
+			request = null;
+	
+};
+
+/**Button onClick 監聽器 全部檢驗 **/
+var LabListByAll = function(){
+	ajax_getLabCountAllListData("LabRecordService");
+
+}
+
+
+
+/**
+ * 取得 檢驗清單 range = Year,All,Date
+ * serviceName = LabRecordService
+ * ajax_getLabList("LabRecordService","Year");
+ * */
+var ajax_getLabList = function(serviceName,range){
+	if(range=="Year"){
+		var cmParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,LabObj.LabYear,"getLabListByChartNoYears");	
+	}else if(range=="All"){
+		var cmParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getLabListByChartNo");
+	}else{
+		//Date
+		var cmParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,LabObj.LabSDate,LabObj.LabEDate,"getLabListByChartNoDateRange");			
+	}
+	
+	LabArray = [];
+	$.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(function(dataXrayList){			
+		if (dataXrayList.status == "Success") {
+			$.each(dataXrayList.resultSet, function(index, obj) {		
+				LabArray.push(obj);
+			});		
+		} else {
+			ajaxErrMsg = dataXrayList.errorMessage;
+			noDataFound(ajaxErrMsg,"LabList");
+	    	$('#labListHead').html(" 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+	    	//清空暫存 右側畫面資料
+
+		}	
+		jqGrid_LabList();		
+		if(LabKind != undefined)
+		{
+			filterLabList(LabKind);
+			LabKind = undefined;
+		}
+		hideLoading();
+		setPageVisible("labPage", true);
+		popUpPageFixPos("labPage");
+	});
+	
+	
+};
+
+
+/**
+ * 過濾檢驗 kind_id 值
+ * **/
+var filterLabList = function(kind){
+	var myfilter = { groupOp: "AND", rules: []};
+	myfilter.rules.push({field:"kind_id",op:"eq",data:kind});	
+	$("#LabList").setGridParam({
+		postData: { filters: JSON.stringify(myfilter)},
+		search:true
+	}).trigger('reloadGrid',[{page:1}]);
+}
+
+
+function jqGrid_LabList(){		//檢驗清單
+	$("#LabList").jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 220,
+	    colModel: [
+	        { label: '單號', name: 'lab_reportno', width: 90,hidden:true },
+	        { label: '病歷號', name: 'chart_no', width: 90,hidden:true },
+//	        { label: '檢驗日期', name: 'lab_date', width: 90,hidden:true },
+	        { label: '年份', name: 'years', width: 45 },	        
+	        { label: '日期', name: 'lab_date', width: 80},
+	        { label: 'kind_name', name: 'kind_name', width: 180 },
+	        { label: '種類id', name: 'kind_id', width: 60,hidden:true },
+	        { label: '種類', name: 'report_subtitle', width: 120,hidden:true },
+	        { label: '種類', name: 'report_subtitle', width: 120,formatter: function(cellvalue, options, rowobject){
+	            return '<button type="button" class="btn btn-primary btn-sm">'+ cellvalue +'</button>';
+	        }},
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+//	    scroll :true, //鼠標滾動翻頁,
+//	    rownumbers: true, //count 序號
+//	    rownumWidth:50,
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+	    width: null,
+	    rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit: false,
+	    sortable: false,
+		pager: "#LabList_Pager",
+		pagerpos:'left',
+		loadComplete : function () {
+			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$('#LabList').jqGrid('clearGridData');
+	$("#LabList").jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: LabArray});
+	$("#LabList").trigger('reloadGrid');
+	//$("#LabList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	function getSelectedRow() {
+	    var grid = $("#LabList");
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+	    	$('#labListHead').html($('#LabList').jqGrid('getCell',rowKey,'lab_date') + " " + $('#LabList').jqGrid('getCell',rowKey,'report_subtitle') + " 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+//	    	$('#labListBody').html(rowKey);
+	    
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+var getLabValueColor = function(labValue,startValue,endValue) {
+	
+	if(startValue==null&&endValue==null){
+		return false;
+	}else if($.isNumeric(labValue)&&$.isNumeric(startValue)&&$.isNumeric(endValue)){
+		if(labValue>endValue){  //檢驗數據超標 顏色為紅色 
+			return "<span class='text-danger'>"+labValue + "</span>" 
+		}else if(labValue<startValue){ //檢驗數據過低 顏色為紅色 
+			return "<span class='text-danger'>"+labValue + "</span>" 
+		}else{ //正常值 綠色
+			return "<span class='text-success'>"+labValue + "</span>" 
+		}
+	}
+
+	return (value === undefined || value === null||value=="[object Window]"?"":value); 
+}
+
+
+//1070130 檢驗數據表格 
+
+function jqGrid_LabDataList(tableName,pagerName,arrayData){		//檢驗清單
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 220,
+	    colModel: [	    	
+	    	{ label: '病歷號', name: 'chart_no', width: 90,hidden:true },
+	    	{ label: '住院序號', name: 'serno', width: 90,hidden:true },
+	        { label: '檢驗單號', name: 'seq_no', width: 90,hidden:true },
+	        { label: '檢驗類別', name: 'lab_type', width: 90,hidden:true },
+	        { label: '序', name: 'ab_acce_seq', width: 90 },
+	        { label: '檢驗項目', name: 'lab_item', width: 90 },
+	        { label: '項目名稱', name: 'lab_name', width: 90 },
+	        { label: '檢驗值', name: 'lab_value', width: 90,formatter:function(cellvalue, options, rowobject){
+	        	
+	        
+	        	
+	        } },
+	       
+	        { label: '單位', name: 'unit', width: 45 },
+	        { label: '開始值', name: 'start_value', width: 45,formatter:function(cellvalue, options, rowobject){
+	        	filterNull(cellvalue);
+	        } },
+	        { label: '結束值', name: 'end_value', width: 45,formatter:function(cellvalue, options, rowobject){
+	        	filterNull(cellvalue);
+	        } },
+	        
+	      
+//	        { label: '種類', name: 'report_subtitle', width: 120,formatter: function(cellvalue, options, rowobject){
+//	            return '<button type="button" class="btn btn-primary btn-sm">'+ cellvalue +'</button>';
+//	        }},
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+	    onSelectRow:getSelectedRow,
+	    multiselect: true, //多選 checkBox
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+	    width: null,
+	    rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit: false,
+	    sortable: true,
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+//			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: arrayData});
+	$(tableName).trigger('reloadGrid');
+	//$("#LabList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	function getSelectedRow() {
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+	    	$('#labListHead').html($(tableName).jqGrid('getCell',rowKey,'lab_date') + " " + $(tableName).jqGrid('getCell',rowKey,'report_subtitle') + " 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+	    	$('#labListBody').html(rowKey);
+	    
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+	
+	  /**function getSelectedRows() {
+          var grid = $("#jqGrid");
+          var rowKey = grid.getGridParam("selrow");
+
+          if (!rowKey){
+        	  alert("請選擇檢驗項目");
+          }else {
+              var selectedIDs = grid.getGridParam("selarrrow");
+              var result = "";
+              for (var i = 0; i < selectedIDs.length; i++) {
+//                  result += selectedIDs[i] + ",";//用 逗號  隔開 檢驗項目 
+            	  result += selectedIDs[i] + "|";  //用 | 隔開 檢驗項目
+            	  
+              }              
+              result = result.substring(0,result.length - 1); //刪除字串最後一個 分割符
+              
+              alert(result);
+          }  
+	
+	  } **/
+}

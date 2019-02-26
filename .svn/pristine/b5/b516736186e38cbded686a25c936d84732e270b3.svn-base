@@ -1,0 +1,16 @@
+@charset "UTF-8";
+
+
+#FocusDetailTable{
+
+border-collapse:collapse;
+width:100%;
+cellspacing:15px;
+
+}
+
+.DARTOutline{
+border: 2px solid #CDC1D8;
+border-radius: 5px
+}	
+

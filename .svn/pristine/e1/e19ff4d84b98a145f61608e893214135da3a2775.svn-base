@@ -1,0 +1,510 @@
+function resizeGrid() {
+
+  if(grid = $('.ui-jqgrid-btable:visible')) {
+    grid.each(function(index) {
+      var gridId = $(this).attr('id');
+      var gridHeight = 0;
+      var numOfRow = 10;
+      if(gridId == "PatList" ||gridId == "PatList2"){
+    	  gridHeight = pageHeight - 320;
+    	  numOfRow = Math.floor(gridHeight/26);
+      }else if(gridId == "LabList" || gridId =="XrayList"||gridId =="OpList"||gridId=="InpList"||gridId=="ProgressList"
+    	  ||gridId=="ChgBedList"||gridId=="AdmissionList"||gridId=="FocusList"||gridId=="OutNoteList"){
+    	  gridHeight = pageHeight - 220;
+    	  numOfRow = Math.floor(gridHeight/33);
+    	  resizePanelBody("XrayListBody",gridHeight);//影像
+    	  resizePanelBody("labListBody",gridHeight);//檢驗
+    	  resizePanelBody("OpListBody",gridHeight);//手術
+    	  resizePanelBody("InpListBody",gridHeight);//住院
+    	  resizePanelBody("ProgressListBody",gridHeight);//病程紀錄
+    	  resizePanelBody("AdmissionListBody",gridHeight);//入院病摘    	 
+    	  resizePanelBody("FocusListBody",gridHeight);//護理紀錄 
+    	  resizePanelBody("OutNoteListBody",gridHeight);//出院病摘
+
+    	  
+    	  resizePanelBody("xrayDetailReason",gridHeight-335);//固定 影像報告右側畫面的 醫囑原因&報告內容外框高度
+    	  
+      }else if(gridId == "XrayPosList"){ //影像報告 的 照射位置jqGrid
+    	  gridHeight = 100;
+    	  numOfRow = Math.floor(gridHeight/33);
+    	  
+      }else if(gridId == "inpRecordList"){ //住院紀錄
+    	  gridHeight = pageHeight - 300;
+    	  numOfRow = Math.floor(gridHeight/33);
+      }  
+      $('#' + gridId).setGridHeight(gridHeight);      
+      $('#' + gridId).jqGrid('setGridParam', {rowNum: numOfRow}).trigger('reloadGrid');
+      
+//      var selectedRowId = $('#' + gridId).jqGrid('getGridParam', 'selrow');//選擇 單選列 的rowKeyId
+//      $('#' + gridId).jqGrid('setSelection', selectedRowId, true); //設定單選列 的rowKeyId selection 位置
+    });
+  }
+  
+ 
+  
+}
+
+/**function resizeXrayPosBody(id,gridHeight){
+	$('#'+id).css('min-height', gridHeight+38 +'px').css('max-height', gridHeight+38 +'px');
+} **/
+
+function resizePanelBody(id,gridHeight){
+	$('#'+id).css('min-height', gridHeight+38 +'px').css('max-height', gridHeight+38 +'px');
+
+}
+
+
+function jqGrid_PatList(){	//門診住院出院
+	$("#PatList").jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 320,
+	    colModel: [
+	        { label: '病歷號', name: 'chart_no', width: 90, key:true },
+	        { label: '就診類別', name: 'visit_type', width: 90 },
+	        { label: '姓名', name: 'pt_name', width: 100 },
+	        { label: '性別', name: 'sex_name', width: 60 },
+	        { label: '年齡', name: 'age', width: 60 },
+	        { label: '身分證字號', name: 'id_no', width: 120 },
+	        { label: '電話', name: 'tel', width: 120 },
+	        { label: '門診日期', name: 'view_date', width: 90 },
+	        { label: '出生日期', name: 'birth_date', width: 90 },
+	        { label: '住院日期', name: 'ckin_date', width: 90 },
+	        { label: '出院日期', name: 'discharge_date', width: 90 },
+	        { label: '主治醫師', name: 'doctor_name', width: 90 },
+	        { label: '科別', name: 'div_name', width: 120 },
+	        { label: '早/午/晚', name: 'apn_name', width: 90 },
+	        { label: '診間', name: 'clinic', width: 90 },
+	        { label: '床位', name: 'bed_no', width: 90 },
+	        { label: '護理站', name: 'ns', width: 90 }
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "門診、住院、出院",
+	    scrollOffset: 0,
+	    rowNum: Math.floor((pageHeight - 320)/26),
+	    //rowList: [10, 20, 30],
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	PatObj.chart_no = rowId;
+	    	showLoading();
+	    	ajax_getChartByChartNo();
+	    	popUpPageToggle("queryPage");	  
+	    	closeOtherPage();
+        },        
+	    width: null,
+	    shrinkToFit: false,
+	    sortable: true,
+		pager: "#PatList_Pager"
+	});
+	$("#PatList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" ,clearSearch: false});
+	$('#PatList').jqGrid('clearGridData');
+	$("#PatList").jqGrid('setGridParam', {data: QueryPatArray});
+	$("#PatList").trigger('reloadGrid');
+	$('#currentList').show();
+	$('#chartBaseList').hide();
+	function getSelectedRow() {
+	    var grid = $("#PatList");
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){        	    	
+	    	$("#chart_no2").html($('#PatList').jqGrid('getCell',rowKey,'chart_no'));
+	    	$("#pt_name2").html($('#PatList').jqGrid('getCell',rowKey,'pt_name'));
+	    	$("#sex_name2").html($('#PatList').jqGrid('getCell',rowKey,'sex_name'));
+	    	$("#age2").html($('#PatList').jqGrid('getCell',rowKey,'age'));
+	    	$("#home_tel").html($('#PatList').jqGrid('getCell',rowKey,'tel'));
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+function jqGrid_PatList2(){		//病歷主檔
+	$("#PatList2").jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 320,
+	    colModel: [
+	        { label: '病歷號', name: 'chart_no', width: 90, key:true },
+	        { label: '姓名', name: 'pt_name', width: 120 },
+	        { label: '性別', name: 'sex_name', width: 60 },
+	        { label: '年齡', name: 'age', width: 60 },
+	        { label: '身分證字號', name: 'id_no', width: 120 }
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	PatObj.chart_no = rowId;
+	    	showLoading();
+	    	ajax_getChartByChartNo();
+	    	popUpPageToggle("queryPage");
+	    	closeOtherPage();
+        },
+	    width: null,
+	    rowNum: Math.floor((pageHeight - 320)/26),
+	    shrinkToFit: false,
+	    sortable: true,
+		pager: "#PatList2_Pager",
+		pagerpos:'left'
+	});
+	$('#PatList2').jqGrid('clearGridData');
+	$("#PatList2").jqGrid('setGridParam', {data: QueryPatArray});
+	$("#PatList2").trigger('reloadGrid');
+	$("#PatList2").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	$('#currentList').hide();
+	$('#chartBaseList').show();
+	function getSelectedRow() {
+	    var grid = $("#PatList2");
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){        
+	    	$('#queryChartbasebody').html(rowKey + '-' +$('#PatList2').jqGrid('getCell',rowKey,'pt_name'));	    
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+
+
+
+
+
+
+
+
+function jqGrid_inpRecordList(){		//住院紀錄
+	$("#inpRecordList").jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 300,
+	    colModel: [
+	        { label: '序號', name: 'seq_no', width: 60 },
+	        { label: '日期', name: 'date', width: 90 },
+	        { label: '手術', name: 'items', width: 110 ,title:false,formatter: function(cellvalue, options, rowobject){
+	            var test="";
+	        	$.each(cellvalue,function(index,value){	        		
+	        		if(value == "手術"){ 
+	        			test +='<button type="button" class="btn btn-primary" style="width:90px;">'+ value +'</button>';
+	        		}	        		
+	            })
+	        	return test;
+	        }},
+	        { label: '住院病摘', name: 'items', width: 110 ,title:false,formatter: function(cellvalue, options, rowobject){
+	            var test="";
+	        	$.each(cellvalue,function(index,value){	        		
+	        		if(value == "住院病摘"){ 
+	        			test +='<button type="button" class="btn btn-primary" style="width:90px;">'+ value +'</button>';
+	        		}	        		
+	            })
+	        	return test;
+	        }},
+	        { label: '醫囑紀錄', name: 'items', width: 110 ,title:false,formatter: function(cellvalue, options, rowobject){
+	            var test="";
+	        	$.each(cellvalue,function(index,value){	        		
+	        		if(value == "醫囑紀錄"){ 
+	        			test +='<button type="button" class="btn btn-primary" style="width:90px;">'+ value +'</button>';
+	        		}	        		
+	            })
+	        	return test;
+	        }},
+	        { label: '護理紀錄', name: 'items', width: 110 ,title:false,formatter: function(cellvalue, options, rowobject){
+	            var test="";
+	        	$.each(cellvalue,function(index,value){	        		
+	        		if(value == "護理紀錄"){ 
+	        			test +='<button type="button" class="btn btn-primary" style="width:90px;">'+ value +'</button>';
+	        		}	        		
+	            })
+	        	return test;
+	        }},
+	        { label: '其他 影像 檢驗', name: 'items', width: 880 ,title:false,formatter: function(cellvalue, options, rowobject){
+	            var test="";
+	        	$.each(cellvalue,function(index,value){	        		
+	        		if(value != "住院病摘" && value != "護理紀錄" && value != "醫囑紀錄" && value != "手術"){ 
+	        			test +='<button type="button" class="btn btn-primary" style="width:90px;">'+ value +'</button>';
+	        		}	        		
+	            })
+	        	return test;
+	        }}
+	        
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        hoverrows:false,
+        width: null,
+        rowNum: Math.floor((pageHeight - 300)/33),
+	    shrinkToFit:false,
+	    //sortable: true,
+		//pager: "#inpRecordList_Pager",
+		pagerpos:'left'
+	});
+	$('#inpRecordList').jqGrid('clearGridData');
+	$("#inpRecordList").jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: inpRecordArray});
+	$("#inpRecordList").trigger('reloadGrid');
+	//$("#inpRecordList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	
+	function getSelectedRow() {
+	    
+	}
+}
+
+
+
+//1070123 UD用藥紀錄 add By IvyLin
+/***UD 用藥紀錄***/
+//hidden:true
+var udRowKey;
+var NumOfRow = Math.floor(($(window).height()-255)/36);
+var jqGridUdData = function(tableName,pagerName,arrayData){
+	 var tableGrid = $(tableName);
+	 	$(tableName).jqGrid({
+	    datatype: "local",
+	    rowNum:NumOfRow,
+	    height: Math.floor($(window).height()-255),
+	    width:null,
+	    colModel: [
+	        { label: '序', name: 'rec_count', width: 40,search:false},
+	    	{ label: '帳款日期',name: 'acnt_date', width: 100,formatter: formatDateTime},
+	        { label: '1.藥品  2.處置  3.材料', name: 'price_type', width: 150,formatter:formatPriceType},
+	        { label: '用藥名稱', name: 'full_name',width: 350},
+	        { label: '單次量', name: 'qty', width: 40},
+			{ label: '單位', name: 'unit', width: 50},
+	        { label: '非常規', name: 'unuse', width: 70},
+	        { label: '常規用法', name: 'use', width: 70},
+			{ label: '單位', name: 'use_name_e', width: 50},
+			{ label: '總量', name: 'tqty', width: 50},
+			{ label: '單位', name: 'unit', width: 50},
+			{ label: '途徑', name: 'method_name_e', width: 50},
+			{ label: '開始日期', name: 'start_date', width: 100,formatter: formatDateTime},
+			{ label: '時間', name: 'start_time', width: 100,formatter: formatDateTime},
+			{ label: 'DC日期', name: 'end_date', width: 100,formatter: formatDateTime},
+			{ label: '時間', name: 'end_time', width: 100,formatter: formatDateTime},
+			{ label: '批價代號', name: 'code', width: 100},
+			{ label: '自費', name: 'self', width: 100},
+			{ label: '庫別', name: 'stock', width: 100},
+			{ label: '醫師', name: 'doctor_no', width: 100},
+			{ label: '輸入員', name: 'keyin_clerk', width: 100},
+			{ label: '就醫科別', name: 'div_name', width: 100},
+			{ label: '首日量', name: 'first_tqty', width: 100},
+			{ label: '執行人員', name: 'exec_clerk', width: 100},
+			{ label: '吃藥次數', name: 'do_status', width: 100,formatter: formatDoStatus},
+			
+	      
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    onSelectRow:getSelectedRow,
+	    shrinkToFit: false,
+//	    sortable:true,  //可否拖曳排序
+		pager: pagerName,
+		gridComplete: function () {
+			tableGrid.setSelection(udRowKey, true);
+       }
+		
+		
+	});
+	$(tableName).jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {data: arrayData});
+	$(tableName).trigger('reloadGrid');
+	$(tableName).jqGrid("navGrid", pagerName,
+			{ add: false, edit: false, del: false, search: true, view: true, refresh: false });
+//	$('#currentList').show();
+//	$('#chartBaseList').hide();
+	function getSelectedRow(rowId,status,e) {
+		
+		if(status===true){
+			//須隨之改變的html
+		}
+		
+		udRowKey = rowId;
+   
+	}
+}
+
+
+//1070123 STAT用藥紀錄  add By IvyLin
+/**STAT**/
+var stRowKey;
+ var NumOfRow = Math.floor(($(window).height()-255)/36);
+ var jqGridSTATData = function(tableName,pagerName,arrayData){
+	 var tableGrid = $(tableName);
+	 	$(tableName).jqGrid({
+	    datatype: "local",
+//	    scrollOffset: 0,
+	    rowNum:NumOfRow,
+	    height: Math.floor($(window).height()-255),
+	    width:null,
+	    colModel: [
+	    	{ label: '序', name: 'rec_count', width: 40,search:false},
+	    	{ label: '帳款日期',name: 'acnt_date', width: 100,formatter: formatDateTime},
+	        { label: '1.藥品  2.處置  3.材料', name: 'price_type', width: 150,formatter:formatPriceType},
+	        { label: '用藥名稱', name: 'full_name',width: 350},
+	        { label: '單次量', name: 'qty', width: 70},
+	        { label: '用法', name: 'use_name_e', width: 70},
+	        { label: '天數', name: 'day', width: 40},
+			{ label: '單位', name: 'unit', width: 80},
+	        { label: '常規用法', name: 'use', width: 70},
+			{ label: '單位', name: 'use_name_e', width: 50},
+			{ label: '總量', name: 'tqty', width: 50},
+			{ label: '單位', name: 'unit', width: 50},
+			{ label: '途徑', name: 'method_name_e', width: 70},
+			{ label: '急', name: 'emg', width: 40},
+			{ label: '出院帶藥 Y/N', name: 'take_home', width: 100,formatter: "checkbox",edittype: "checkbox", editoptions: {value: "Y:N"},formatoptions:{disabled: true}},
+			{ label: '實用量', name: 'do_tqty', width: 70},
+			{ label: '就醫科別', name: 'div_name', width: 100},
+			{ label: '開始日期', name: 'start_date', width: 100,formatter: formatDateTime},
+			{ label: '時間', name: 'start_time', width: 100,formatter: formatDateTime},
+			{ label: 'DC日期', name: 'end_date', width: 100,formatter: formatDateTime},
+			{ label: '時間', name: 'end_time', width: 100,formatter: formatDateTime},
+			{ label: '批價代號', name: 'code', width: 100},
+			{ label: '加成', name: 'add_rate', width: 100},
+			{ label: '金額', name: 'amt', width: 100},
+			{ label: '自費', name: 'self', width: 50},
+			{ label: '庫別', name: 'stock', width: 60},
+			{ label: '醫師', name: 'doctor_no', width: 70},
+			{ label: '手術醫師', name: 'op_doctor_no', width: 70},
+			{ label: '開刀部位', name: 'order_pos', width: 80},
+			{ label: '批價員', name: 'cashier', width: 70},
+			{ label: '補差額', name: 'he_add_fee', width: 100},
+			{ label: '折扣', name: 'acnt_discount', width: 100},
+			{ label: '折扣註記', name: 'acnt_discount_remark', width: 100},
+			{ label: '影像來源', name: 'dicom_flag', width: 100},
+			{ label: '事前審查編號', name: 'project_no', width: 100},
+			
+	      
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    onSelectRow:getSelectedRow,
+	    width: null,
+	    shrinkToFit: false,
+//	    sortable:true,  //可否拖曳排序
+		pager: pagerName,
+		gridComplete: function () {
+			tableGrid.setSelection(stRowKey, true);
+          }
+		
+		
+	});
+	$(tableName).jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {data: arrayData});
+	$(tableName).trigger('reloadGrid');
+	$(tableName).jqGrid("navGrid", pagerName,
+			{ add: false, edit: false, del: false, search: true, view: true, refresh: false });
+//	$('#currentList').show();
+//	$('#chartBaseList').hide();
+	function getSelectedRow(rowId,status,e) {
+		
+		if(status===true){
+			//須隨之改變的html
+		}
+		
+		stRowKey = rowId;
+      
+	}
+	/**function getSelectedRow() {
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	   if (rowKey){        
+	    	PatObj.chart_no = rowKey;
+	    	showLoading();
+	    	ajax_getChartByChartNo();
+	    	$('#collapseMain').collapse('show');
+	    	setPageVisible("queryPage",false);
+	    	setPageVisible("mainPage",true);
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}  **/
+}
+
+ 
+
+
+//格式化日期
+function formatDateTime(cellValue, options, rowObject) {
+	   if(cellValue === undefined || cellValue === null||cellValue=="[object Window]"){
+		   return "";
+		   
+	   }else{
+			if(cellValue.length==7){
+	   			 var y = cellValue.substring(0,3);
+	   			 var m = cellValue.substring(3,5);
+	   			 var d = cellValue.substring(5,7);
+//	   			 console.log(y+"/"+m+"/"+d);
+	   			 if(cellValue.startsWith("0")){
+	   				var y = cellValue.substring(1,3); //如果民國年小於 100年 ，去除前面的0
+	   			 }
+	   				return y+"/"+m+"/"+d;
+	   				
+	   			}else if(cellValue.length==6){
+	   			 var hh = cellValue.substring(0,2);
+	   			 var mm = cellValue.substring(2,4);
+	   			 var ss = cellValue.substring(4,6);
+//	   			 console.log(hh+":"+mm+":"+ss);
+	   				return hh+":"+mm+":"+ss;
+	   				
+	   			}else{
+	   			 var hh = cellValue.substring(0,2);
+	   			 var mm = cellValue.substring(2,4);
+//	   			 console.log(hh+":"+mm);
+	   				return hh+":"+mm;
+	   				
+	   			}
+	   }
+	  
+         };
+
+//格式化 藥品分類
+/** 1.藥品/2.處置/3.材料**/
+function formatPriceType(cellValue, options, rowObject) {
+         	
+         	switch(cellValue){
+         	case 1:
+         		return "藥品";
+         		break;
+         	case 2:
+         		return "處置";
+         		break;
+         	case 3:
+         		return "材料";
+         		break;
+         		default:
+         		
+         	}
+}; 
+
+/**formatter UD吃藥次數**/
+function formatDoStatus(cellValue, options, rowObject) {
+	 
+	 var total = cellValue.length;
+	 var searchO = cellValue.indexOf("O");
+	 var searchX = cellValue.indexOf("X");
+//	 console.log(searchX);
+	 
+	 if(searchX==0){
+		 return searchX+"/"+total;
+	 }else if(searchX>1){
+		 return searchX+"/"+total;
+	 }else{
+		 if(cellValue.indexOf("X")==-1){
+			 return total+"/"+total;
+		 }else{
+			 return (searchO+1)+"/"+total;
+		 }
+	 }
+//	 OOXX
+	/** if(cellValue.indexOf("X")==-1){  //如果都沒X 表示都有吃藥  
+		 return total+"/"+total;
+	 }else if(cellValue.indexOf("O")==-1){  //如果都沒 O 表示都沒吃藥
+		 return "0"+"/"+total;
+	 }else{
+		if(cellValue.){
+			
+		} 
+	 }  **/
+};
+
+

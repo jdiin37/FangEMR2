@@ -1,0 +1,121 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import model.OrRecord;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+
+/**
+ * Created by jeffy on 2017/10/26.
+ */
+public class OrRecordService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private OrRecord orRecord;
+
+
+    private String getOPDataByStartEndDateChartNo(String startDate, String endDate, int chartNo, String inpOpd) {
+        List<Map<String, Object>> tempListMap = new ArrayList<>();
+        try {
+            tempListMap = orRecord.queryOPDataByStartEndDateChartNo(startDate, endDate, chartNo);
+            objects = tempListMap.stream()
+                    .filter(map -> map.get("inp_opd").equals(inpOpd))
+                    .collect(Collectors.toList());
+
+            if (!objects.isEmpty()) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("OrRecord.queryOPDataByStartEndDateChartNo startDate=" + startDate
+                        + " endDate=" + endDate  + " chartNo=" + chartNo + "inpOpd=" + inpOpd + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getPatopdOPDataByChartNo(String startDate, String endDate, int chartNo) {
+        return getOPDataByStartEndDateChartNo(startDate, endDate, chartNo, "O");
+    }
+
+    public String getPatinpOPDataByChartNo(String startDate, String endDate, int chartNo) {
+        return getOPDataByStartEndDateChartNo(startDate, endDate, chartNo, "I");
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            orRecord = new OrRecord(myConnection);
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get patopd op data
+            if (method.equals("getPatopdOPDataByChartNo")) {
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getPatopdOPDataByChartNo(startDate, endDate, chartNo);
+            }
+
+            //  get patinp op data
+            if (method.equals("getPatinpOPDataByChartNo")) {
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getPatinpOPDataByChartNo(startDate, endDate, chartNo);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        OrRecordService orRecordService = new OrRecordService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+
+        jsonObject.addProperty("startDate", "0940806");
+        jsonObject.addProperty("endDate", "1030913");
+        jsonObject.addProperty("chartNo", 923883);
+
+        jsonObject.addProperty("method", "getPatopdOPDataByChartNo");
+        resultStrng = orRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nOrRecordService.run getPatopdOPDataByChartNo startDate='0940806' endDate='1030913' chartNo=923833 :"  + resultStrng);
+
+        jsonObject.addProperty("method", "getPatinpOPDataByChartNo");
+        resultStrng = orRecordService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nOrRecordService.run getPatinpOPDataByChartNo startDate='0940806' endDate='1030913' chartNo=923833 :"  + resultStrng);
+    }
+}
+
+

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="device=device-width" />
+<title>EMR</title>
+<link rel="stylesheet" href="styles/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="styles/ui.jqgrid-bootstrap.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="styles/EMRstyle.css" type="text/css" />
+<script src="scripts/jquery-1.11.1.min.js"></script>
+<script src="scripts/jquery-ui.min.js"></script>
+<script src="scripts/i18n/grid.locale-tw.js"></script>
+<script src="scripts/jquery.jqGrid.min.js"></script>
+<script src="scripts/bootstrap.min.js"></script>
+<script src="scripts/EMRfunction.js?20171026"></script>
+<script src="scripts/EMRajax.js?20171026"></script>
+<script src="scripts/EMRjqGrid.js?20171026"></script>
+
+<script>
+	$.jgrid.defaults.responsive = true;
+	$.jgrid.defaults.styleUI = 'Bootstrap';
+</script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+
+		//畫面生成 事件設定
+		render();
+
+		//確認使用者
+		ajax_checkPasswd();
+
+	});
+</script>
+
+</head>
+<!-- 鎖住F5 onkeydown="return (event.keyCode != 116)" -->
+
+<body>
+	<div id="masterPage">
+		<script type="text/javascript">
+			$("#masterPage").load("masterPage.html");
+		</script>
+	</div>
+	<div class="container-fluid">
+		<div id="mainPage">
+			<div class="panel panel-info">
+				<!--主頁 -->
+				<div class="panel-heading clearfix">
+					<div class="panel-title pull-left panel-tool">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapseMain">EMR</a>
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="close hide"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					</div>
+				</div>
+				<div id="collapseMain" class="panel-collapse collapse in">
+					<div class="panel-body">
+						<div class="row form-group" id="mainBlock1">
+							<div class="col-sm-12 form-inline">
+								<button type="button" class="btn btn-primary" id="btn_ShowQueryPage"><span class="glyphicon glyphicon-search"></span></button>&emsp;<span class="h4"> 病歷號碼:<span id="chart_no"></span>&emsp;姓名:<span
+									id="pt_name"></span>&emsp;性別:<span id="sex_name"></span>&emsp;年齡:<span id="age"></span>&emsp;最初門診日期:<span id="first_view_date"></span> <span id="first_div_name"></span>&emsp;最近門診日期:<span
+									id="last_view_date"></span> <span id="last_div_name"></span>
+								</span>
+								<div class="pull-right">
+									<button type="button" class="btn btn-primary" id="btn_block1"><span class="glyphicon glyphicon-wrench"></span></button>
+									<button type="button" class="btn btn-primary" id="btn_block2"><span class="glyphicon glyphicon-wrench"></span></button>
+									<button type="button" class="btn btn-primary" id="btn_block3"><span class="glyphicon glyphicon-wrench"></span></button>
+									<button type="button" class="btn btn-primary" id="btn_block4"><span class="glyphicon glyphicon-wrench"></span></button>
+									<button type="button" class="btn btn-primary" id="btn_block5"><span class="glyphicon glyphicon-wrench"></span></button>
+								</div>
+							</div>
+						</div>
+						<div class="row form-group well well-sm" id="mainBlock2">
+							<div class="col-sm-6 form-inline">
+								<div class="form-group">
+									<label for="recentYear">查詢範圍 </label> <input type="text" class="form-control input-sm" style="max-width: 48px;" placeholder="" id="recentYear" value="1"> <span></span> <label
+										for="recentYear"> 年 </label>
+								</div>
+								<button class="btn btn-primary">門急 <span class="badge" id="yearsOPD">0</span></button>
+								<button class="btn btn-primary">住院 <span class="badge" id="yearsINP">0</span></button>
+								<button class="btn btn-primary">手術 <span class="badge" id="yearsOR">0</span></button>
+								<button class="btn btn-primary">影像 <span class="badge" id="yearsLAB">0</span></button>
+								<button class="btn btn-primary exambtn">檢驗 <span class="badge" id="yearsXRAY">0</span></button>
+							</div>
+							<div class="col-sm-6 form-inline">
+								<div class="form-group">
+									<label for="">全部 </label>
+								</div>
+								<button class="btn btn-primary">門急 <span class="badge" id="allOPD">0</span></button>
+								<button class="btn btn-primary">住院 <span class="badge" id="allINP">0</span></button>
+								<button class="btn btn-primary">手術 <span class="badge" id="allOR">0</span></button>
+								<button class="btn btn-primary">影像 <span class="badge" id="allLAB">0</span></button>
+								<button class="btn btn-primary">檢驗 <span class="badge" id="allXRAY">0</span></button>
+							</div>
+						</div>
+						<div class="row pre-scrollable" id="mainBlock3">
+							<div class="col-sm-12">
+								<div class="panel-group" id="timeLine"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="queryPage">
+			<div class="panel panel-info">
+				<!--查詢病患頁 -->
+				<div class="panel-heading clearfix">
+					<div class="panel-title pull-left panel-tool">
+						<a data-toggle="collapse" data-parent="#accordion" href="#collapseQuery">查詢病患</a>
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					</div>
+				</div>
+				<div id="collapseQuery" class="panel-collapse collapse in">
+					<div class="panel-body">
+						<div class="row form-group" id="queryBlock1">
+							<div class="col-sm-12">
+								<span class="h4"> 病歷號碼:<span id="chart_no2"></span>&emsp;姓名:<span id="pt_name2"></span>&emsp;性別:<span id="sex_name2"></span>&emsp;年齡:<span id="age2"></span>&emsp;電話:<span id="home_tel"></span>
+								</span>
+							</div>
+						</div>
+						<div class="row well well-sm" id="queryBlock2">
+
+							<div class="col-sm-4 form-inline">
+								<div class="form-group">
+									<label class="checkbox-inline"><input type="checkbox" id="chk_queryOPD" checked>門診 </label>
+								</div>
+								<div class="form-group">
+									<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_OPDdays" value="1"><label for="input_OPDdays">天 </label>
+								</div>
+								<div class="form-group">
+									<label class="checkbox-inline"><input type="checkbox" id="chk_queryINP" checked>住院</label>
+								</div>
+								<div class="form-group">
+									<label class="checkbox-inline"><input type="checkbox" id="chk_queryDIS">出院</label>
+								</div>
+								<div class="form-group">
+									<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_DISdays"><label for="input_DISdays">天 </label>
+								</div>
+								<button type="button" class="btn btn-primary" id="btn_query1"><span class="glyphicon glyphicon-search"></span></button>
+							</div>
+							<div class="col-sm-8 form-inline">
+								<div class="form-group">
+									<label for="query_ptName">姓名 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_ptName" value="">
+								</div>
+								<div class="form-group">
+									<label for="query_birth">生日 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_birth" value="">
+								</div>
+								<div class="form-group">
+									<label for="query_tel">電話 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_tel" value="">
+								</div>
+								<div class="form-group">
+									<label for="query_chartNo">病歷號 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_chartNo" value="">
+								</div>
+								<button type="button" class="btn btn-primary" id="btn_query2"><span class="glyphicon glyphicon-search"></span></button>
+							</div>
+						</div>
+						<div class="row" id="currentList">
+							<div class="col-sm-12">
+								<div class="form-group table-responsive">
+									<table id="PatList" class="table table-bordered table-hover">
+									</table>
+									<div id="PatList_Pager"></div>
+								</div>
+							</div>
+						</div>
+						<div class="row" id="chartBaseList">
+							<div class="col-sm-12">
+								<div class="form-group table-responsive">
+									<table id="PatList2" class="table table-bordered table-hover">
+									</table>
+									<div id="PatList2_Pager"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="examPage"></div>
+	</div>
+</body>
+
+</html>

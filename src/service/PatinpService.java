@@ -1,0 +1,313 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import library.dateutility.DateComputeUtil;
+import library.dateutility.DateUtil;
+import library.utility.JDBCUtilities;
+import library.utility.MapEntryUtil;
+import library.utility.MapUtil;
+import model.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import static library.utility.MapUtil.castToInt;
+import static library.utility.MapUtil.castToStr;
+
+/**
+ * Created by jeffy on 2017/11/7.
+ */
+public class PatinpService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Admission admission;
+    private OutNote outNote;
+    private Chgbed chgbed;
+    private NurseProgress nurseProgress;
+    private DrProgress drProgress;
+    private Patinp patinp;
+    private PatinpEX patinpEX;
+
+    private Map<String, Object> getAdmissionCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = admission.queryAdmissionCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getOutnoteCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = outNote.queryOutnoteCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getChgbedCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = chgbed.queryChgbedCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getNurseProgressCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = nurseProgress.queryNurseProgressCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    private Map<String, Object> getDrProgressCountByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            result = drProgress.queryDrProgressCountByChartNoSerno(chartNo, serno);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    public String getPatinpSummaryByChartNoSerno(int chartNo, int serno) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        int count = 0;
+        try {
+            object = getAdmissionCountByChartNoSerno(chartNo, serno);
+            result.put("admission", castToInt(object.get("count")));
+
+            object = getOutnoteCountByChartNoSerno(chartNo, serno);
+            result.put("outnote", castToInt(object.get("count")));
+
+            object = getChgbedCountByChartNoSerno(chartNo, serno);
+            result.put("chgbed", castToInt(object.get("count")));
+
+            object = getNurseProgressCountByChartNoSerno(chartNo, serno);
+            result.put("nurseprogress", castToInt(object.get("count")));
+
+            object = getDrProgressCountByChartNoSerno(chartNo, serno);
+            result.put("drprogress", castToInt(object.get("count")));
+
+            jsonObject = MapUtil.getSuccessResult(MapUtil.mapToJsonObject(result));
+
+        } catch (Exception ex) {
+            System.out.printf("\nPatinpService.getPatinpSummaryByChartNoSerno chartNo:%d serno:%d errorMessage:%s", chartNo, serno, ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    // get main disease by chart_no, serno
+    private Map<String, Object> getPatinpMainDis(int chartNo, int serno) {
+        Map<String, Object> disCodeMap = new LinkedHashMap<>();
+        Map<String, Object> resultMap = new LinkedHashMap<>();
+        try {
+            disCodeMap = patinpEX.queryInpMainDisByChartNoSerno(chartNo, serno);
+
+            if (!disCodeMap.isEmpty()) {
+                resultMap = MapEntryUtil.getSubMapByKeyList(disCodeMap, Arrays.asList("disease_code", "code_name_e", "code_name_c"));
+            }
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        return resultMap;
+    }
+
+    private List<Map<String, Object>> getPatinpListByChartNoStartDateEndDate(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> disicdMap = new LinkedHashMap<>();
+        Map<String, Object> admissionMap = new LinkedHashMap<>();
+        Map<String, Object> outNoteMap = new LinkedHashMap<>();
+        long admitDays = 0L;
+
+        try {
+            result = patinp.queryPatinpListByChartNoStartDateEndDate(chartNo, startDate, endDate);
+            if (!result.isEmpty()) {
+                for (Map<String, Object> map : result) {
+                    // add admit_days
+                    admitDays = DateComputeUtil.getAdmitDays(castToStr(map.get("start_date")), castToStr(map.get("end_date")));
+                    map.put("admit_days", admitDays);
+
+                    // add main disease code
+                    disicdMap = getPatinpMainDis(castToInt(map.get("chart_no")), castToInt(map.get("serno")));
+                    map.putAll(disicdMap);
+
+                    // add admission count
+                    admissionMap = admission.queryAdmissionCountByChartNoSerno(castToInt(map.get("chart_no")), castToInt(map.get("serno")));
+                    map.put("admission_count", admissionMap.get("count"));
+
+                    // add outnote count
+                    outNoteMap = outNote.queryOutnoteCountByChartNoSerno(castToInt(map.get("chart_no")), castToInt(map.get("serno")));
+                    map.put("outnote_count",outNoteMap.get("count"));
+
+                }
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return result;
+    }
+
+    public String getPatinpListByChartNoDateRange(int chartNo, String startDate, String endDate) {
+        if (endDate == null || endDate.equals("")) endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+        try {
+            objects = getPatinpListByChartNoStartDateEndDate(chartNo, startDate, endDate);
+            jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+        } catch (Exception ex) {
+            System.out.printf("\nPatinpService.getPatinpListByChartNoDateRange chartNo:%d startDate:'%s' endDate:'%s' errorMessage:%s",
+                    chartNo, startDate, endDate, ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getPatinpListByChartNoYears(int chartNo, int years) {
+        String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-years, ChronoUnit.YEARS));
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+        try {
+            objects = getPatinpListByChartNoStartDateEndDate(chartNo, startDate, endDate);
+            jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+        } catch (Exception ex) {
+            System.out.printf("\nPatinpService.getPatinpListByChartNoDateRange chartNo:%d years:%d errorMessage:%s", chartNo, years, ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getPatinpListByChartNo(int chartNo) {
+        String startDate = "0010101";
+        String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+        try {
+            objects = getPatinpListByChartNoStartDateEndDate(chartNo, startDate, endDate);
+            jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+
+        } catch (Exception ex) {
+            System.out.printf("\nPatinpService.getPatinpListByChartNoDateRange chartNo:%d errorMessage:%s", chartNo, startDate, endDate, ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            admission = new Admission(myConnection);
+            outNote = new OutNote(myConnection);
+            chgbed = new Chgbed(myConnection);
+            nurseProgress = new NurseProgress(myConnection);
+            drProgress = new DrProgress(myConnection);
+            patinp = new Patinp(myConnection);
+            patinpEX = new PatinpEX(myConnection);
+
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            // get patient's admission, outNote, chgbed, nurseProgress, drProgress count
+            if (method.equals("getPatinpSummaryByChartNoSerno")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int serno = parametersJsObj.get("serno").getAsInt();
+                result = getPatinpSummaryByChartNoSerno(chartNo, serno);
+            }
+
+            if (method.equals("getPatinpListByChartNoDateRange")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                result = getPatinpListByChartNoDateRange(chartNo, startDate, endDate);
+            }
+
+            if (method.equals("getPatinpListByChartNoYears")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int years = parametersJsObj.get("years").getAsInt();;
+                result = getPatinpListByChartNoYears(chartNo, years);
+            }
+
+            if (method.equals("getPatinpListByChartNo")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                result = getPatinpListByChartNo(chartNo);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        PatinpService patinpService = new PatinpService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("serno", 94771);
+
+        jsonObject.addProperty("method", "getPatinpSummaryByChartNoSerno");
+        resultStrng = patinpService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPatinpService.run getPatinpSummaryByChartNoSerno chartNo=912473 serno=94771: " + resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("startDate", "1030504");
+        jsonObject.addProperty("endDate", "1030507");
+        jsonObject.addProperty("method", "getPatinpListByChartNoDateRange");
+        resultStrng = patinpService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.printf("\nPatinpService.run getPatinpListByChartNoDateRange chartNo=%d startDate='%s' endDate='%s' " +
+                "resultString:%s \n", 912473, "1030504", "103057", resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("years", 7);
+        jsonObject.addProperty("method", "getPatinpListByChartNoYears");
+        resultStrng = patinpService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.printf("\nPatinpService.run getPatinpListByChartNoYears chartNo=%d years=%d " +
+                "resultString:%s \n", 912473, 5, resultStrng);
+
+        jsonObject = new JsonObject();
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("method", "getPatinpListByChartNo");
+        resultStrng = patinpService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.printf("\nPatinpService.run getPatinpListByChartNo chartNo=%d " +
+                "resultString:%s \n", 912473, resultStrng);
+
+    }
+}

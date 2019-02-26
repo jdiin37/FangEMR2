@@ -1,0 +1,58 @@
+		
+			<div class="panel panel-info">
+				<!--檢驗 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="labChartPage_Title">檢驗趨勢圖</span>
+						<span id="strLabItem" style="display:none;">檢驗項目</span>
+						
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('labChartPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('labChartPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				
+				<div class="panel-body pre-scrollable" id="labChartListBody">
+					
+					 <div id="labRadioGroup" class="labRadioGroup pull-right col-sm-12"><!-- 預設1個月  自訂 7天 --> 
+								    <label class="radio-inline EMRLabelBold"><input type="radio" name="labRadio" checked="checked" value="1個月">1個月</label>
+								    <label class="radio-inline EMRLabelBold"><input type="radio" name="labRadio" value="3個月">3個月</label>
+                                                    			    <label class="radio-inline EMRLabelBold"><input type="radio" name="labRadio" value="半年">半年</label>
+                                                    			    <label class="radio-inline EMRLabelBold"><input type="radio" name="labRadio" value="1年">1年</label>
+                                                    			    <!-- 預設7天 -->
+                                                    			    <label class="radio-inline form-inline text-center EMRLabelBold">
+                                                    			     <input type="radio" name="labRadio" value="自訂">自訂:
+                                                    			     </label>
+                                                    			     <input  id="inputLabStartDate" type="date" class="form-inline input-sm"><!-- Now-7days -->
+                                                    			     <input  id="inputLabEndDate" type="date" class="form-inline input-sm"><!-- Now -->  
+                                                    			     
+
+                          
+								</div> 
+					
+					<div class="row" id="LabChartCol">
+						<div class="col-sm-12">
+						 <div id="LabLineChartContainer" style="display:block;">
+						     <canvas id="LabLineChart" style="display:none;"></canvas>
+						     <span class="EMRLabelBold" id="lineChartMsg" style="display:none;"></span>
+						</div>
+							
+						</div>
+					</div>
+				</div>
+				
+	<!--  <nav style="display:none;" class="navbar navbar-default" role="navigation">
+		<div class="container-fluid">
+			<div class="row clearfix" id="labLineChart-toolbar">
+				<div class="col-md-12 footer-services">
+					<ul class="nav nav-justified" id="labLineChartBar">
+						
+					</ul>
+				</div>
+			</div>
+		</div>
+	</nav>-->
+			
+			</div>
+		

@@ -1,0 +1,1237 @@
+﻿ [
+    {
+      "assay_id": "Bacteria(U)",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "few\r\n",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Bilirubin",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Cast",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/LPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/LPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/LPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/LPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/LPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        }
+      ]
+    },
+    {
+      "assay_id": "Crystal Sediments",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        }
+      ]
+    },
+    {
+      "assay_id": "Epith",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "2－5",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "2－4",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "1－3",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "5－10",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "1－3",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Ketone body",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Nitrite",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Occult blood",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "＋＋",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "A",
+          "result_kind": "S",
+          "result_status": "E"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "A",
+          "result_kind": "S",
+          "result_status": "E"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "A",
+          "result_kind": "S",
+          "result_status": "E"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "十/－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "A",
+          "result_kind": "S",
+          "result_status": "E"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "1＋",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "A",
+          "result_kind": "S",
+          "result_status": "E"
+        }
+      ]
+    },
+    {
+      "assay_id": "PH",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "6.0",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|5/8|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "6.5",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|5/8|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "8.0",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|5/8|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "6.0",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|5/8|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "5.5",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|5/8|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Protein",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "＋/－\r\n",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "RBC(U)",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "4－6",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/3|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "5－8",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/3|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "0－2",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/3|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "3－5",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/3|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "1－3",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/3|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Renal Epith",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "||",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        }
+      ]
+    },
+    {
+      "assay_id": "Spermatozoa",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Sugar",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "Urobilinogen",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "0.2",
+          "duplicate_no": 1,
+          "unit": "mg/dL",
+          "normal_range": "|0.2/0.2|",
+          "assay_judgetype": "B",
+          "lab_status": "-",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "0.2",
+          "duplicate_no": 1,
+          "unit": "mg/dL",
+          "normal_range": "|0.2/0.2|",
+          "assay_judgetype": "B",
+          "lab_status": "-",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "mg/dL",
+          "normal_range": "|0.2/0.2|",
+          "assay_judgetype": "B",
+          "lab_status": "-",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": "mg/dL",
+          "normal_range": "|0.2/0.2|",
+          "assay_judgetype": "B",
+          "lab_status": "-",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "Normal",
+          "duplicate_no": 1,
+          "unit": "mg/dL",
+          "normal_range": "|0.2/0.2|",
+          "assay_judgetype": "B",
+          "lab_status": "-",
+          "result_kind": "N",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "WBC(U)",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "> 100",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "3－5",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "1－3",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "0－2",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "2－4",
+          "duplicate_no": 1,
+          "unit": "/HPF",
+          "normal_range": "|0/5|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "外觀",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "Yellow  ,  Cloudy",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|Clear-Yellow|",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "Yellow  ,  Clear",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|Clear-Yellow|",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "Light , Clear",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|Clear-Yellow|",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "Yellow  ,  Clear",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|Clear-Yellow|",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "Yellow  ,  Clear",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|Clear-Yellow|",
+          "assay_judgetype": "X",
+          "lab_status": "U",
+          "result_kind": "S",
+          "result_status": "U"
+        }
+      ]
+    },
+    {
+      "assay_id": "比重Specific gravity",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": null,
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|1.005/1.030|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": null,
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|1.005/1.030|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": null,
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|1.005/1.030|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": null,
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|1.005/1.030|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "1.015",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|1.005/1.030|",
+          "assay_judgetype": "A",
+          "lab_status": "N",
+          "result_kind": "N",
+          "result_status": "N"
+        }
+      ]
+    },
+    {
+      "assay_id": "白血球脂脢",
+      "chart_no": 923883,
+      "lab_reportno": "020717A100009",
+      "kind_id": "A1",
+      "kind_name": "尿液檢驗單",
+      "kind_flag": "A",
+      "detailData": [
+        {
+          "lab_date": "0960325",
+          "result_val": "＋＋＋",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0970628",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "0980318",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1010104",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        },
+        {
+          "lab_date": "1020717",
+          "result_val": "－",
+          "duplicate_no": 1,
+          "unit": null,
+          "normal_range": "|－|",
+          "assay_judgetype": "S",
+          "lab_status": "N",
+          "result_kind": "S",
+          "result_status": "N"
+        }
+      ]
+    }
+  ]

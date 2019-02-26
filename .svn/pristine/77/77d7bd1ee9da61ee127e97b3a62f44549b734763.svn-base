@@ -1,0 +1,47 @@
+		
+	 
+	     <div class="panel panel-info">
+		
+		<div class="panel-heading clearfix header">
+		      <div class="panel-title pull-left panel-tool">
+			<span id="admissionPage_Title">入院病摘</span>
+			<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+		      </div>
+		        <div class="pull-right">
+			<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('admissionPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+			<button type="button" class="btn btn-link btn-close" onclick="closePage('admissionPage')"><span class="glyphicon glyphicon-remove"></span></button>
+		       </div>
+		</div>
+		<!-- <div id="collapse_labPage" class="panel-collapse collapse in"> -->
+	               <div class="panel-body">
+		        <div class="row">
+			 <div class="col-sm-12 form-inline">
+			     <div style="display: inline" class="right" id="AdmissionMaster">
+				<button class="btn btn-primary" id="AdmissionMasterDate" onclick="AdmissionListByDate()">入院病摘 <span class="badge">0</span></button> 
+				   <input value="5" id="AdmissionYear" type="text" class="form-control input-sm" style="max-width: 48px;"> <label for="AdmissionYear">年</label>
+				<button class="btn btn-primary" id="AdmissionMasterYear" onclick="AdmissionListByYear()">5年入院病摘 <span class="badge">0</span></button>
+				<button class="btn btn-primary" id="AdmissionMasterAll" onclick="AdmissionListByAll()">全部入院病摘 <span class="badge">0</span></button> &emsp;
+			     </div>
+			      &emsp;
+			     <div style="display: inline" id="AdmissionDetail"></div>
+			</div>
+		      </div>
+		<hr style="margin: 10px" />
+		      <div class="row">
+			<div class="col-sm-3">
+			    <table id="AdmissionList" class="table-hover"></table>
+			    <div id="AdmissionList_Pager"></div>
+			</div>
+			<div class="col-sm-9">
+			   <div class="panel panel-info">
+		                <div class="panel-heading" id="AdmissionListHead">入院病摘標題</div>
+			         <div class="panel-body pre-scrollable" id="AdmissionListBody"></div>
+							</div>
+						
+						</div>
+					
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		

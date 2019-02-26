@@ -1,0 +1,139 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="opdRecordPage_Title" class="EMRPurpleTitle">門急紀錄</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" id="extraInp" class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('opdRecordPage')"></button>
+						<!-- <button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('opdRecordPage')"><span class="glyphicon glyphicon-new-window"></span></button>-->
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('opdRecordPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<div class="panel-body fix-body">
+				
+				<div class="row">
+				
+				<div class="col-sm-12 form-inline">
+				  <div id="OpdMaster" class="margin-Bottom-5">
+				   <div class="right">
+				    <!--  <button class="btn btn-primary" id="OpdMasterDate" onclick="callOPDType('date');">門急 <span class="badge">0</span></button> 
+				     <button class="btn btn-primary" id="OpdMasterDate1" onclick='callOPDType("date","門診");'>&nbsp;門診 <span class="badge">0</span></button>
+				     <button class="btn btn-primary" id="OpdMasterDate2" onclick="callOPDType('date','E');">急診 <span class="badge">0</span></button>
+				     &nbsp;<input value="5" id="OpdYear" type="text" class="form-control input-sm input-center"
+				     style="max-width: 48px;"> <label class="EMRLabel" for="OpdYear">&nbsp;年</label>
+				    &emsp;<button class="btn btn-primary" id="OpdMasterYear" onclick="callOPDType('year');">5年門急 <span class="badge">0</span></button>&nbsp;
+				    <button class="btn btn-primary" id="OpdMasterYear1" onclick='callOPDType("year","門診");'>5年門診 <span class="badge">0</span></button>
+				    <button class="btn btn-primary" id="OpdMasterYear2" onclick="callOPDType('year','E');">5年急診 <span class="badge">0</span></button>
+				    </div>
+				    
+				    &nbsp;<button class="btn btn-primary" id="OpdMasterAll" onclick="callOPDType('all')">全部門急 <span class="badge">0</span></button>
+				    <button class="btn btn-primary" id="OpdMasterAll1" onclick='callOPDType("all","門診");'>全部門診 <span class="badge">0</span></button>
+				    <button class="btn btn-primary" id="OpdMasterAll2" onclick="callOPDType('all','E');">全部急診 <span class="badge">0</span></button>-->
+				    
+				     <button class="btn btn-primary" id="OpdMasterDate" onclick="callOPDType('date','ALL');">門急 <span class="badge">0</span></button> 
+				     <button class="btn btn-primary" id="OpdMasterDate1" onclick='callOPDType("date","OPD","undefined","門診");'>&nbsp;門診 <span class="badge">0</span></button>
+				     <button class="btn btn-primary" id="OpdMasterDate2" onclick="callOPDType('date','EMG','undefined','E');">急診 <span class="badge">0</span></button>
+				     &nbsp;<input value="5" id="OpdYear" type="text" class="form-control input-sm input-center"
+				     style="max-width: 48px;"> <label class="EMRLabel" for="OpdYear">&nbsp;年</label>
+				    &emsp;<button class="btn btn-primary" id="OpdMasterYear" onclick="callOPDType('year','ALL');">5年門急 <span class="badge">0</span></button>&nbsp;
+				    <button class="btn btn-primary" id="OpdMasterYear1" onclick='callOPDType("year","OPD","undefined","門診");'>5年門診 <span class="badge">0</span></button>
+				    <button class="btn btn-primary" id="OpdMasterYear2" onclick="callOPDType('year','EMG','undefined','E');">5年急診 <span class="badge">0</span></button>
+				    </div>
+				    
+				    &nbsp;<button class="btn btn-primary" id="OpdMasterAll" onclick="callOPDType('all','ALL')">全部門急 <span class="badge">0</span></button>
+				    <button class="btn btn-primary" id="OpdMasterAll1" onclick='callOPDType("all","OPD","undefined","門診");'>全部門診 <span class="badge">0</span></button>
+				    <button class="btn btn-primary" id="OpdMasterAll2" onclick="callOPDType('all','EMG','undefined','E');">全部急診 <span class="badge">0</span></button>
+				    	
+				</div>
+						
+							
+				</div>
+				
+				<div class="pre-scrollable OpdIcd10Outline" id="OpdIcd10Name">
+				
+				</div>	
+				<div class="col-sm-12 form-inline" id="opdRecordInfo"></div>
+				</div>	
+				<hr class="hr_noline">	
+					<div class="row" id="OpdRecordCol">
+						<div class="col-sm-5">
+							<table id="OpdRecordList" class="table-hover">
+							</table>
+							<div id="OpdRecordList_Pager"></div>
+						</div>
+						<div class="col-sm-7">
+							
+							<div class="panel panel-info">
+								
+								<div class="panel-heading EMRPurpleTitle" id="OpdRecordListHead">門急診標題</div>
+								<!-- 主訴 理學 診斷 病史 -->
+								<div class="panel-body pre-scrollable" id="OpdRecordListBody">
+								  <div class="row">
+								  
+								    <div class="col-sm-12 form-inline row form-group ">
+		     						     <div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">主訴:&nbsp;</label></div>
+	               						     <div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdComplaint" ></div></div>					
+		  						    </div>
+		  						    
+		  						    <div class="col-sm-12 form-inline row form-group ">
+		     						     <div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">理學:&nbsp;</label></div>
+	               						     <div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdDiagnosis" ></div></div>					
+		  						    </div>
+		  						    
+		  						    <div class="col-sm-12 form-inline row form-group ">
+		     						     <div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">診斷:&nbsp;</label></div>
+	               						     <div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdDiagnosis1" ></div></div>					
+		  						    </div>
+		  						    
+		  						    <div class="col-sm-12 form-inline row form-group ">
+		     						     <div  class="col-sm-1 textAlignR EMRLabel opdCol1"><label class="EMRLabel">病史:&nbsp;</label></div>
+	               						     <div class="col-sm-11 opdCol11 DARTOutlineMiddle"><div  style="white-space:normal;" class=" EMRContentFont"  id="opdChartHistory" ></div></div>					
+		  						    </div>
+		  						    
+								  </div>
+								  
+								</div>
+							</div>
+							
+						</div>
+						
+					</div>
+					<div class="row" id="OpdDiseaseSumCol" style="display:none;">
+					   <div class="col-sm-5">
+						<table id="OpdDiseaseSumList" class="table-hover"></table>
+						<div id="OpdDiseaseSumList_Pager"></div>
+					   </div>
+					   <div class="col-sm-7">
+						<div class="panel panel-info transparentBorder">
+								
+						   <div class="panel-heading EMRPurpleTitle" id="OpdDiseaseSumListHead"></div>
+						   <div class="panel-body" id="OpdDiseaseSumListBody">
+						     <table id="OpdDiseaseSumDetailList" class="table-hover"></table>
+						     <div id="OpdDiseaseSumDetailList_Pager"></div>
+						   
+						   </div>
+						   
+						</div>
+						
+					   </div>
+					
+					</div>
+					
+					<!-- 醫令彙總  1070409-->
+					<div class="row" id="OpdOrderSumCol" style="display:none;">
+					   <div class="col-sm-12"><!-- 醫令彙總 藥品 -->
+					     <div class="col-sm-4"></div>
+					     <div class="col-sm-8"></div>
+					   </div>
+					   
+					   <div class="col-sm-12"><!-- 醫令彙總 處置、檢驗、檢查 -->
+					     <div class="col-sm-4"></div>
+					     <div class="col-sm-8"></div>
+					   </div>
+					
+					</div>
+				</div>
+			</div>
+		

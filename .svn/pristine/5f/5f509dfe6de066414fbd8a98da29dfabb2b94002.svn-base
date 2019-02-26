@@ -1,0 +1,213 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/10/13.
+ */
+public class OrRecord {
+    private Connection con;
+
+    public OrRecord(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryOPCountByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT a.chart_no, COUNT(a.chart_no) count " +
+                "  FROM or1 a " +
+                " WHERE a.op_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.op_start_time IS NOT NULL " +
+                "   AND a.code1 IS NOT NULL " +
+                " GROUP BY a.chart_no ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findSingle(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public List<Map<String, Object>> queryOPDataByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT a.op_date, a.chart_no, a.serno, a.times, a.inp_opd, a.div_no, b.div_name, " +
+                "       a.op_doctor, c.emp_name op_doctor_name, a.op_start_time, a.op_end_time, a.op_durat, " +
+                "       a.code1, (select p.full_name_c from price p where p.code = a.code1) as full_name_1, " +
+                "       a.code2, (select p.full_name_c from price p where p.code = a.code2) as full_name_2, " +
+                "       a.code3, (select p.full_name_c from price p where p.code = a.code3) as full_name_3 " +
+                "  FROM or1 a, division b, employee c " +
+                " WHERE a.op_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.op_start_time IS NOT NULL " +
+                "   AND a.code1 IS NOT NULL " +
+                "   AND a.div_no = b.div_no(+) " +
+                "   AND a.op_doctor = c.emp_no(+) " +
+                " ORDER BY a.op_date desc ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findMultiple(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public List<Map<String, Object>> queryOPListByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT substr(a.op_date, 1, 3) years, a.op_date, a.chart_no, a.serno, a.times, " +
+                "       a.inp_opd, " +
+                "       a.code1 code_m1, (SELECT full_name_c FROM price b WHERE b.code = a.code1) code_m1_name, " +
+                "       a.code4 code_m2, (SELECT full_name_c FROM price b WHERE b.code = a.code4) code_m2_name, " +
+                "       a.code5 code_m3, (SELECT full_name_c FROM price b WHERE b.code = a.code5) code_m3_name, " +
+                "       a.code2 code_d1, (SELECT full_name_c FROM price b WHERE b.code = a.code2) code_d1_name, " +
+                "       a.code3 code_d2, (SELECT full_name_c FROM price b WHERE b.code = a.code3) code_d2_name " +
+                "  FROM or1 a " +
+                " WHERE a.op_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.op_start_time IS NOT NULL " +
+                "   AND a.code1 IS NOT NULL " +
+                "ORDER BY a.op_date desc ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findMultiple(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public Map<String, Object> queryOPDataByPrimaryKeys(String opDate, int chartNo, int serno, int times) throws SQLException {
+        String queryString =
+                "SELECT a.op_date, a.chart_no, a.serno, a.times, a.inp_opd, " +
+                "       a.pt_type, (SELECT type_name FROM pttype b WHERE b.pt_type = a.pt_type) type_name, " +
+                "       a.bed_no, " +
+                "       a.div_no, (SELECT div_name FROM division b WHERE b.div_no = a.div_no) div_name, " +
+                "       a.place, (SELECT name FROM vorroom b WHERE b.no = a.place) place_name, " +
+                "       a.time_type, a.op_durat, a.complete_flag, " +
+                "       a.op_date op_start_date, a.op_start_time, a.op_end_date, a.op_end_time, " +
+                "       a.an_start_date, a.an_start_time, a.an_end_date, a.an_end_time, " +
+                "       a.out_oproom_date, a.out_oproom_time, " +
+                "       a.prop_flag, substr(a.prop_datetime, 1, 7) prop_date, substr(a.prop_datetime, 8, 4) prop_time, " +
+                "       a.wound, " +
+                "       CASE  " +
+                "           WHEN a.wound = 'A' THEN '清潔' " +
+                "           WHEN a.wound = 'B' THEN '清潔汙染' " +
+                "           WHEN a.wound = 'C' THEN '汙染' " +
+                "           WHEN a.wound = 'D' THEN '骯髒或感染' " +
+                "           ELSE '' " +
+                "       END AS wound_name, " +
+                "       a.others_wound, " +
+                "       CASE  " +
+                "           WHEN a.others_wound = 'Y' THEN '是' " +
+                "           ELSE '否' " +
+                "       END AS others_wound_name, " +
+                "       a.op_doctor, (SELECT emp_name FROM employee b WHERE b.emp_no = a.op_doctor) op_doctor_name, " +
+                "       a.op_doctor2, (SELECT emp_name FROM employee b WHERE b.emp_no = a.op_doctor2) op_doctor2_name, " +
+                "       a.op_doctor3, (SELECT emp_name FROM employee b WHERE b.emp_no = a.op_doctor3) op_doctor3_name, " +
+                "       a.op_doctor4, (SELECT emp_name FROM employee b WHERE b.emp_no = a.op_doctor4) op_doctor4_name, " +
+                "       a.order_doctor, (SELECT emp_name FROM employee b WHERE b.emp_no = a.order_doctor) order_doctor_name, " +
+                "       a.an_doctor, (SELECT emp_name FROM employee b WHERE b.emp_no = a.an_doctor) an_doctor_name, " +
+                "       a.an_doctor2, (SELECT emp_name FROM employee b WHERE b.emp_no = a.an_doctor2) an_doctor2_name, " +
+                "       a.an_doctor_arrival, " +
+                "       a.an_type, (SELECT name FROM justname b WHERE b.categories = 'ANTYPE' AND b.no = a.an_type) an_type_name, " +
+                "       a.ns_scrub1, (SELECT emp_name FROM employee b WHERE b.emp_no = a.ns_scrub1) ns_scrub1_name, " +
+                "       a.ns_scrub2, (SELECT emp_name FROM employee b WHERE b.emp_no = a.ns_scrub2) ns_scrub2_name, " +
+                "       a.ns_circu1, (SELECT emp_name FROM employee b WHERE b.emp_no = a.ns_circu1) ns_circu1_name, " +
+                "       a.ns_circu2, (SELECT emp_name FROM employee b WHERE b.emp_no = a.ns_circu2) ns_circu2_name, " +
+                "       a.ns_anesthesia1, (SELECT emp_name FROM employee b WHERE b.emp_no = a.ns_anesthesia1) ns_anesthesia1_name, " +
+                "       a.ns_anesthesia2, (SELECT emp_name FROM employee b WHERE b.emp_no = a.ns_anesthesia2) ns_anesthesia2_name, " +
+                "       a.assist1, (SELECT emp_name FROM employee b WHERE b.emp_no = a.assist1) assist1_name, " +
+                "       a.assist2, (SELECT emp_name FROM employee b WHERE b.emp_no = a.assist2) assist2_name, " +
+                "       a.an_code, (SELECT full_name FROM price b WHERE b.code = a.an_code) an_code_name, " +
+                "       a.code1 code_m1, (SELECT full_name_c FROM price b WHERE b.code = a.code1) code_m1_name, " +
+                "       a.code4 code_m2, (SELECT full_name_c FROM price b WHERE b.code = a.code4) code_m2_name, " +
+                "       a.code5 code_m3, (SELECT full_name_c FROM price b WHERE b.code = a.code5) code_m3_name, " +
+                "       a.code2 code_d1, (SELECT full_name_c FROM price b WHERE b.code = a.code2) code_d1_name, " +
+                "       a.code3 code_d2, (SELECT full_name_c FROM price b WHERE b.code = a.code3) code_d2_name, " +
+                "       a.or_rate1, a.or_rate2, " +
+                "       a.treat_code1, (SELECT full_name_c FROM price b WHERE b.code = a.treat_code1) treat_code1_name, " +
+                "       a.treat_code2, (SELECT full_name_c FROM price b WHERE b.code = a.treat_code2) treat_code2_name, " +
+                "       a.op_name, a.out_blood, a.in_blood, a.wash_qty, a.labpiece, " +
+                "       CASE  " +
+                "           WHEN a.labpiece = '1' THEN '25001' " +
+                "           WHEN a.labpiece = '2' THEN '25002' " +
+                "           WHEN a.labpiece = '3' THEN '25003' " +
+                "           WHEN a.labpiece = '4' THEN '25004' " +
+                "           WHEN a.labpiece = '5' THEN '25024' " +
+                "           WHEN a.labpiece = '6' THEN '25025' " +
+                "           ELSE '' " +
+                "       END AS labpiece_code, " +
+                "       a.keyin_datetime, a.keyin_clerk, a.or_serno, " +
+                "       a.diagnosis_o, a.diagnosis_o2, a.diagnosis_f, a.diagnosis_f2, a.labsample, " +
+                "       a.op_mode, a.op_describe, " +
+                "       a.return_or_flag, a.return_or_reason, a.return_or_remark,  " +
+                "       a.weight, a.hight, a.asa,  " +
+                "       CASE  " +
+                "           WHEN a.asa = '1' THEN '分級I' " +
+                "           WHEN a.asa = '2' THEN '分級II' " +
+                "           WHEN a.asa = '3' THEN '分級III' " +
+                "           WHEN a.asa = '4' THEN '分級IV' " +
+                "           WHEN a.asa = '5' THEN '分級V' " +
+                "           ELSE '' " +
+                "       END AS asa_name,  " +
+                "       a.otherside1, CASE WHEN a.otherside1 = 'L' THEN '左側' WHEN a.otherside1 = 'R' THEN '右側' ELSE ''  END AS side1_name,  " +
+                "       a.ajisur1, (SELECT name FROM justname b WHERE b.categories = 'AJISUR' AND b.no = a.ajisur1) ajisur1_name, " +
+                "       a.ajiapp1, (SELECT name FROM justname b WHERE b.categories = 'AJIAPP' AND b.no = a.ajiapp1) ajiapp1_name, " +
+                "       a.matbarcode1, " +
+                "       a.otherside2, CASE WHEN a.otherside2 = 'L' THEN '左側' WHEN a.otherside2 = 'R' THEN '右側' ELSE ''  END AS side2_name, " +
+                "       a.ajisur2, (SELECT name FROM justname b WHERE b.categories = 'AJISUR' AND b.no = a.ajisur2) ajisur2_name, " +
+                "       a.ajiapp2, (SELECT name FROM justname b WHERE b.categories = 'AJIAPP' AND b.no = a.ajiapp2) ajiapp2_name, " +
+                "       a.matbarcode2  " +
+                "  FROM or1 a " +
+                " WHERE a.op_date = ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.serno = ? " +
+                "   AND a.times = ? ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findSingle(new Object[]{opDate, chartNo, serno, times});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            OrRecord orRecord = new OrRecord(myConnection);
+
+            int chartNo = 912473;
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-5, ChronoUnit.YEARS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+            System.out.printf("\nOrRecord.queryOPCountByChartNoDateRange chartNo=%d startDate=%s endDate=%s JsonObject:%s ",
+                    chartNo, startDate, endDate, MapUtil.mapToJsonObject(orRecord.queryOPCountByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+            chartNo = 923883;
+            startDate = "0940806";
+            endDate = "1030913";
+            System.out.printf("\nOrRecord.queryOPDataByChartNoDateRange chartNo=%d startDate=%s endDate=%s JsonArray:%s ",
+                    chartNo, startDate, endDate, MapUtil.listMapToJsonArray(orRecord.queryOPDataByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+            System.out.printf("\nOrRecord.queryOPListByChartNoDateRange chartNo=%d startDate=%s endDate=%s JsonArray:%s ",
+                    chartNo, startDate, endDate, MapUtil.listMapToJsonArray(orRecord.queryOPListByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+            String opDate = "1020521";
+            chartNo = 990554;
+            int serno = 86971;
+            int times = 1;
+            System.out.printf("\nOrRecord.queryOPDataByPrimaryKeys opDate=%s chartNo=%d serno=%d times=%d JsonObject:%s ",
+                    opDate, chartNo, serno, times, MapUtil.mapToJsonObject(orRecord.queryOPDataByPrimaryKeys(opDate, chartNo, serno, times)).toString());
+
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}
+
+

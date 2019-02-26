@@ -1,0 +1,302 @@
+function ajax_checkPasswd() {
+	var request = $.ajax({
+		method : "POST",
+		url : Servlet_url,
+		data : getAjaxData("checkPasswd"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			UserObj.emp_no = data.emp_no;
+			UserObj.emp_name = data.emp_name;
+			UserObj.session_id = data.session_id;
+			ajax_getHospName(); // 取得醫院資料
+			ajax_getChartByChartNo(); // 取得客戶基本資料
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function ajax_getHospName() {
+	var request = $.ajax({
+		method : "POST",
+		url : Servlet_url,
+		data : getAjaxData("getHospName"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				render_getHospName(index, this);
+			});
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getHospName(index, value) {
+	if (index == "no") {
+	} else if (index == "name") {
+	} else if (index == "value") {
+		$("#hospName").html(value);
+	}
+}
+
+function ajax_getChartByChartNo() {
+	// $('#LoadingModal').modal('show');
+	var request = $.ajax({
+		method : "POST",
+		url : Servlet_url,
+		data : getAjaxData("getChartByChartNo"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			PatObj = data.resultSet;
+			$.each(PatObj, function(index, obj) {
+				render_getChartByChartNo(index, this);
+			});
+			PatObj.recentYear = 1;
+			$("#recentYear").val("1");
+			ajax_getChartEMRSummaryByChartNoAndYears(); // 取得查詢範圍筆數 預設1年
+			ajax_getChartEMRSummaryByChartNo(); // 取得查詢範圍筆數 全部
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getChartByChartNo(index, value) {
+	if (index == "chart_no") {
+		$("#chart_no").html(value);
+	} else if (index == "pt_name") {
+		$("#pt_name").html(value);
+	} else if (index == "sex_name") {
+		$("#sex_name").html(value);
+	} else if (index == "age") {
+		$("#age").html(value);
+	} else if (index == "first_view_date") {
+		$("#first_view_date").html(value);
+	} else if (index == "last_view_date") {
+		$("#last_view_date").html(value);
+	} else if (index == "first_div_name") {
+		$("#first_div_name").html(value);
+	} else if (index == "last_div_name") {
+		$("#last_div_name").html(value);
+	}
+}
+
+function ajax_getChartEMRSummaryByChartNoAndYears() {
+	var request = $.ajax({
+		method : "POST",
+		url : Servlet_url,
+		data : getAjaxData("getChartEMRSummaryByChartNoAndYears"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				render_getChartEMRSummaryByChartNoAndYears(index, this); // 範圍內
+			});
+			$("#LoadingModal").modal('hide');
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getChartEMRSummaryByChartNoAndYears(index, value) {
+	if (index == "OPD") {
+		$("#yearsOPD").html(value);
+	} else if (index == "INP") {
+		$("#yearsINP").html(value);
+	} else if (index == "OR") {
+		$("#yearsOR").html(value);
+	} else if (index == "LAB") {
+		$("#yearsLAB").html(value);
+	} else if (index == "XRAY") {
+		$("#yearsXRAY").html(value);
+	}
+}
+
+function ajax_getChartEMRSummaryByChartNo() {
+	var request = $.ajax({
+		method : "POST",
+		url : Servlet_url,
+		data : getAjaxData("getChartEMRSummaryByChartNo"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				render_getChartEMRSummaryByChartNo(index, this); // 全部
+			});
+			$("#LoadingModal").modal('hide');
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getChartEMRSummaryByChartNo(index, value) {
+	if (index == "OPD") {
+		$("#allOPD").html(value);
+	} else if (index == "INP") {
+		$("#allINP").html(value);
+	} else if (index == "OR") {
+		$("#allOR").html(value);
+	} else if (index == "LAB") {
+		$("#allLAB").html(value);
+	} else if (index == "XRAY") {
+		$("#allXRAY").html(value);
+	}
+}
+
+function ajax_getPatientListOpdAndInp() {
+	$('#LoadingModal').modal('show');
+	var request = $.ajax({
+		method : "POST",
+		url : Servlet_url,
+		data : getAjaxData("getPatientListOpdAndInp"),
+		dataType : "json"
+	}).done(function(data) {
+		$('#table_PatList').DataTable().destroy();
+		$('#table_PatList_Body').html(null);
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				parse_getPatientList(index, obj);
+			});
+			$('#table_PatList').DataTable();
+			// $('#table_queryPat_filter').hide();
+			$("#table_PatList").show();
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+		$("#LoadingModal").modal('hide');
+
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function ajax_getPatientListDischarge(paraDays) {
+	var request = $.ajax({
+		method : "POST",
+		url : Servlet_url,
+		data : getAjaxData("getPatientListDischarge"),
+		dataType : "json"
+	}).done(function(data) {
+		$('#table_PatList').DataTable().destroy();
+		$('#table_PatList_Body').html(null);
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				parse_getPatientList(index, obj);
+			});
+			$('#table_PatList').DataTable();
+			// $('#table_queryPat_filter').hide();
+			$("#table_PatList").show();
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+		$("#LoadingModal").modal('hide');
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function parse_getPatientList(index, obj) {
+	var htmltr = "";
+	var type = "";
+	if (obj.visit_type == "OPD") {
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row info'>";
+		type = "門";
+	} else if (obj.visit_type == "INP") {
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row warning'>";
+		type = "住";
+	} else if (obj.visit_type == "DIS") {
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row success'>";
+		type = "出";
+	}
+	htmltr += "<td title='" + obj.chart_no + "'>" + obj.chart_no + "</td>";
+	htmltr += "<td title='" + type + "'>" + type + "</td>";
+	htmltr += "<td title='" + obj.pt_name + "'>" + obj.pt_name + "</td>";
+	htmltr += "<td title='" + obj.sex_name + "'>" + obj.sex_name + "</td>";
+	htmltr += "<td title='" + obj.age + "'>" + obj.age + "</td>";
+	htmltr += "<td title='" + obj.id_no + "'>" + obj.id_no + "</td>";
+	htmltr += "<td title='" + obj.tel + "'>" + obj.tel + "</td>";
+	htmltr += "<td title='" + obj.view_date + "'>" + obj.view_date + "</td>";
+	htmltr += "<td title='" + obj.birth_date + "'>" + obj.birth_date + "</td>";
+	htmltr += "<td title='" + obj.ckin_date + "'>" + obj.ckin_date + "</td>";
+	htmltr += "<td title='" + obj.discharge_date + "'>" + obj.discharge_date
+			+ "</td>";
+	htmltr += "<td title='" + obj.doctor_name + "'>" + obj.doctor_name
+			+ "</td>";
+	htmltr += "<td title='" + obj.div_name + "'>" + obj.div_name + "</td>";
+	htmltr += "<td title='" + obj.apn_name + "'>" + obj.apn_name + "</td>";
+	htmltr += "<td title='" + obj.clinic + "'>" + obj.clinic + "</td>";
+	htmltr += "<td title='" + obj.bed_no + "'>" + obj.bed_no + "</td>";
+	htmltr += "<td title='" + obj.ns + "'>" + obj.ns + "</td>";
+	htmltr += "</tr>";
+	$('#table_PatList_Body').append(htmltr);
+}
+
+function ajax_getChartByChartNoPtNameBirthDateTel() {
+	var request = $
+			.ajax(
+					{
+						method : "POST",
+						url : Servlet_url,
+						data : {
+							serviceName : "ChartService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"chartNo":912473,"ptName":"陳","birthDate":null,"tel":null,"method":"getChartByChartNoPtNameBirthDateTel"}'
+						},
+						dataType : "json"
+					}).done(
+					function(data) {						
+						$('#table_PatListShort').DataTable().destroy();
+						$('#table_PatListShort_Body').html("");
+						if (data.status == "Success") {
+							$.each(data.resultSet, function(index, obj) {
+								parse_getChartByChartNoPtNameBirthDateTel(
+										index, obj);
+							});
+							$('#table_PatListShort').DataTable();
+							// $('#table_queryPat_filter').hide();
+							$("#table_PatListShort").show();
+						} else {
+							ajaxErrMsg = data.errorMessage;
+						}
+						$("#LoadingModal").modal('hide');
+					});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function parse_getChartByChartNoPtNameBirthDateTel(index, obj) {
+	var htmltr = "";
+	var type = "";
+
+	htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row'>";
+	htmltr += "<td title='" + obj.chart_no + "'>" + obj.chart_no + "</td>";
+	htmltr += "<td title='" + obj.pt_name + "'>" + obj.pt_name + "</td>";
+	htmltr += "<td title='" + obj.sex_name + "'>" + obj.sex_name + "</td>";
+	htmltr += "<td title='" + obj.age + "'>" + obj.age + "</td>";
+	htmltr += "<td title='" + obj.id_no + "'>" + obj.id_no + "</td>";
+	htmltr += "</tr>";
+	$('#table_PatListShort_Body').append(htmltr);
+}

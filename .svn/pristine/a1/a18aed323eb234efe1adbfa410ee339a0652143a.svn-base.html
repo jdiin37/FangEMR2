@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>住院紀錄</title>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/Common.css" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+<script src="scripts/EMRfunction.js"></script>
+<script src="scripts/EMRajax.js"></script>
+
+
+<style type="text/css">
+
+.marginLR5{
+
+margin-left:5px;
+margin-right:5px;
+}
+
+.height30{
+line-height:30px;
+height:30px;
+}
+
+</style>
+
+<script>
+$(document).ready(function(){
+	
+
+//Selected
+
+$("tbody >tr:odd").addClass("tr_odd");
+$("tbody > tr:even").addClass("tr_even");
+
+$("#InHospitalTable >tbody >tr").click(function(){
+	 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+			 
+	   }); 
+	
+});
+
+</script>
+
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">  <!--row1-->
+        <div><!--區塊1-->
+             <div class="panel panel-success purple-outline"><!--區塊1外框 panel-warning;panel-danger -->
+	        <div class="panel-heading clearfix thGradient">
+	          <div class="panel-title pull-left panel-tool"><!-- panel-title panel-tool 只能點擊Title文字方可開合 -->
+		  <a data-toggle="collapse" data-parent="#accordion" href="#collapse_inHospRecordPage">住院紀錄</a>
+	          </div>
+	         <div class="pull-right">
+		 <button type="button" class="btn btn-link btn-popUp"><span class="glyphicon glyphicon-new-window"></span></button>
+		 <button type="button" class="btn btn-link btn-close"><span class="glyphicon glyphicon-remove"></span></button>
+	         </div>
+	        </div>
+	        
+	       
+	        <div id="collapse_inHospRecordPage" class="panel-collapse collapse in"><!-- Collapse start -->
+	        <div class="panel-body" id="inspectionContent">
+		 <!-- -->
+	        
+	        <div class="row form-group">
+		   <div class="col-md-12 form-inline"> <!-- 需加入背景色 -->
+		     
+                <strong>  <label>最初門診日期:</label><span style="white-space:pre;"> 102/05/02 </span>
+		      <span style="white-space:pre;"> 內科 </span>
+		      <label>疾病:</label><span style="white-space:pre;"> A321 高血壓 </span>&emsp;&emsp;&emsp;
+		      <label>最近門診日期:</label><span style="white-space:pre;"> 106/07/10 </span>
+		      <span style="white-space:pre;"> 外科 </span>
+		      <label>疾病:</label><span style="white-space:pre;"> A222  糖尿病 </span>   </strong>
+		  </div>
+		 
+	       </div>
+	        
+		
+	        <!--  -->
+		   
+		      
+		        
+		        <!-- 檢驗 結果區 -->
+		        
+  
+       
+        
+        <div class="purple-outline" ><!--區塊3-->
+           
+	       <div class="thGradient height30" >
+	       
+	       &emsp;106/06 &emsp;住院紀錄   &emsp;106/06/10 ~ 106/07/20(41天)&emsp; 高血壓、心臟病  
+	       &emsp; 主治醫師 : 黃醫師 &emsp;科別 : 心臟科
+	       
+	       </div>
+	     <!-- <div class="row form-group">
+		   <div class="col-md-10 form-inline"> 
+		     
+                <strong>  <span >&emsp;106/06 </span> <label>住院紀錄</label>
+		      <span>106/06/10 ~ 106/07/20(41天)</span>
+		      <span > 高血壓、心臟病 </span>&emsp;&emsp;
+		      <label>主治醫師 :</label><span > 黃醫師 </span>&emsp;&emsp;
+		      <span > 外科 </span>
+		      <label>科別 :</label><span> 心臟科 </span>   </strong>
+		  </div>
+		 
+	       </div>  -->
+	      
+	        
+	       <div class="panel-body">
+	       	<div class=" row clearfix form-group marginLR5">
+		  <div class="form-inline pull-left">
+		     <input class="btn btn-info" type="button" value="病房">
+		     <button class="btn btn-info">普通病房 <span style="white-space:pre;" class="badge" id="yearsResult"> 20 </span></button>
+		     <button class="btn btn-info">ICU <span style="white-space:pre;" class="badge" id="AllResult"> 5 </span></button>
+		     <button class="btn btn-info">恢復室  <span style="white-space:pre;" class="badge" id="AllResult"> 5 </span></button>
+		  </div> 
+		  
+		  <div class="form-inline pull-right">
+		     <button class="btn btn-info">STAT用藥紀錄</button>
+		     <button class="btn btn-info">UD用藥紀錄</button>
+		     <button class="btn btn-info">TPR生命徵象紀錄單</button>
+		  </div> 
+	          </div>
+	          
+	          <div class="row clearfix form-group col-md-12 marginLR5">
+		  <table class="table table-responsive table-bordered">
+		    <thead>
+		     <tr>
+		      <td>序號</td>
+		      <td>日期</td>
+		      <td>住院紀錄</td>
+		     </tr>
+		    </thead>
+		    <tbody>
+		     <tr>
+		      <td>1</td>
+		      <td>106/06/10</td>
+		      <td>
+		      <!-- 手術 / 住院病摘 / 醫囑記錄 / 護理紀錄 /醫師交班紀錄 / 病程紀錄 固定位置  ↓ 如果無紀錄則加入 class="invisible" 隱藏  -->
+		       <button class="btn btn-success invisible">手術</button>
+		       <button class="btn btn-success">住院病摘</button>
+		       <button class="btn btn-success">醫囑紀錄</button>
+		       <button class="btn btn-success">護理紀錄</button>
+		       <button class="btn btn-success invisible">醫師交班紀錄</button>
+		       <button class="btn btn-success">病程紀錄</button>
+		       <!-- 手術 / 住院病摘 / 醫囑記錄 / 護理紀錄 /醫師交班紀錄 / 病程紀錄 固定  ↑-->
+		       
+		       <!-- 影像 / 檢驗   不必對齊 有才顯示累加在後   -->
+		       <button class="btn btn-success invisible">血液</button>
+		       <button class="btn btn-success">尿液</button>
+		      </td>
+		     </tr>
+		      <tr>
+		      <td>2</td>
+		      <td>105/03/11</td>
+		      <td>
+		      <!-- 手術 / 住院病摘 / 醫囑記錄 / 護理紀錄 /醫師交班紀錄 / 病程紀錄 固定位置  ↓ 如果無紀錄則加入 class="invisible" 隱藏  -->
+		       <button class="btn btn-success ">手術</button>
+		       <button class="btn btn-success">住院病摘</button>
+		       <button class="btn btn-success invisible">醫囑紀錄</button>
+		       <button class="btn btn-success">護理紀錄</button>
+		       <button class="btn btn-success ">醫師交班紀錄</button>
+		       <button class="btn btn-success invisible">病程紀錄</button>
+		       <!-- 手術 / 住院病摘 / 醫囑記錄 / 護理紀錄 /醫師交班紀錄 / 病程紀錄 固定  ↑-->
+		       
+		       <!-- 影像 / 檢驗   不必對齊 有才顯示累加在後   -->
+		       <button class="btn btn-success">血液</button>
+		       <button class="btn btn-success invisible">尿液</button>
+		      </td>
+		     </tr>
+		    </tbody>
+		  </table>
+	          </div>
+	          
+	         
+	         
+	       
+	       </div>
+			 
+	
+		
+       </div><!--區塊3結尾-->
+    
+  
+		          
+		   </div><!-- panel-body 結尾 -->
+		 </div><!-- Collapse End -->  
+		         <!--  <div class="panel-footer"></div>-->
+			 
+	   </div><!--區塊1外框結尾-->
+		
+        </div><!--區塊1結尾-->
+    </div><!--row1結尾 -->
+    
+
+</div> 
+
+
+</body>
+</html>

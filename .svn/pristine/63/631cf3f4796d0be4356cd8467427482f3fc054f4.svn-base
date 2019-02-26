@@ -1,0 +1,156 @@
+/**
+ * 護理紀錄畫面 專用 js檔
+ */
+
+var FocusObj = { // 出院病摘物件
+		FocusYear : 5,
+		FocusSDate : "",
+		FocusEDate : "",
+	    viewType :""
+	
+};
+
+function renderFocus(){
+			
+	$(document).on('change', '#FocusYear', function(event) {
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#FocusYear');
+			FocusObj.FocusYear = $(this).val();
+			//showLoading();
+			FocusListByYear();	//尚未完成 1070125
+		} else {
+			stateChange(false, '#FocusYear', "請輸入1-100之間");
+		}
+	});
+	
+	
+}
+
+
+//call focus護理紀錄  1070119 add by IvyLin  (尚未完成)
+var callFocus = function(flag){
+	
+	FocusObj.FocusYear = PatObj.recentYear;
+	FocusObj.FocusSDate = ViewListObj.sdate;
+	FocusObj.FocusEDate = ViewListObj.edate;
+	FocusObj.viewType = ViewListObj.viewType;
+	
+if(flag == "date"){		
+	$('#FocusMasterDate').show();
+	document.getElementById('FocusMasterDate').setAttribute("title",FocusObj.FocusSDate+"-"+FocusObj.FocusEDate);
+	FocusListByDate();
+}else if(flag =="year"){
+	PatObj.recentYear = $("#recentYear").val();
+	$('#FocusMasterDate').hide();
+	FocusListByYear();		
+}else{
+	$('#FocusMasterDate').hide();		
+	FocusListByAll();		
+}
+	
+	 setPageVisible("focusPage", true);
+	 popUpPageFixPos("focusPage");
+	 
+
+	 var title = FocusObj.FocusSDate + "-" +FocusObj.FocusEDate + "&nbsp;" + (FocusObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-護理紀錄";
+	 title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+	 $('#focusPage_Title').html(title);	//設定title內容
+}
+
+//呼叫 Focus 單次住院紀錄  日期範圍清單
+var FocusListByDate = function(){
+	//取得 日期範圍的 護理紀錄
+	alert("建置中---FocusListByDate");
+	$('#FocusYear').val(FocusObj.FocusYear);
+};
+
+var FocusListByYear = function(){
+	//取得 年範圍的 護理紀錄
+//	var focusYear = $("#FocusYear").val();
+//	console.log(PatObj.recentYear);
+//	$('#FocusYear').val(PatObj.recentYear);
+	$('#FocusMasterYear').html( FocusObj.FocusYear+ '年護理紀錄&nbsp;<span class="badge">'+ "test" + '</span>');
+	alert("建置中---FocusListByYear");
+};
+
+var FocusListByAll = function(){
+	//取得 全部範圍的 護理紀錄
+	alert("建置中---FocusListByAll");
+};
+
+var getFocusList = function(range){
+	//取得 護理紀錄清單
+};
+
+
+//1070123 Focus 護理紀錄 add By IvyLin
+/**Focus **/
+//var selectedRows = {};
+var focusRowKey;
+var NumOfRow = Math.floor(($(window).height()-255)/36);
+function jqGrid_focusListData(tableName,pagerName,arrayData){
+	var tableGrid = $(tableName);
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    rowNum:NumOfRow,
+	    height: Math.floor($(window).height()-255),
+	    colModel: [
+	        { label: 'Date', name: 'progress_date', width: 40, formatter: formatDateTime },
+	        { label: 'Time', name: 'progress_time', formatter: formatDateTime, width: 40 },
+	        { label: 'Focus', name: 'focus', width: 50},
+	        { label: 'D', name: 'content_d', width: 50,hidden:true},
+	        { label: 'A', name: 'content_a', width: 50,hidden:true},
+	        { label: 'R', name: 'content_r', width: 50,hidden:true},
+	        { label: 'T', name: 'content_t', width: 50,hidden:true},
+	        { label: '醫師', name: 'doctor_name', width: 50,hidden:true},
+	        { label: '護士', name: 'keyin_clerk_name', width: 50,hidden:true},
+	      
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    onSelectRow:getSelectedRow,
+	    width: null,
+	    shrinkToFit: true,
+//	    sortable:true,  //可否拖曳排序
+//	    caption: "Focus護理紀錄",
+		pager: pagerName,
+		gridComplete: function () {
+			tableGrid.setSelection(focusRowKey, true);
+        }
+                
+	});
+//	$(tableName).jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false});
+//	searchOperators:true,defaultSearch: "cn"
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {data: arrayData});
+	$(tableName).trigger('reloadGrid');
+//	$('#currentList').show();
+//	$('#chartBaseList').hide();
+	
+	function getSelectedRow(rowId,status,e) {
+		
+		if(status===true){
+			setFocusData("content_D",$(tableName).jqGrid('getCell',rowId,'content_d'));
+	    	setFocusData("content_A",$(tableName).jqGrid('getCell',rowId,'content_a'));
+	    	setFocusData("content_R",$(tableName).jqGrid('getCell',rowId,'content_r'));
+	    	setFocusData("content_T",$(tableName).jqGrid('getCell',rowId,'content_t'));
+	    	
+	    	$("#focusNurse").html($(tableName).jqGrid('getCell',rowId,'keyin_clerk_name'));
+	    	$("#focusDoctor").html($(tableName).jqGrid('getCell',rowId,'doctor_name'));
+	    	
+	    	$("#focusDate").html($(tableName).jqGrid('getCell',rowId,'progress_date'));
+	    	$("#focusTime").html($(tableName).jqGrid('getCell',rowId,'progress_time'));
+	    	$("#focus").html($(tableName).jqGrid('getCell',rowId,'focus'));
+
+		}
+		
+		focusRowKey = rowId;
+	}  	
+}
+
+//設定 Focus 護理紀錄 DART內文
+function setFocusData(tag,data){
+	document.getElementById(tag).innerText=data
+}
+
+
+

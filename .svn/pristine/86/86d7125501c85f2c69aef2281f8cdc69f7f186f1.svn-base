@@ -1,0 +1,174 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapEntryUtil;
+import library.utility.MapUtil;
+import library.utility.TableUtil;
+import model.Invapprec;
+
+import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
+
+/**
+ * Created by jeffy on 2017/8/25.
+ */
+public class InvapprecMADService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Invapprec invapprec;
+    private TableUtil tableUtil;
+    private List<String> pkColNames;
+    private List<String> noNullColNames;
+    private List<String> tableColNames;
+    private List<Map<String, Object>> tableMetaData;
+    private String resultString;
+
+    public void getTableConstrains(String tableName, TableUtil tableUtil) throws SQLException {
+        pkColNames = tableUtil.getPKColNames(tableName);
+        tableMetaData =  tableUtil.getTableMetaData(tableName);
+        noNullColNames = tableUtil.getNoNullColNames(tableMetaData);
+        tableColNames = tableUtil.getTableColNames(tableMetaData);
+    }
+
+
+    public String batchInsertInvapprec(Connection conn, List<Map<String, Object>> dataParametersListMap) {
+        List<String> keyList = Arrays.asList( "serialid", "kind_type", "stock", "kind_no", "check_flag", "create_date", "create_clerk");
+        List<Integer> updateCounts;
+        int errorIndex = 0;
+
+        List<List<Object>> listInputObjects = new ArrayList<>();
+
+        for (Map<String, Object> map : dataParametersListMap) {
+            listInputObjects.add(MapEntryUtil.getMapValuesByKeyList(map, keyList));
+        }
+
+        try {
+            JDBCUtilities.setAutoCommitFalse(conn);
+            updateCounts = invapprec.batchInsertInvapprec(listInputObjects);
+
+            if (updateCounts.size() == listInputObjects.size() && !updateCounts.contains(Statement.EXECUTE_FAILED)) {
+                JDBCUtilities.commitConnection(conn);
+                resultString = String.format("Success Insert %d record.", updateCounts.size());
+                jsonObject = MapUtil.getSuccessResult(resultString);
+            } else {
+                JDBCUtilities.rollbackConnection(conn);
+
+                if (updateCounts.size() == 0 || updateCounts.size() < listInputObjects.size()) {
+                    errorIndex = updateCounts.size();
+                }
+
+                if (updateCounts.contains(Statement.EXECUTE_FAILED)) {
+                    errorIndex = updateCounts.indexOf(Statement.EXECUTE_FAILED);
+                }
+                resultString = String.format("Error Insert on row= %d  DataRecord= %s", errorIndex + 1 ,listInputObjects.get(errorIndex));
+                jsonObject = MapUtil.getFailureResult(resultString);
+            }
+        } catch (BatchUpdateException bex) {
+            JDBCUtilities.printBatchUpdateException(bex);
+            resultString = bex.getMessage();
+            jsonObject = MapUtil.getFailureResult(resultString);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            resultString = ex.getMessage();
+            jsonObject = MapUtil.getFailureResult(resultString);
+        } finally {
+            JDBCUtilities.setAutoCommitTrue(conn);
+        }
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+        JsonObject dataParametersJsObj;
+        JsonArray dataParametersJsArray;
+        Map<String, Object> dataParametersMap;
+        List<Map<String, Object>> dataParametersListMap;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            tableUtil = new TableUtil(myConnection);
+            invapprec = new Invapprec(myConnection);
+
+            String method = parametersJsObj.get("method").getAsString();
+
+            if (method.equals("batchInsertInvapprec")) {
+                dataParametersJsArray = parametersJsObj.get("dataParameters").getAsJsonArray();
+                dataParametersListMap = MapUtil.jsonArrayToListMap(dataParametersJsArray);
+                String checkMessages = "";
+
+                this.getTableConstrains("invapprec", tableUtil);
+
+                //noNullColNames.add("item_no"); // item_no column check
+                for (Map<String, Object> map : dataParametersListMap) {
+                    checkMessages = checkMessages
+                            + tableUtil.checkPKColsMissing(pkColNames, map) + " "
+                            + tableUtil.checkNoNullColsMissing(noNullColNames, map) + " "
+                            + tableUtil.checkValueConstrains(tableMetaData, map);
+                }
+
+                System.out.println(checkMessages.trim().isEmpty()
+                        ? "checkPKColsMissing & checkNoNullColsMissing & dataCheck.checkValueConstrains Passed"
+                        : "checkMessage: " + checkMessages);
+
+                if (checkMessages.trim().isEmpty()) {
+                    result = batchInsertInvapprec(myConnection, dataParametersListMap);
+                } else {
+                    result = MapUtil.getFailureResult(checkMessages).toString();
+                }
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            JDBCUtilities.closeConnection(myConnection);
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        JsonObject dataJsonObject = new JsonObject();
+        JsonArray dataJsonArray = new JsonArray();
+        //Map<String, String> map = new LinkedHashMap<>();
+        InvapprecMADService invapprecMADService = new InvapprecMADService();
+        String resultStrng;
+
+        dataJsonObject.addProperty("serialid", "H2NPCV0011382TA2");
+        dataJsonObject.addProperty("kind_type", "FREEZE");
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("kind_no", "10107001");
+        dataJsonObject.add("check_flag", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("create_date", "1060821");
+        dataJsonObject.addProperty("create_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("serialid", "H2NPCV0011382TA2");
+        dataJsonObject.addProperty("kind_type", "FREEZE");
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("kind_no", "10108001");
+        dataJsonObject.add("check_flag", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("create_date", "1060821");
+        dataJsonObject.addProperty("create_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        jsonObject.addProperty("empNo", "KSPH");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.add("dataParameters", dataJsonArray);
+        jsonObject.addProperty("method", "batchInsertInvapprec");
+        resultStrng = invapprecMADService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nInvapprecMADService.run batchInsertInvapprec : " + resultStrng);
+    }
+}

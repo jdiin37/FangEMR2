@@ -1,0 +1,82 @@
+		
+			<div class="panel panel-info">
+				<!--查詢病患頁 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="queryPage_Title">查詢病患</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_queryPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('queryPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('queryPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_queryPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row form-group" id="queryBlock1">
+						<div class="col-sm-12">
+							<span class="EMRfont" id="query_PatInfo"> 病歷號碼:<span id="chart_no2"></span>&emsp;姓名:<span id="pt_name2"></span>&emsp;性別:<span id="sex_name2"></span>&emsp;年齡:<span id="age2"></span>&emsp;電話:<span
+								id="home_tel"></span>
+							</span>
+						</div>
+					</div>
+					<div class="row well well-sm" id="queryBlock2">
+						<div class="col-sm-4 form-inline right">
+							<div class="form-group">
+								<label class="checkbox-inline"><input type="checkbox" id="chk_queryOPD" checked>門診 </label>
+							</div>
+							<div class="form-group">
+								<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_OPDdays" value="1"><label for="input_OPDdays">天 </label>
+							</div>
+							<div class="form-group">
+								<label class="checkbox-inline"><input type="checkbox" id="chk_queryINP" checked>住院</label>
+							</div>
+							<div class="form-group">
+								<label class="checkbox-inline"><input type="checkbox" id="chk_queryDIS">出院</label>
+							</div>
+							<div class="form-group">
+								<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="input_DISdays"><label for="input_DISdays">天 </label>
+							</div>
+							<button type="button" class="btn btn-img40 img40_query" id="btn_query1"></button>
+						</div>
+						<div class="col-sm-8 form-inline">
+							<div class="form-group">
+								<label for="query_ptName">姓名 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_ptName" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_birth">生日 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_birth" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_tel">電話 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_tel" value="">
+							</div>
+							<div class="form-group">
+								<label for="query_chartNo">病歷號 </label> <input type="text" class="form-control input-sm" placeholder="" id="query_chartNo" value="">
+							</div>
+							<button type="button" class="btn btn-img40 img40_query" id="btn_query2"></button>
+						</div>
+					</div>
+					<div class="row" id="currentList">
+						<div class="col-sm-12">
+							<table id="PatList" class="table-hover">
+							</table>
+							<div id="PatList_Pager"></div>
+						</div>
+					</div>
+					<div class="row" id="chartBaseList">
+						<div class="col-sm-12">
+							<table id="PatList2" class="table-hover">
+							</table>
+							<div id="PatList2_Pager"></div>
+						</div>
+<!-- 						<div class="col-sm-8"> -->
+<!-- 							<div class="panel panel-info"> -->
+<!-- 								區塊3外框 panel-warning;panel-danger -->
+<!-- 								<div class="panel-heading">基本資料查詢</div> -->
+<!-- 								<div class="panel-body" id="queryChartbasebody"></div> -->
+<!-- 							</div> -->
+<!-- 						</div> -->
+					</div>
+				</div>
+				<!-- </div>  -->
+			</div>
+		

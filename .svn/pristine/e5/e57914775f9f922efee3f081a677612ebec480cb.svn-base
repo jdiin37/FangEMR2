@@ -1,0 +1,49 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="opPage_Title">手術</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('opPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('opPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_xrayPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="OpMaster">
+								<button class="btn btn-primary" id="OpMasterDate" onclick="OpListByDate()">手術 <span class="badge">0</span></button> <input value="5" id="OpYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="OpYear">年</label>
+								<button class="btn btn-primary" id="OpMasterYear" onclick="OpListByYear()">5年手術 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="OpMasterAll" onclick="OpListByAll()">全部手術 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="OpDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row">
+						<div class="col-sm-3">
+							<table id="OpList" class="table-hover">
+							</table>
+							<div id="OpList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-9">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading" id="OpListHead">手術標題</div>
+								<div class="panel-body" id="OpListBody">手術報告內容</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		

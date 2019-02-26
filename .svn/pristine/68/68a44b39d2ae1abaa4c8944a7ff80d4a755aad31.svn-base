@@ -1,0 +1,61 @@
+		
+			<div class="panel panel-info">
+				<!--檢驗彙總 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="labSumPage_Title" class="EMRPurpleTitle">檢驗彙總表</span>
+						<span id="strLabSumItem" style="display:none;"></span>
+						<span id="strLabSumKindId" style="display:none;"></span>
+						<span id="strLabSumRange" style="display:none;"></span>
+						
+						
+					</div>
+					<div class="pull-right">
+						<!--  <button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('labSumPage')"><span class="glyphicon glyphicon-new-window"></span></button>-->
+						<button type="button"  class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('labSumPage')"></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('labSumPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				
+				<div class="panel-body pre-scrollable" id="labSumListBody">
+					
+					 <div id="sumRadioGroup" class="labRadioGroup  pull-right col-sm-12">
+					 
+								    <!-- <label class="radio-inline EMRLabelBold"><input type="radio" name="sumRadio" checked="checked" value="month">1個月</label>-->
+								    <input class="EMRRadioButton" type="radio" name="sumRadio" checked="checked" value="month" id="sumMonth"/><label class="EMRLabel" for="sumMonth"><span></span>1個月</label>
+								    <!--  <label class="radio-inline EMRLabelBold"><input type="radio" name="sumRadio" value="season">3個月</label>-->
+								    <input class="EMRRadioButton" type="radio" name="sumRadio" value="season" id="sumSeason"/><label class="EMRLabel" for="sumSeason"><span></span>3個月</label>
+                                                    			    <!--  <label class="radio-inline EMRLabelBold"><input type="radio" name="sumRadio" value="halfYear">半年</label>-->
+                                                    			    <input class="EMRRadioButton" type="radio" name="sumRadio" value="halfYear" id="sumHalfYear"/><label class="EMRLabel" for="sumHalfYear"><span></span>半年</label>
+                                                    			    <!--  <label class="radio-inline EMRLabelBold"><input type="radio" name="sumRadio" value="year">1年</label>-->
+                                                    			    <input class="EMRRadioButton" type="radio" name="sumRadio" value="year" id="sumYear"/><label class="EMRLabel" for="sumYear"><span></span>1年</label>
+                                                    			    
+                                                    			    <!--  <label class="radio-inline form-inline text-center EMRLabelBold">
+                                                    			     <input type="radio" name="sumRadio" value="自訂">自訂:
+                                                    			     </label>-->
+                                                    			     <input class="EMRRadioButton" type="radio" name="sumRadio" value="自訂" id="sumCustom"/><label class="EMRLabel" for="sumCustom"><span></span>自訂</label>
+                                                    			     <input  id="inputSumSDate" type="text" class="form-inline input-sm EMRLabel LabStartEndDateInputWidth">
+                                                    			     <input  id="inputSumEDate" type="text" class="form-inline input-sm EMRLabel LabStartEndDateInputWidth">
+                                                    			     <button style="display:none;" type="button" class="btn btn-img40 img40_query" id="btn_labSumCustomRange"></button>
+
+                          
+								</div>
+					
+					<div class="row" id="LabSumCol">
+						<div class="col-sm-12">
+						  <button id="labSumLineChart" class="btn btn-primary">趨勢圖</button>
+						  <hr class="hr_noline" />
+						  <div id="LabSumContainer">
+						   <!--  <table id="LabSumList" class="table-hover"></table>
+						    <div id="LabSumList_Pager"></div>-->
+						  </div>
+						    
+							
+						</div>
+					</div>
+				</div>
+			</div>	
+				
+		
+		
+		

@@ -1,0 +1,788 @@
+/**
+ * 手術畫面 專用 js檔
+ */
+//查詢手術 年範圍 input change監聽器
+
+var OperationObj = { // 手術物件
+	OpYear : 5,
+	OpSDate : "",
+	OpEDate : "",
+	viewType :""
+	
+};
+
+var OpDateKind;
+// method = 手術內容 "getOPDataByPrimaryKeys" || 手術 抗生素 "getOrAntibioticByPrimaryKeys"
+	
+var EMROPDetailInputObj = function(empNo,sessionID,opDate,chartNo,serno,times,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.opDate= opDate;
+	this.chartNo = chartNo;
+	this.serno = serno;
+	this.times = times;
+	this.method = method;
+};
+
+
+function renderOperation(){
+	
+	$(document).on('change', '#OpYear', function(event) {
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#OpYear');
+			OperationObj.OpYear = $(this).val();
+			//showLoading();
+			OpListByYear();
+		} else {
+			stateChange(false, '#OpYear', "請輸入1-100之間");
+		}
+	});
+}
+
+
+//從 住院紀錄點擊的 手術 Button 1070308
+var callInpRecordOp = function(labDate,startDate,endDate){
+	
+	
+	OpDateKind = labDate;	
+	/**將值改為 從住院紀錄傳來的 startDate & endDate**/
+	OperationObj.OpSDate = startDate;
+	OperationObj.OpEDate = endDate;
+	OperationObj.viewType = "INP";
+	
+	 $('#OpYear').val(OperationObj.OpYear);
+	 $('#OpMasterYear').html(OperationObj.OpYear + '年手術&nbsp;<span class="badge">'+ $("#yearsOR").html() + '</span>');
+	 $('#OpMasterAll').find("span").html($("#allOR").html());  //先帶入全部的count值
+	
+	$('#OpMasterDate').show();
+	document.getElementById('OpMasterDate').setAttribute("title",startDate+"-"+endDate);
+	ajax_getOpCountDateRangeListData("OrRecordService",1);//先抓count 數量
+	
+  //再抓 List 清單
+  var cmParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,startDate,endDate,"getOPListByChartNoDateRange");			
+  var OpArray = [];
+	$.when(ajax_setPostData("OrRecordService",JSON.stringify(cmParam))).done(function(dataXrayList){			
+		if (dataXrayList.status == "Success") {
+			$.each(dataXrayList.resultSet, function(index, obj) {		
+				OpArray.push(obj);
+			});		
+		} else {
+			ajaxErrMsg = dataXrayList.errorMessage;
+			noDataFound(ajaxErrMsg,"OpList");
+			clearOpDetailData();//先清空暫存的資料
+			
+
+		}
+		
+		jqGrid_OpList("#OpList","#OpList_Pager",OpArray);		
+		if(OpDateKind != undefined)
+		{
+			filterInpRecordOpList(OpDateKind);
+			OpDateKind = undefined;
+		}
+		
+		hideLoading();
+		setPageVisible("opPage", true);
+		popUpPageFixPos("opPage");
+		
+	});
+	
+};
+
+
+//查詢手術   1070125 
+var callOp = function(flag,kind){
+	clearOpDetailData();
+	OperationObj.OpYear = PatObj.recentYear;
+	OperationObj.OpSDate = ViewListObj.sdate;
+	OperationObj.OpEDate = ViewListObj.edate;
+	OperationObj.viewType = ViewListObj.viewType;
+	
+    /**指定開啟手術頁時 第一個顯示的頁籤**/
+	setTimeout(function(){
+		$('.nav-tabs a[href="#OpPersonalContent"]').tab('show');	
+	});
+	
+	
+
+			
+	OpKind = kind;
+	 if(flag == "date"){		
+			$('#OpMasterDate').show();
+			document.getElementById('OpMasterDate').setAttribute("title",OperationObj.OpSDate+"-"+OperationObj.OpEDate);
+			OpListByDate();
+		}else if(flag =="year"){
+			PatObj.recentYear = $("#recentYear").val();
+			$('#OpMasterDate').hide();
+			
+			OpListByYear();	
+		}else{
+			$('#OpMasterDate').hide();
+			OpListByAll();		
+		}
+	 
+	 $('#OpYear').val(OperationObj.OpYear);
+	 $('#OpMasterYear').html(OperationObj.OpYear + '年手術&nbsp;<span class="badge">'+ $("#yearsOR").html() + '</span>');
+	 $('#OpMasterAll').find("span").html($("#allOR").html());  //先帶入全部的count值
+		 
+};
+
+
+
+/**取得 手術 日期範圍 數量 & 日期範圍 清單
+ * serviceName=OrRecordService
+ * ajax_getOpCountDateRangeListData("OrRecordService");
+ * serviceName
+ * flag = 1 抓 count ; flag =2 抓 count+List
+ * */
+var ajax_getOpCountDateRangeListData = function(serviceName,flag){
+	
+showLoading();	
+var cmParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpSDate,OperationObj.OpEDate,"getOPCountByChartNoDateRange");	
+
+	 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+				function(dataXray) {
+					
+					if (dataXray.status == "Success") {
+//						$.each(dataXray.resultSet, function(index, obj) {
+
+						$('#OpMasterDate').html('手術&nbsp;<span class="badge">'+ dataXray.resultSet.count + '</span>');											
+//						});
+						
+						var title = OperationObj.OpSDate + "-" +OperationObj.OpEDate + "&nbsp;" + (OperationObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-手術";
+						title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+						$('#opPage_Title').html(title);	//設定title內容
+						
+						if(flag==2){
+							ajax_getOpList("OrRecordService","Date");	
+						}
+						
+
+					} else {
+						ajaxErrMsg = dataXray.errorMessage;
+						hideLoading();
+						noDataFound(ajaxErrMsg,"OpList");
+					}
+				
+											
+
+				});
+	 
+	    request.onreadystatechange = null;
+		request.abort = null;
+		request = null;
+	
+};
+
+
+
+
+//點下 該手術日期範圍  並取得清單   
+var OpListByDate = function(){
+	ajax_getOpCountDateRangeListData("OrRecordService",2);
+		
+};
+
+
+
+/**
+ * 取得 手術年 數量 & 年清單
+ * ajax_getOpCountYearsListData("OrRecordService");
+ * */
+var ajax_getOpCountYearsListData = function(serviceName){
+	
+	showLoading();	
+	var cmParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpYear,"getOPCountByChartNoYears");	
+		 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+					function(dataXray) {
+						
+						if (dataXray.status == "Success") {			
+							$('#OPYear').val(OperationObj.OpYear);
+							$('#OpMasterYear').html(OperationObj.OpYear + '年手術&nbsp;<span class="badge">'+ dataXray.resultSet.count + '</span>');
+//							console.log(dataXray.resultSet.count);
+
+						var title = "手術" + $('#PatInfo').text();
+						$('#opPage_Title').html(title);	//設定title內容
+//						getOpList('Year');
+						ajax_getOpList("OrRecordService","Year");
+					} else {
+						ajaxErrMsg = dataXray.errorMessage;
+						$('#OpMasterYear').html(OperationObj.OpYear + '年手術&nbsp;<span class="badge">'+ 0 + '</span>');
+						hideLoading();
+						noDataFound(ajaxErrMsg,"OpList");
+						clearOpDetailData();
+						$('#OpListHead').html(" 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲"); //清空 手術右側 標題文字
+					}	
+					
+												
+
+					});
+		 
+		    request.onreadystatechange = null;
+			request.abort = null;
+			request = null;
+		
+	};
+
+// 主頁點下 該 年 範圍 手術資料  
+var OpListByYear = function(){
+	ajax_getOpCountYearsListData("OrRecordService");
+	
+};
+
+/**
+ * 取得 手術全部 數量 & 全部清單
+ * ajax_getOpCountAllListData("OrRecordService");
+ * */
+
+var ajax_getOpCountAllListData = function(serviceName){
+	
+	showLoading();	
+	var cmParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getOPCountByChartNo");
+
+		 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+					function(dataXray) {
+						if (dataXray.status == "Success") {
+							var box = "";
+							$.each(dataXray.resultSet, function(index, obj) {								
+								$('#OpMasterAll').find("span").html(dataXray.resultSet.count);
+
+							});
+
+							var title = "手術" + $('#PatInfo').text();
+							$('#opPage_Title').html(title);	//設定title內容
+//							getOpList('All');
+							ajax_getOpList("OrRecordService","All");
+						} else {
+							ajaxErrMsg = dataXray.errorMessage;
+							hideLoading();
+							noDataFound(ajaxErrMsg,"OpList");
+							$('#OpMasterAll').find("span").html("0");
+							$('#OpListHead').html(" 病患: " + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲"); //清空 手術右側 標題文字
+						}	
+																											
+
+					});
+		 
+		    request.onreadystatechange = null;
+			request.abort = null;
+			request = null;
+	
+};
+
+
+var OpListByAll = function(){
+
+	ajax_getOpCountAllListData("OrRecordService");
+	
+};
+
+/**
+ * serviceName = OrRecordService
+ * ajax_getOpList("OrRecordService","Year");
+ * */
+var ajax_getOpList = function(serviceName,range){
+	if(range=="Year"){
+		var cmParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpYear,"getOPListByChartNoYears");	
+	}else if(range=="All"){
+		var cmParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getOPListByChartNo");
+	}else{
+		//Date
+		var cmParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OperationObj.OpSDate,OperationObj.OpEDate,"getOPListByChartNoDateRange");			
+	}
+	
+	 var OpArray = [];
+	$.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(function(dataXrayList){			
+		if (dataXrayList.status == "Success") {
+			$.each(dataXrayList.resultSet, function(index, obj) {		
+				OpArray.push(obj);
+			});		
+		} else {
+			ajaxErrMsg = dataXrayList.errorMessage;
+			noDataFound(ajaxErrMsg,"OpList");
+			
+		}	
+		
+		jqGrid_OpList("#OpList","#OpList_Pager",OpArray);
+		hideLoading();
+		setPageVisible("opPage", true);
+		popUpPageFixPos("opPage");
+	});
+	
+	
+};
+
+
+
+//過濾從  住院紀錄 點過去的 的手術日期篩選  1070308
+var filterInpRecordOpList = function(kind){
+	var myfilter = { groupOp: "AND", rules: []};
+	myfilter.rules.push({field:"op_date",op:"eq",data:kind});	
+	$("#OpList").setGridParam({
+		postData: { filters: JSON.stringify(myfilter)},
+		search:true
+	}).trigger('reloadGrid',[{page:1}]);
+};
+
+
+function checkProp(propflag) {
+	
+	$("#propY").prop("disabled", true);
+	$("#propN").prop("disabled", true);
+
+	
+	if(propflag=="Y"){
+		 document.getElementById("propY").checked = true;
+		 document.getElementById("propN").checked = false;
+	}else {
+		document.getElementById("propY").checked = false;
+		document.getElementById("propN").checked = true;
+	}
+   
+}
+
+
+
+/**取得手術 明細資料  
+ * 
+ * **/ 
+var ajax_getOpDetailData = function(serviceName,opDate,serno,times){
+	
+	var cmParam = new EMROPDetailInputObj(UserObj.emp_no,UserObj.session_id,opDate,PatObj.chart_no,serno,times,"getOPDataByPrimaryKeys");
+	
+	$.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(function(data){			
+		if (data.status == "Success") {
+//			$.each(data.resultSet, function(index, obj) {
+				
+				//基本資料
+			    var IorO = filterNull(data.resultSet.inp_opd);
+				setOpData("opInpOpd",filterNull(data.resultSet.inp_opd));//門住
+				if(IorO=="I"){
+				setOpData("opInpOpd","住");	
+				}else if(IorO=="O"){
+				setOpData("opInpOpd","門");		
+				}
+				
+				setOpData("opSerno",filterNull(data.resultSet.serno));//序號
+				setOpData("opTimes",filterNull(data.resultSet.times));//當日開刀次
+				setOpData("opBedNo",filterNull(data.resultSet.bed_no));//床位/診號
+				setOpData("opDivName",filterNull(data.resultSet.div_no)+" "+filterNull(data.resultSet.div_name));//科別
+				setOpData("opPtType",filterNull(data.resultSet.pt_type)+" "+filterNull(data.resultSet.type_name));//身分
+				setOpData("opPlaceName",filterNull(data.resultSet.place)+" "+filterNull(data.resultSet.place_name));//手術房別				
+				setOpData("opStartDateTime",formatDateTime(data.resultSet.op_start_date)+"  "+formatDateTime(data.resultSet.op_start_time));//手術起始日期時間
+				setOpData("opEndDateTime",formatDateTime(data.resultSet.op_end_date)+" "+formatDateTime(data.resultSet.op_end_time));//手術結束日期時間
+				setOpData("opDuration",filterNull(data.resultSet.op_durat));//開刀總時數
+				setOpData("anStartDateTime",formatDateTime(data.resultSet.an_start_date)+"  "+formatDateTime(data.resultSet.an_start_time));//麻醉起始日期時間
+				setOpData("anEndDateTime",formatDateTime(data.resultSet.an_end_date)+" "+formatDateTime(data.resultSet.an_end_time));//麻醉結束日期/時間
+				setOpData("outOpRoomDateTime",formatDateTime(data.resultSet.out_oproom_date)+"  "+formatDateTime(data.resultSet.out_oproom_time));//出手術室日期/時間
+				
+				checkProp(data.resultSet.prop_flag);
+				
+				setOpData("propDateTime",formatDateTime(data.resultSet.prop_date)+"  "+formatDateTime(data.resultSet.prop_time));//預防性抗生素使用日期時間
+				setOpData("opWound",filterNull(data.resultSet.wound)+" "+filterNull(data.resultSet.wound_name));//傷口
+				
+				setOpData("opOthersWound",filterNull(data.resultSet.others_wound_name));//其他傷口 others_wound			
+				setOpData("opDoc1",filterNull(data.resultSet.op_doctor)+" "+filterNull(data.resultSet.op_doctor_name));//開刀醫師1
+				setOpData("opDoc2",filterNull(data.resultSet.op_doctor2)+" "+filterNull(data.resultSet.op_doctor2_name));//開刀醫師2				
+				setOpData("opDoc3",filterNull(data.resultSet.op_doctor3)+" "+filterNull(data.resultSet.op_doctor3_name));//開刀醫師3				
+				setOpData("opDoc4",filterNull(data.resultSet.op_doctor4)+" "+filterNull(data.resultSet.op_doctor4_name));//開刀醫師4
+				setOpData("opOrderDoc",filterNull(data.resultSet.order_doctor)+" "+filterNull(data.resultSet.order_doctor_name));//開單醫師
+				setOpData("anDoc1",filterNull(data.resultSet.an_doctor)+" "+filterNull(data.resultSet.an_doctor_name));//麻醉醫師1
+				setOpData("anDoc2",filterNull(data.resultSet.an_doctor2)+" "+filterNull(data.resultSet.an_doctor2_name));//麻醉醫師2
+				setOpData("anType",filterNull(data.resultSet.an_type)+" "+filterNull(data.resultSet.an_type_name));//麻醉方式
+				setOpData("nsScrub1",filterNull(data.resultSet.ns_scrub1)+" "+filterNull(data.resultSet.ns_scrub1_name));//刷手護士1
+				setOpData("nsScrub2",filterNull(data.resultSet.ns_scrub2)+" "+filterNull(data.resultSet.ns_scrub2_name));//刷手護士2
+				setOpData("nsCircu1",filterNull(data.resultSet.ns_circu1)+" "+filterNull(data.resultSet.ns_circu1_name));//流動護士1
+				setOpData("nsCircu2",filterNull(data.resultSet.ns_circu2)+" "+filterNull(data.resultSet.ns_circu2_name));//流動護士2				
+				setOpData("nsAn1",filterNull(data.resultSet.ns_anesthesia1)+" "+filterNull(data.resultSet.ns_anesthesia1_name));//麻醉護士1
+				setOpData("nsAn2",filterNull(data.resultSet.ns_anesthesia2)+" "+filterNull(data.resultSet.ns_anesthesia2_name));//麻醉護士2
+				setOpData("assist1",filterNull(data.resultSet.assist1)+" "+filterNull(data.resultSet.assist1_name));//助手1
+				setOpData("assist2",filterNull(data.resultSet.assist2)+" "+filterNull(data.resultSet.assist2_name));//助手2
+				
+				
+				setOpData("anCode",filterNull(data.resultSet.an_code));//麻醉代號
+				setOpData("anCodeName",filterNull(data.resultSet.an_code_name));//麻醉代號名稱
+
+				setOpData("codeM1",filterNull(data.resultSet.code_m1));//主刀一代號
+				setOpData("codeM1Name",filterNull(data.resultSet.code_m1_name));//主刀一代號名稱
+				
+				setOpData("codeM2",filterNull(data.resultSet.code_m2));//主刀二代號
+				setOpData("codeM2Name",filterNull(data.resultSet.code_m2_name));//主刀二代號名稱
+				
+				setOpData("codeM3",filterNull(data.resultSet.code_m3));//主刀三代號
+				setOpData("codeM3Name",filterNull(data.resultSet.code_m3_name));//主刀三代號名稱
+
+				setOpData("codeD1",filterNull(data.resultSet.code_d1));//副刀一代號
+				setOpData("codeD1Name",filterNull(data.resultSet.code_d1_name));//副刀一代號名稱
+				
+				setOpData("codeD2",filterNull(data.resultSet.code_d2));//副刀二代號
+				setOpData("codeD2Name",filterNull(data.resultSet.code_d2_name));//副刀二代號名稱
+				
+				
+				setOpData("treatCode1",filterNull(data.resultSet.treat_code1));//處置碼一代號
+				setOpData("treatCode1Name",filterNull(data.resultSet.treat_code1_name));//處置碼一代號名稱
+				
+				setOpData("treatCode2",filterNull(data.resultSet.treat_code2));//處置碼二代號
+				setOpData("treatCode2Name",filterNull(data.resultSet.treat_code2_name));//處置碼二代號名稱
+
+				setOpData("opName",filterNull(data.resultSet.op_name));//手術名稱
+				
+				
+				setOpData("outBlood",filterNull(data.resultSet.out_blood));//失血量	
+				
+				setOpData("inBlood",filterNull(data.resultSet.in_blood));//輸血量
+				
+				
+				
+				setOpData("washQty",filterNull(data.resultSet.wash_qty));//沖洗量
+				setOpData("orRate1",filterNull(data.resultSet.or_rate1));//副刀打折1
+				setOpData("orRate2",filterNull(data.resultSet.or_rate2));//副刀打折2
+				setOpData("labPiece",filterNull(data.resultSet.labpiece));//病理切片
+				setOpData("labPieceCode",filterNull(data.resultSet.labpiece_code));//病理切片代碼
+				setOpData("keyinDatetime",formatDateTime(data.resultSet.keyin_datetime));//輸入日期
+				setOpData("keyinClerk",filterNull(data.resultSet.keyin_clerk));//輸入人員
+				setOpData("orSerno",filterNull(data.resultSet.or_serno));//流水號
+				
+				
+				//手術資料
+				
+				setOpData("opDiagnosis_o",filterNull(data.resultSet.diagnosis_o));//術前診斷I
+				setOpData("opDiagnosis_o2",filterNull(data.resultSet.diagnosis_o2));//術前診斷II	
+				setOpData("opDiagnosis_f",filterNull(data.resultSet.diagnosis_f));//術後診斷I
+				setOpData("opDiagnosis_f2",filterNull(data.resultSet.diagnosis_f2));//術後診斷II
+				setOpData("opLabsSmple",filterNull(data.resultSet.labsample));//體檢
+				setOpData("opMode",filterNull(data.resultSet.op_mode));//手術方式
+				setOpData("opDescribe",filterNull(data.resultSet.op_describe));//開刀體位 經過 發現
+				
+				//重返手術室記錄
+				
+				setOpData("backOpRoom",filterNull(data.resultSet.return_or_flag));//重返手術室
+				setOpData("backOpRoomReason",filterNull(data.resultSet.return_or_reason));//重返手術室 原因
+				setOpData("backOpRoomRemark",filterNull(data.resultSet.return_or_remark));//重返手術室 備註
+				
+				//人工關節植入物記錄
+				
+				setOpData("opWeight",filterNull(data.resultSet.weight));//體重
+				setOpData("opHeight",filterNull(data.resultSet.hight));//身高
+				setOpData("opASA",filterNull(data.resultSet.asa)+" "+filterNull(data.resultSet.asa_name));//麻醉危險分級
+				setOpData("opOtherSide1",filterNull(data.resultSet.otherside1)+" "+filterNull(data.resultSet.side1_name));//部位側別1
+				setOpData("opAjisur1",filterNull(data.resultSet.ajisur1)+" "+filterNull(data.resultSet.ajisur1_name));//術別1
+				setOpData("opAjiapp1",filterNull(data.resultSet.ajiapp1)+" "+filterNull(data.resultSet.ajiapp1_name));//入路途徑1
+				setOpData("opMatbarcode1",filterNull(data.resultSet.matbarcode1));//特材條碼1
+				
+				
+				setOpData("opOtherSide2",filterNull(data.resultSet.otherside2)+" "+filterNull(data.resultSet.side2_name));//部位側別2
+				setOpData("opAjisur2",filterNull(data.resultSet.ajisur2)+" "+filterNull(data.resultSet.ajisur2_name));//術別2
+				setOpData("opAjiapp2",filterNull(data.resultSet.ajiapp2)+" "+filterNull(data.resultSet.ajiapp2_name));//入路途徑2
+				setOpData("opMatbarcode2",filterNull(data.resultSet.matbarcode2));//特材條碼2
+				
+				
+//			});		
+		} else {
+			var ajaxErrMsg = data.errorMessage;
+			clearOpDetailData();
+//			console.log("getOpDetailErrMsg="+ajaxErrMsg);//如查無資料須清除所有文字
+			
+			
+		}	
+		
+		
+		hideLoading();
+		
+	});
+	
+	
+};
+
+
+
+
+//ajax 手術抗生素使用    ajax_getOpAntibioList("OrRecordService",opDate,serno,times);
+var ajax_getOpAntibioList = function(serviceName,opDate,serno,times){
+	
+	var cmParam = new EMROPDetailInputObj(UserObj.emp_no,UserObj.session_id,opDate,PatObj.chart_no,serno,times,"getOrAntibioticByPrimaryKeys");	
+	
+	 var OpAntibioArray = [];
+	$.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(function(dataXrayList){			
+		if (dataXrayList.status == "Success") {
+			$.each(dataXrayList.resultSet, function(index, obj) {		
+				OpAntibioArray.push(obj);
+			});		
+		} else {
+			ajaxErrMsg = dataXrayList.errorMessage;
+			noDataFound(ajaxErrMsg,"OpAntibioList");
+			
+		}	
+		
+		jqGrid_OpAntibioList("#OpAntibioList","#OpAntibioList_Pager",OpAntibioArray);
+		hideLoading();
+		
+	});
+	
+	
+};
+
+var filterCodeNameNull = function(value) {
+//	return value==null||value=="[object Window]"?"":value;
+	return (value=="null"||value === undefined || value === null||value=="[object Window]"?"":value); 
+}
+
+var addBrTagtoBtn = function(value){
+	var data = filterCodeNameNull(value);
+	if(data!=""){
+		return data +'<br/>';
+	}else {
+		return ""; 
+	}
+}
+
+
+
+//手術清單
+function jqGrid_OpList(tableName,pagerName,dataArray){		
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 220,
+	    colModel: [
+	        { label: '年分', name: 'years', width: 45 },
+	        { label: '手術日期', name: 'op_date', width: 80 },
+	        { label: '病歷號', name: 'chart_no', width: 90,hidden:true },
+	        { label: '住院序號', name: 'serno', width: 90,hidden:true },
+	        { label: '手術時間', name: 'times', width: 90,hidden:true },
+	        { label: 'inp_opd', name: 'inp_opd', width: 90,hidden:true },
+	        { label: 'code_m1', name: 'code_m1', width: 90,hidden:true },
+	        { label: 'code_m2', name: 'code_m2', width: 90,hidden:true },
+	        { label: 'code_m3', name: 'code_m3', width: 90,hidden:true },
+	        { label: 'code_d1', name: 'code_d1', width: 90,hidden:true },
+	        { label: 'code_d2', name: 'code_d2', width: 90,hidden:true },
+	        { label: 'code_m1_name', name: 'code_m1_name', width: 120,hidden:true },
+	        { label: 'code_m2_name', name: 'code_m2_name', width: 120,hidden:true },
+	        { label: 'code_m3_name', name: 'code_m3_name', width: 120,hidden:true },
+	        { label: 'code_d1_name', name: 'code_d1_name', width: 120,hidden:true },
+	        { label: 'code_d2_name', name: 'code_d2_name', width: 120,hidden:true },
+	        
+	        { label: '手術名稱', name: 'code_m1_name', width: 318 ,align:'left',formatter: function(cellvalue, options, rowobject){
+	        	
+	        	var codeName = [ (rowobject.code_m1_name),(rowobject.code_m2_name),(rowobject.code_m3_name),(rowobject.code_d1_name),(rowobject.code_d2_name)];
+//	        	console.log(codeName);
+	        	var box = "";
+	        	for(var i = 0 ;i<codeName.length;i++){
+	        		if(addBrTagtoBtn(codeName[i]).length>20){
+	        			box += addBrTagtoBtn(codeName[i]).substr(0, 18)+"...<br/>";
+	        		}else{
+	        			box += addBrTagtoBtn(codeName[i]);
+	        		}
+	        		
+	        	}
+	        	
+	        	return '<button type="button" class="btn btn-primary btn-sm ButtonfontSize">'+ box +'</button>';
+
+	        	/**if(cellvalue.length>20){
+	        	return '<button type="button" class="btn btn-primary btn-sm ButtonfontSize">'+ cellvalue.substr(0, 18)+"..." +'</button>';
+	        	}else{
+		            return '<button type="button" class="btn btn-primary btn-sm ButtonfontSize">'+ cellvalue +'</button>';	
+	        	}**/
+//	            return '<button type="button"  onclick="XrayTypeBtnClick('+"\'" + rowobject.cat_type+"\'"+');" class="btn btn-primary btn-sm">'+ cellvalue +'</button>';
+//	        	return '<button type="button"  onclick="XrayTypeBtnClick('+"\'" + rowobject.cat_type+"\'"+",\'"+rowobject.chart_no+"\'"+",\'"+rowobject.xray_type+"\'"+');"class="btn btn-primary btn-sm">'+ cellvalue +'</button>';
+	        }},
+	        
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        width: null,
+        rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit:false,
+	    sortable: false,
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: dataArray});
+	$(tableName).trigger('reloadGrid');
+	//$("#XrayList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	
+	function getSelectedRow() {
+		
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+//	    	$('#OpListHead').html(" 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲"+ " 手術日期: "+$(tableName).jqGrid('getCell',rowKey,'op_date') + "  手術名稱: " + $(tableName).jqGrid('getCell',rowKey,'code_m1_name')  );
+	    	$('#OpListHead').html(" 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲"+ " 手術日期: "+$(tableName).jqGrid('getCell',rowKey,'op_date'));
+	    	var opDate = $(tableName).jqGrid('getCell',rowKey,'op_date');
+	    	var serno = $(tableName).jqGrid('getCell',rowKey,'serno');
+	    	var times = $(tableName).jqGrid('getCell',rowKey,'times');
+	    	ajax_getOpAntibioList("OrRecordService",opDate,serno,times);
+	    	
+	    	ajax_getOpDetailData("OrRecordService",opDate,serno,times);
+	    		    		    
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+
+//手術 抗生素使用記錄  1070223
+function jqGrid_OpAntibioList(tableName,pagerName,dataArray){		
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 330,
+	    colModel: [
+	        { label: 'ORDER日期時間', name: 'order_datetime', width: 180 },
+	        { label: '醫令代碼', name: 'code', width: 180 },
+	        { label: '名稱', name: 'code_name', width: 450 },
+	        { label: '單次劑量', name: 'qty', width: 120},	 
+	        { label: 'times', name: 'times', width: 90,hidden:true },	
+	        { label: 'serno', name: 'serno', width: 90,hidden:true },
+	        { label: 'chart_no', name: 'chart_no', width: 90,hidden:true },
+	        { label: 'op_date', name: 'op_date', width: 90,hidden:true },
+	        
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        width: null,
+        rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit:false,
+	    sortable: false,
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+//			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: dataArray});
+	$(tableName).trigger('reloadGrid');
+	//$("#XrayList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	
+	function getSelectedRow() {
+		
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+	    	    		    		    
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+//設定手術內文
+function setOpData(tag,data){
+	document.getElementById(tag).innerText=data
+}
+
+
+var clearOpDetailData = function(){
+	//基本資料
+	$('#opInpOpd').html(""); //門/住
+	$('#opSerno').html(""); //序號
+	$('#opTimes').html("");//當日開刀次
+	$('#opBedNo').html("");//床位/診號
+	$('#opDivName').html("");//科別	
+	$('#opPtType').html(""); //身分
+	$('#opPlaceName').html(""); //手術房別	
+	$('#opStartDateTime').html("");//手術起始日期時間
+	$('#opEndDateTime').html("");//手術結束日期時間
+	$('#opDuration').html("");//開刀總時數	
+	$('#anStartDateTime').html(""); //麻醉起始日期時間
+	$('#anEndDateTime').html(""); //麻醉結束日期/時間
+	$('#outOpRoomDateTime').html("");//出手術室日期/時間
+	$('#propDateTime').html("");//預防性抗生素使用日期時間
+	$('#opWound').html("");//傷口	
+	$('#opOthersWound').html(""); //其他傷口 others_wound	
+	$('#opDoc1').html(""); //開刀醫師1	
+	$('#opDoc2').html("");//開刀醫師2	
+	$('#opDoc3').html("");//開刀醫師3
+	$('#opDoc4').html("");//開刀醫師4
+	$('#opOrderDoc').html(""); //開單醫師
+	$('#anDoc1').html(""); //麻醉醫師1
+	$('#anDoc2').html("");//麻醉醫師2	
+	$('#anType').html("");//麻醉方式
+	$('#nsScrub1').html("");//刷手護士1	
+	$('#nsScrub2').html(""); //刷手護士2
+	$('#nsCircu1').html(""); //流動護士1	
+	$('#nsCircu2').html("");//流動護士2
+	$('#nsAn1').html("");//麻醉護士1
+	$('#nsAn2').html("");//麻醉護士2	
+	$('#assist1').html(""); //助手1
+	$('#assist2').html(""); //助手2
+	$('#anCode').html("");//麻醉代號
+	$('#anCodeName').html("");//麻醉代號名稱
+	$('#codeM1').html("");//主刀一代號
+	$('#codeM1Name').html(""); //主刀一代號名稱	
+	$('#codeM2').html(""); //主刀二代號
+	$('#codeM2Name').html("");//主刀二代號名稱
+	$('#codeM3').html("");//主刀三代號
+	$('#codeM3Name').html("");//主刀三代號名稱
+	$('#codeD1').html("");//副刀一代號
+	$('#codeD1Name').html("");//副刀一代號名稱	
+	$('#codeD2').html("");//副刀二代號
+	$('#codeD2Name').html("");//副刀二代號名稱	
+	$('#treatCode1').html("");//處置碼一代號
+	$('#treatCode1Name').html("");//處置碼一代號名稱	
+	$('#treatCode2').html("");//處置碼二代號
+	$('#treatCode2Name').html("");//處置碼二代號名稱
+	$('#opName').html("");//手術名稱
+	$('#outBlood').html("");//失血量
+	$('#inBlood').html("");//輸血量
+	$('#washQty').html("");//沖洗量
+	$('#orRate1').html("");//副刀打折1
+	$('#orRate2').html("");//副刀打折2	
+	$('#labPiece').html("");//病理切片
+	$('#labPieceCode').html("");//病理切片代碼
+	$('#keyinDatetime').html("");//輸入日期
+	$('#keyinClerk').html("");//輸入人員
+	$('#orSerno').html("");//流水號
+	
+	//手術資料
+	$('#opDiagnosis_o').html("");//術前診斷I
+	$('#opDiagnosis_o2').html("");//術前診斷II
+	$('#opDiagnosis_f').html("");//術後診斷I	
+	$('#opDiagnosis_f2').html("");//術後診斷II
+	$('#opLabsSmple').html("");//體檢
+	$('#opMode').html("");//手術方式
+	$('#opDescribe').html("");//開刀體位 經過 發現
+	
+	//重返手術室
+	$('#backOpRoom').html("");//重返手術室
+	$('#backOpRoomReason').html("");//重返手術室 原因
+	$('#backOpRoomRemark').html("");//重返手術室 備註
+	
+	//人工關節植入物記錄
+	$('#opWeight').html("");//體重
+	$('#opHeight').html("");//身高
+	$('#opASA').html("");//麻醉危險分級
+	$('#opOtherSide1').html("");//部位側別1
+	$('#opAjisur1').html("");//術別1
+	$('#opAjiapp1').html("");//入路途徑1
+	$('#opMatbarcode1').html("");//特材條碼1
+	$('#opOtherSide2').html("");//部位側別2
+	$('#opAjisur2').html("");//術別2
+	$('#opAjiapp2').html("");//入路途徑2
+	$('#opMatbarcode2').html("");//特材條碼2
+	
+	clearGridData("OpAntibioList");
+	
+	
+	
+};
+
+
+
+
+
+

@@ -1,0 +1,10 @@
+@charset "UTF-8";
+
+.purple-outline{
+border: 1px solid #CDC1D8;
+}
+
+.pre-scrollable{
+	overflow-x: hidden;	
+}
+

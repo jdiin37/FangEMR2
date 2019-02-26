@@ -1,0 +1,53 @@
+		
+	 
+	     <div class="panel panel-info">
+		
+		<div class="panel-heading clearfix header">
+		      <div class="panel-title pull-left panel-tool">
+			<span id="allergyPage_Title" class="EMRPurpleTitle">患者過敏資料記錄</span>
+			<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_labPage"></a>-->
+		      </div>
+		        <div class="pull-right">
+			<!--  <button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('focusPage')"><span class="glyphicon glyphicon-new-window"></span></button>-->
+			<button type="button" class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('allergyPage')"></button>
+			<button type="button" class="btn btn-link btn-close" onclick="closePage('allergyPage')"><span class="glyphicon glyphicon-remove"></span></button>
+		       </div>
+		</div>
+		
+	          <div class="panel-body pre-scrollable" id="allergyBody">
+		        <!-- <div class="row">
+			 <div class="col-sm-12 form-inline">
+			     <div style="display: inline;" id="FocusMaster">
+				<button class="btn btn-primary" id="FocusMasterDate" onclick="FocusListByDate()">護理紀錄 <span class="badge">0</span></button> 
+				   <input value="5" id="FocusYear" type="text" class="form-control input-sm input-center" style="max-width: 48px;"> <label class="EMRLabel" for="FocusYear">年</label>
+				<button class="btn btn-primary" id="FocusMasterYear" onclick="FocusListByYear()">5年護理紀錄 <span class="badge">0</span></button>
+				<button class="btn btn-primary" id="FocusMasterAll" onclick="FocusListByAll()">全部護理紀錄 <span class="badge">0</span></button> &emsp;
+			     </div>
+			      &emsp;
+			     <div style="display: inline" id="FocusDetail"></div>
+			</div>
+		      </div>
+		<hr class="hr_noline" />-->
+		      <div class="row" id="AllergyCol">
+		        <div class="col-sm-12">
+			<div class="col-sm-4">
+			  <table id="AllergyList" class="table-hover"></table>
+			    <div id="AllergyList_Pager"></div>			
+			</div>
+			<div class="col-sm-8">
+			    <table id="AllergyDetailList" class="table-hover"></table>
+			    <div id="AllergyDetailList_Pager"></div>
+			</div>
+		        
+		        </div>
+		        <div class="col-sm-12" style="display:none;"><!-- IC卡註記  過敏藥物1 2 3  -->
+		        
+		        
+		        </div>
+			
+						
+		      </div>
+		</div>
+				
+			</div>
+		

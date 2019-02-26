@@ -1,0 +1,265 @@
+function getHospName(para) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "SysparaService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"method":"getHospName"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getHospName(index, this);
+					});
+				}
+			});
+
+}
+
+function parse_getHospName(index, value) {
+	if (index == "no") {	
+	} else if (index == "name") {
+	} else if (index == "value") {
+		$("#hospName").html(value);	
+	} 
+}
+
+
+function getChartByChartNo(paraChartNo) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "ChartService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"chartNo":912473,"method":"getChartByChartNo"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getChartByChartNo(index, this);
+					});
+					$("#timeLine").html("");
+				}
+			});
+}
+
+function parse_getChartByChartNo(index, value) {
+	if (index == "chart_no") {
+		$("#chart_no").html(value);				
+		getChartEMRSummaryByChartNoAndYears(value,1); //取得查詢範圍筆數 預設1年
+		getChartEMRSummaryByChartNo(value); //取得查詢範圍筆數 全部
+	} else if (index == "pt_name") {
+		$("#pt_name").html(value);	
+	} else if (index == "sex_name") {
+		$("#sex_name").html(value);	
+	} else if (index == "age") {
+		$("#age").html(value);	
+	} else if (index == "first_view_date") {
+		$("#first_view_date").html(date_format(value));
+	} else if (index == "last_view_date") {
+		$("#last_view_date").html(date_format(value));
+	} else if (index == "first_div_name") {
+		$("#first_div_name").html(value);	
+	} else if (index == "last_div_name") {
+		$("#last_div_name").html(value);	
+	}
+}
+
+function date_format(dateString) {
+	var rtnVal = "";
+	if (dateString.substr(0, 1) == "0") {
+		rtnVal += dateString.substr(1, 2);
+	} else {
+		rtnVal += dateString.substr(0, 3);
+	}
+	
+	rtnVal += "/";
+	
+	if (dateString.substr(3, 1) == "0") {
+		rtnVal += dateString.substr(4, 1);
+	} else {
+		rtnVal += dateString.substr(3, 2);
+	}
+	
+	rtnVal += "/";
+	
+	if (dateString.substr(5, 1) == "0") {
+		rtnVal += dateString.substr(6, 1);
+	} else {
+		rtnVal += dateString.substr(5, 7);
+	}
+
+	return rtnVal;
+}
+
+function getChartEMRSummaryByChartNoAndYears(paraChartNo,paraYears) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "EMRViewService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"chartNo":' +paraChartNo +',"years":'+paraYears+',"method":"getChartEMRSummaryByChartNoAndYears"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getChartEMRSummaryByChartNoAndYears(index, this);											
+					});
+					$("#LoadingModal").modal('hide');
+				}
+			});
+}
+
+function parse_getChartEMRSummaryByChartNoAndYears(index, value) {	
+	if (index == "OPD") {	
+		$("#yearsOPD").html(value);	
+	} else if (index == "INP") {
+		$("#yearsINP").html(value);	
+	} else if (index == "OR") {
+		$("#yearsOR").html(value);	
+	} else if (index == "LAB") {
+		$("#yearsLAB").html(value);	
+	} else if (index == "XRAY") {
+		$("#yearsXRAY").html(value);	
+	} 
+}
+
+function getChartEMRSummaryByChartNo(paraChartNo) {
+	$
+			.ajax(
+					{
+						method : "POST",
+						url : 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent',
+						data : {
+							serviceName : "EMRViewService",
+							parameters : '{"empNo":"ORCL","sessionID":1,"chartNo":'+ paraChartNo +',"method":"getChartEMRSummaryByChartNo"}'
+						},
+						dataType : "json"
+					}).done(function(data) {
+				if (data.status == "Success") {
+					$.each(data.resultSet, function(index, obj) {
+						parse_getChartEMRSummaryByChartNo(index, this);
+					});
+					$("#LoadingModal").modal('hide');
+				}
+			});
+}
+
+function parse_getChartEMRSummaryByChartNo(index, value) {
+	if (index == "OPD") {	
+		$("#allOPD").html(value);	
+	} else if (index == "INP") {
+		$("#allINP").html(value);	
+	} else if (index == "OR") {
+		$("#allOR").html(value);	
+	} else if (index == "LAB") {
+		$("#allLAB").html(value);	
+	} else if (index == "XRAY") {
+		$("#allXRAY").html(value);	
+	} 
+}
+
+var timesCnt = 0;
+
+function showTimeLine() {
+
+	timesCnt++;
+
+	var content = "<div class='panel panel-info'>"
+			+ "<div class='panel-heading'>"
+			+ "<a data-toggle='collapse' id='link_time_" + timesCnt
+			+ "' data-parent='#timeLine' href='#time_" + timesCnt + "'>"
+			+ "<h4 class='panel-title'>" + timesCnt + "</h4>" + "</a>"
+			+ "</div>" + "<div id='time_" + timesCnt
+			+ "' class='panel-collapse collapse'>" + "<div class='panel-body'>"
+			+ "body" + "</div>" + "</div>"
+	"</div>";
+
+	$("#timeLine").append(content);
+	$("#link_time_" + timesCnt).click(function() {
+		// alert( $(this).attr('id') );
+		$('#LoadingModal').modal('show');
+		setTimeout(function() {
+			$("#LoadingModal").modal('hide');
+		}, 1000);
+	});
+	if (timesCnt <= 10)
+		setTimeout("showTimeLine()", 500);
+}
+
+function getQueryPatList() {
+	for (i = 0; i < 11; i++) {
+		var htmltr = "";
+		htmltr += "<tr onclick='queryDetail(this)' class='trPat clickable-row'>";
+		htmltr += "<td title='" + i + i + i + "'>" + i + i + i + "</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "<td title='1'>1</td>";
+		htmltr += "</tr>";
+		$('#queryBlock3TableRow').append(htmltr);
+	}
+}
+
+function queryDetail(dom) {
+	$('#loading-msg').text($(dom).find('td').eq(0).html());
+	$('#LoadingModal').modal('show');
+	setTimeout(function() {
+		$("#LoadingModal").modal('hide');
+		$('#queryPage').hide();
+		$('#loading-msg').text("");
+	}, 1000);
+}
+
+function filter_qeuryPat() {
+	// Declare variables
+	var input, filter, table, tr, td, i;
+	input = document.getElementById("input_filter");
+	filter = input.value.toUpperCase();
+	table = document.getElementById("table_queryPat");
+	tr = table.getElementsByTagName("tr");
+
+	// Loop through all table rows, and hide those who don't match the search
+	// query
+	for (i = 0; i < tr.length; i++) {
+		td = tr[i].getElementsByTagName("td")[0];
+		if (td) {
+			if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+				tr[i].style.display = "";
+			} else {
+				tr[i].style.display = "none";
+			}
+		}
+	}
+}
+
+function stateChange(state,objID) {
+    if (state) {
+        $(objID).parent().removeClass('has-error').addClass('has-success');
+        $(objID).siblings().removeClass('glyphicon-remove').addClass('glyphicon-ok');
+    }
+    else {
+        $(objID).parent().removeClass('has-success').addClass('has-error');
+        $(objID).siblings().removeClass('glyphicon-ok').addClass('glyphicon-remove');
+    }
+}

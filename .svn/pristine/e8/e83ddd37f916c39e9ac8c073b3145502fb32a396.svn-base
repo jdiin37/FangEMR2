@@ -1,0 +1,206 @@
+/**
+ * 住院畫面 專用 js檔
+ */
+
+var InpObj = { // 手術物件
+	InpYear : 5,
+		
+};
+
+function renderInp(){
+			
+	$(document).on('change', '#InpYear', function(event) {
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#InpYear');
+			InpObj.InpYear = $(this).val();
+			//showLoading();
+			InpListByYear();	//尚未完成 1070118
+		} else {
+			stateChange(false, '#InpYear', "請輸入1-100之間");
+		}
+	});
+
+	
+}
+
+//serviceName = PatinpService
+var ajax_getInpListData = function(flag,serviceName,InpYear){
+	showLoading();
+	var InpArray = [];
+	if(flag=="year"){
+		var cmParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,InpYear,"getPatinpListByChartNoYears");	
+	}else{
+		var cmParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getPatinpListByChartNo");
+	}
+	
+	 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(cmParam))).done(
+				function(data) {
+					if (data.status == "Success") {
+						
+						if(data.resultSet.length==0&&flag=="year"){
+						$('#InpMasterYear').html(InpYear + '年住院&nbsp;<span class="badge">'+ 0 + '</span>');
+						}else{
+							$.each(data.resultSet, function(index, obj) {		
+								InpArray.push(obj);
+								 if(flag=="year"){
+								  $('#InpMasterYear').html(InpYear + '年住院&nbsp;<span class="badge">'+ data.resultSet.length + '</span>');
+								 }											
+								});	
+						}
+						
+						
+					} else {
+						ajaxErrMsg = data.errorMessage;
+						 if(flag=="year"){
+					     $('#InpMasterYear').html(InpYear + '年住院&nbsp;<span class="badge">'+ 0 + '</span>');
+						}
+						 noDataFound(ajaxErrMsg,"InpList");
+					}	
+
+					jqGrid_InpList("#InpList","#InpList_Pager",InpArray);
+					hideLoading();
+					setPageVisible("inpPage", true);
+					popUpPageFixPos("inpPage");		
+											
+
+				});
+	 
+	    request.onreadystatechange = null;
+		request.abort = null;
+		request = null;
+	
+	
+};
+
+var callInp = function(flag){
+	InpObj.InpYear = PatObj.recentYear;
+	 if(flag =="year"){
+		    InpObj.InpYear = $("#recentYear").val();
+			InpListByYear();
+		}else{
+			InpListByAll();		
+		}
+	 
+	 $('#InpYear').val(InpObj.InpYear);
+	 $('#InpMasterYear').html(InpObj.InpYear + '年住院&nbsp;<span class="badge">'+ $("#yearsINP").html() + '</span>');
+	 $('#InpMasterAll').find("span").html($("#allINP").html());  //先帶入全部的count值
+	
+}
+
+
+//主頁點下 該 年 範圍 住院資料  
+var InpListByYear = function(){
+//	console.log("InpListYear");
+	
+	ajax_getInpListData("year","PatinpService",InpObj.InpYear);
+	var title = InpObj.InpYear+"年-住院" + $('#PatInfo').text();
+	$('#inpPage_Title').html(title);	//設定title內容
+
+};
+
+var InpListByAll = function(){
+//	console.log("InpListAll");
+	var title = "全部住院" + $('#PatInfo').text();
+	$('#inpPage_Title').html(title);	//設定title內容
+	//呼叫 該年全部 住院日期清單
+	ajax_getInpListData("all","PatinpService");
+
+};
+
+//顯示出院病摘 (尚未完成) add By IvyLin
+var showOutNoteBtnClick = function(startDate,endDate){
+	 alert("資料建置中... startDate="+startDate+";endDate="+endDate);
+	 
+//	    OutNoteObj.OutNoteYear = PatObj.recentYear;
+		OutNoteObj.OutNoteSDate = startDate;
+		OutNoteObj.OutNoteEDate = endDate;
+		
+	 
+	 document.getElementById('OutNoteMasterDate').setAttribute("title",OutNoteObj.OutNoteSDate+"-"+OutNoteObj.OutNoteEDate);
+	 
+	 var title = OutNoteObj.OutNoteSDate + "-" +OutNoteObj.OutNoteEDate + "&nbsp;" + (OutNoteObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-出院病摘";
+	 title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+	 $('#outNotePage_Title').html(title);	//設定title內容
+	 
+	 setPageVisible("outNotePage", true);
+	 popUpPageFixPos("outNotePage");
+//	 setPageVisible("inpPage", false);
+	 
+	 zIndex -=1; //目的是為了要讓 出院病摘 移到 住院紀錄的上層
+	 $('#inpPage').css('z-index', zIndex); //從 住院 開啟出院病摘
+	 
+};
+
+
+//住院清單
+function jqGrid_InpList(tableName,pagerName,dataArray){		
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 220,
+	    colModel: [
+	        { label: '病歷號', name: 'chart_no', width: 90,hidden:true },
+	        { label: '住院序號', name: 'serno', width: 90,hidden:true },
+	        { label: '年份', name: 'start_date', width: 45,formatter:function(cellvalue, options, rowobject){
+	        	return cellvalue.substr(0, 3);
+	        } },	        
+	        //合併欄位 住院期間(start-end) 住院期間 end_date有可能會是null 需用 filterNull 方法去過濾 null值
+		    { label: '住院期間', name: 'start_date' ,width: 160,formatter:function(cellvalue, options, rowobject){	    		    	
+		    	return "<span class=''>"+cellvalue + "</span> - " +
+		    	"<span class=''>"+filterNull(rowobject.end_date) + "</span>";
+		    }},
+	        { label: '主因', name: 'title2', width: 440 },
+	        { label: '主治醫師', name: 'doctor_name', width: 75 },
+	        { label: '科別', name: 'div_name', width: 100 },
+	        { label: '出院病摘', name: 'code', width: 80 ,formatter: function(cellvalue, options, rowobject){
+//	            return '<button type="button" class="btn btn-primary btn-sm">'+ "出院病摘" +'</button>';
+//	            return '<button type="button"  onclick="showOutNoteBtnClick();" class="btn btn-primary btn-sm">'+ "出院病摘" +'</button>';
+	            return '<button type="button"  onclick="showOutNoteBtnClick('+"\'" + rowobject.start_date+"\',"+"\'"+rowobject.end_date+"\'"+');" class="btn btn-primary btn-sm">'+ "出院病摘" +'</button>';
+
+	        }},
+	        
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+//	    scroll :true, //隨著滾輪改變頁數
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        width: null,
+        rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit:false,
+	    sortable: false,
+//	    loadtext:"資料載入中...",
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: dataArray});
+	$(tableName).trigger('reloadGrid');
+	//$("#XrayList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	
+	function getSelectedRow() {
+		
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+	    	//alert($('#XrayList').jqGrid('getCell',rowKey,'cat_name'));
+//	    	$('#XrayListHead').html($(tableName).jqGrid('getCell',rowKey,'view_date') + " " + $('#XrayList').jqGrid('getCell',rowKey,'cat_name') + " 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age)
+//	    	$('#XrayListBody').html(rowKey);
+//	    	$('#xray_ReportDate').html(date_format($(tableName).jqGrid('getCell',rowKey,'view_date'))); //報告日期
+//	    	$('#xray_ReportMan').html(); //報告人員
+//	    	$('#xray_ReportType').html();//X光類別
+	    		    		    
+	    }
+	    else{
+	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+
+
+

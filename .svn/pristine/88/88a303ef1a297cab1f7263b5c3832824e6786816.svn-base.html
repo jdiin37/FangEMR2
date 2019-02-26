@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>FOCUS</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/Focus.css" type="text/css" />
+<link rel="stylesheet" href="css/Common.css" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+<script src="scripts/EMRfunction.js"></script>
+<script src="scripts/EMRajax.js"></script>
+
+
+
+
+<script>
+
+$(document).ready(function(){
+	
+          /**background: radial-gradient(circle,#A38EC9,#D7C4FB);
+          * 開合
+          background: -webkit-radial-gradient(circle,#A38EC9,#D7C4FB);
+          background: -o-radial-gradient(circle,#A38EC9,#D7C4FB);
+          background: -moz-radial-gradient(circle,#A38EC9,#D7C4FB);
+          background: radial-gradient(circle,#A38EC9,#D7C4FB);
+          **/
+	$("#btnsmaller").click(function(){
+		  var isVisible = $("#inspectionContent").is(":visible");;	
+		  if(isVisible){  
+		$("#inspectionContent").slideToggle(1000,function(){
+			$("#inspectionContent").hide();			
+				});
+					  
+		  }else{
+		     $("#inspectionContent").slideToggle(1000,function(){
+					$("#inspectionContent").show();			
+						});
+			  
+		  }	
+	
+});
+          
+          /**
+          *
+          */
+	//Selected
+
+	$("tbody >tr:odd").addClass("tr_odd");
+	$("tbody > tr:even").addClass("tr_even");
+
+	$("#FocusTable >tbody >tr").click(function(){
+		 $(this).addClass("tr_selected").siblings().removeClass("tr_selected");
+				 
+		   }); 
+		
+	
+	
+});
+
+
+</script>
+
+</head>
+
+
+
+
+<body>
+<div class="container-fluid">
+    <div class="row">  <!--row1-->
+        <div><!--區塊1-->
+             <div class="panel panel-success purple-outline"><!--區塊1外框 panel-warning;panel-danger -->
+	        <div class="panel-heading thGradient">FOCUS
+	          <div class="pull-right">
+		 <button type="button" class="btn btn-link btn-sm" id="btnsmaller">口</button>
+		 <button type="button" class="btn btn-link btn-sm" id="btn_MasterX">X</button>
+	          </div>
+	        </div>
+	       
+	       
+	        
+	        <div class="panel-body" id="inspectionContent">
+		
+		<!-- 檢驗 結果區 -->
+		        
+    <div class="row"><!--row2 -->
+        <div class="col-md-4"><!--區塊2-->
+           <div class="table-responsive"><!--響應式Table -->
+           <table id="FocusTable" class="table table-bordered ">
+              <thead class="thGradient"><!-- 表格標頭 -->
+                <tr>
+                  <td>Date</td>
+                  <td>Time</td>
+                  <td>Focus</td>
+                </tr> 
+              </thead>
+              <tbody>
+                <tr>
+                  <td>104/08/07</td>
+                  <td>10:30:05</td>
+                  <td>出院</td>
+                </tr>
+                 <tr>
+                  <td>104/08/07</td>
+                  <td>01:56:50</td>
+                  <td>剖腹產</td>
+                </tr>  
+              </tbody>
+           </table><!--響應式Table結尾 -->
+           </div>    
+		
+        </div><!--區塊2結尾-->
+        
+        <div class="col-md-7" ><!--區塊3-->
+            <div class="panel panel-success purple-outline"><!--區塊3外框 panel-warning;panel-danger -->
+	       <div class="panel-heading text-center">Progress Note</div>
+	         <div class="panel-body">
+	            <div class="table-responsive">
+	              <table id="FocusDetailTable" >
+	                <thead>
+	                  <tr>
+                              <td>Date:<span>104/08/07</span></td>
+                              <td>Time:<span>10:30:05</span></td>
+                              <td>Focus:<span>出院</span></td>	                
+	                  </tr>
+
+	                  <tr>
+	                    <td>訪視醫師:<span>劉文彥</span></td>
+	                    <td></td>
+	                    <td>N:<span>賴婷琳</span></td>
+	                  </tr>
+	                </thead>
+	              </table>
+	            </div>
+	            
+	            <!-- DART -->
+	            <br/>
+		   <fieldset disabled>
+	             <div class="form-group">
+                         <label for="D">D:</label>
+                         <textarea class="form-control DARTOutline" rows="4"></textarea>
+                         
+                          <label for="A">A:</label>
+                         <textarea class="form-control DARTOutline" rows="4"></textarea>
+                         
+                         <label for="R">R:</label>
+                         <textarea class="form-control DARTOutline" rows="4"></textarea>
+                         
+                         <label for="R">T:</label>
+                         <textarea class="form-control DARTOutline" rows="4"></textarea>       
+                       </div>
+                       
+                                      
+                     </fieldset>
+                       
+                       
+                    
+	        
+	         </div>
+			 
+	  </div><!--區塊3外框結尾-->
+		
+       </div><!--區塊3結尾-->
+    
+    </div><!--row2結尾 -->
+		          
+		   </div><!-- panel-body 結尾 -->
+		         <!--  <div class="panel-footer"></div>-->
+			 
+	   </div><!--區塊1外框結尾-->
+		
+        </div><!--區塊1結尾-->
+    </div><!--row1結尾 -->
+    
+
+</div> 
+
+
+</body>
+</html>

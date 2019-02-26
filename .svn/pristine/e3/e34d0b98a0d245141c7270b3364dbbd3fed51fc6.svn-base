@@ -1,0 +1,49 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="inpPage_Title">住院</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('inpPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('inpPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<!-- <div id="collapse_xrayPage" class="panel-collapse collapse in">  -->
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12 form-inline">
+							<div style="display: inline" class="right" id="LabMaster">
+								<input value="5" id="InpYear" type="text" class="form-control input-sm"
+									style="max-width: 48px;"> <label for="InpYear">年</label>
+								<button class="btn btn-primary" id="InpMasterYear" onclick="InpListByYear()">5年住院 <span class="badge">0</span></button>
+								<button class="btn btn-primary" id="InpMasterAll" onclick="InpListByAll()">全部住院 <span class="badge">0</span></button> &emsp;
+							</div>
+							&emsp;
+							<div style="display: inline" id="XrayDetail"></div>
+						</div>
+					</div>
+					<hr style="margin: 10px" />
+					<div class="row">
+						<div class="col-sm-6">
+							<table id="InpList" class="table-hover">
+							</table>
+							<div id="InpList_Pager"></div>
+						</div>
+						<!--區塊2結尾-->
+						<div class="col-sm-6">
+							<!--區塊3-->
+							<div class="panel panel-info">
+								<!--區塊3外框 panel-warning;panel-danger -->
+								<div class="panel-heading" id="InpListHead">住院標題</div>
+								<div class="panel-body pre-scrollable" id="InpListBody">住院內容</div>
+							</div>
+							<!--區塊3外框結尾-->
+						</div>
+						<!--區塊3結尾-->
+					</div>
+				</div>
+				<!-- </div> -->
+			</div>
+		

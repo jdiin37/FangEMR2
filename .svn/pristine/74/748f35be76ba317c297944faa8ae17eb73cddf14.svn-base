@@ -1,0 +1,48 @@
+/**
+ * 
+ */
+
+var UdObj = {
+	UdYear : 5,
+	UdSDate : "",
+	UdEDate : "",
+	viewType: ""	
+};
+
+// Call ud用藥紀錄 (尚未完成) 尚未接上API
+var callUD = function(flag,kind){
+//	  console.log("EventTarget:"+event.target.id);
+//	  console.log(zIndex);
+	
+	UdObj.UdYear = PatObj.recentYear;
+	UdObj.UdSDate = ViewListObj.sdate;
+	UdObj.UdEDate = ViewListObj.edate;
+	UdObj.viewType = ViewListObj.viewType;
+	 
+		 setPageVisible("udPage", true);
+		 popUpPageFixPos("udPage");
+		 zIndex -=1; //目的是為了要讓 ud移到 住院紀錄的上層
+		 $('#inpRecordPage').css('z-index', zIndex);
+		 
+		 var title = UdObj.UdSDate + "-" +UdObj.UdEDate + "&nbsp;" + (UdObj.viewType == "OPD" ? '門急紀錄':'住院紀錄') + "-UD用藥紀錄";
+		 title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+		 $('#udPage_Title').html(title);	//設定title內容
+		 	
+	/**if(flag == "date"){		
+		$('#LabMasterDate').show();
+		LabListByDate();
+	}else if(flag =="year"){
+		PatObj.recentYear = $("#recentYear").val();
+		$('#LabMasterDate').hide();
+		LabListByYear();		
+	}else{
+		$('#LabMasterDate').hide();		
+		LabListByAll();		
+	}**/
+		
+	//$('#UDYear').val(PatObj.recentYear);
+	//$('#UDMasterYear').html(PatObj.recentYear + '年檢驗&nbsp;<span class="badge">'+ $("#yearsLAB").html() + '</span>');
+	//$('#UDMasterAll').find("span").html($("#allLAB").html());  //先帶入全部的count值
+	
+	//collapseHide("mainPage");
+}

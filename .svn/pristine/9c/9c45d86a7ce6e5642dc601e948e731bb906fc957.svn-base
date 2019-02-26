@@ -1,0 +1,154 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapEntryUtil;
+import library.utility.MapUtil;
+import model.Patopd;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static library.utility.MapUtil.castToInt;
+
+/**
+ * Created by jeffy on 2017/10/27.
+ */
+public class PatopdService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Patopd patopd;
+
+    private String getPatopdByStratEndDateChartNo(String startDate, String endDate, int chartNo) {
+        try {
+            objects = patopd.queryPatopdByStratEndDateChartNo(startDate, endDate, chartNo);
+
+            if (!objects.isEmpty()) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("Patopd.queryPatopdByStratEndDateChartNo startDate=" + startDate
+                        + " endDate=" + endDate  + " chartNo=" + chartNo + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    private List<Map<String, Object>> getOpdCountByChartNoDateRangeGroupByType(int chartNo, String startDate, String endDate) {
+        try {
+            objects = patopd.queryOpdCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        return objects;
+    }
+
+    private List<Map<String, Object>> getOpdDisCountByChartNoDateRangeGroupByDis(int chartNo, String startDate, String endDate) {
+        try {
+            objects = patopd.queryOpdDisCountByChartNoDateRangeGroupByDis(chartNo, startDate, endDate);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        return objects;
+    }
+
+    public String getPatopdSummaryByChartNoDateRange(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        JsonArray jsArray = new JsonArray();
+        JsonObject jsObj = new JsonObject();
+
+        List<Map<String, Object>> listMap = getOpdCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+
+        listMap = listMap.stream()
+                .map(map -> MapEntryUtil.getSubMapByKeyList(map, Arrays.asList("cash_type", "count")))
+                .collect(Collectors.toList());
+
+        int count = objects.stream()
+                .mapToInt(map -> castToInt(map.get("count")))
+                .sum();
+
+        jsObj.addProperty(MapUtil.KEY_SUMMARY, count);
+
+        if (!listMap.isEmpty()) {
+            jsObj.add("visit_details", MapUtil.listMapToJsonArray(listMap));
+
+            listMap = getOpdDisCountByChartNoDateRangeGroupByDis(chartNo, startDate, endDate);
+
+            jsObj.add("dis_details", MapUtil.listMapToJsonArray(listMap));
+            jsArray.add(jsObj);
+
+            jsonObject = MapUtil.getSuccessResult(jsObj);
+        } else {
+            jsonObject = MapUtil.getFailureResult("Patopd.getPatopdSummaryByChartNoDateRange chartNo=" + chartNo
+                    + " startDate=" + startDate + " endDate=" + endDate + " No Data Found ");
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            patopd = new Patopd(myConnection);
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            // get patopd emg/opd count and dis_cat count
+            if (method.equals("getPatopdSummaryByChartNoDateRange")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                result = getPatopdSummaryByChartNoDateRange(chartNo, startDate, endDate);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        PatopdService patopdService = new PatopdService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+
+
+        jsonObject.addProperty("chartNo", 912473);
+        jsonObject.addProperty("startDate", "1021031");
+        jsonObject.addProperty("endDate", "1060504");
+        jsonObject.addProperty("method", "getPatopdSummaryByChartNoDateRange");
+        resultStrng = patopdService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPatopdService.run getPatopdSummaryByChartNoDateRange chartNo=912473 startDate='1021031' endDate='1060504' :"  + resultStrng);
+
+    }
+}
+
+
+

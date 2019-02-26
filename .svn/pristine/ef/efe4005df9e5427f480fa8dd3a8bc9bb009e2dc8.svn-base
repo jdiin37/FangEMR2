@@ -1,0 +1,672 @@
+//物件區----------------
+var nowDay = new Date()
+var today = (nowDay.getFullYear() - 1911 < 100 ? '0' : '') + (nowDay.getFullYear() - 1911) +"" + (nowDay.getMonth()+1<10 ? '0' : '') + (nowDay.getMonth()+1) +"" + (nowDay.getDate()<10 ? '0' : '') + nowDay.getDate();	
+
+var UserObj = { // 使用者
+	emp_no : "ORCL",
+	password : "UNIMAXORCL",
+	emp_name : "",
+	session_id : 0
+};
+
+var PatObj = { // 病患客戶
+	chart_no : 912473,
+	pt_name : "",
+	recentYear : 1
+};
+
+var ViewListObj = { //就診清單
+	type:"OPD",
+	sdate:"1000101",
+	edate:"1000101"
+}
+
+var QueryObj = { // 查詢物件
+	chkopd : true,
+	chkinp : true,
+	chkdis : false,
+	opddays : 0,
+	disdays : 0,
+	ptName : null,
+	birth : null,
+	tel : null,
+	chartNo : null
+}
+
+var PageObj = { // 視窗物件
+	mainPage : true,
+	queryPage : false,
+	labPage : false,
+	XrayPage : false
+}
+
+var QueryPatArray= [];
+var ajaxErrMsg = "";
+var ajax_url = function(path) {
+	if (path == 1)
+		return 'http://172.16.2.189:8080/FangEmrServices/servlets/ServletAgent';
+	else if (path == 2)
+		return 'servlets/ServletAgent';
+}
+
+var getAjaxData = function(method) {
+	switch (method) {
+	case "checkPasswd":
+		return {
+			serviceName : "AuthService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"password":'
+					+ UserObj.password + ',"method":"checkPasswd"}'
+		};
+		break;
+	case "getHospName":
+		return {
+			serviceName : "SysparaService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"method":"getHospName"}'
+		};
+		break;
+	case "getChartByChartNo":
+		return {
+			serviceName : "ChartService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"method":"getChartByChartNo"}'
+		};
+		break;
+	case "getChartEMRSummaryByChartNoAndYears":
+		return {
+			serviceName : "EMRViewService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"years":' + PatObj.recentYear
+					+ ',"method":"getChartEMRSummaryByChartNoAndYears"}'
+		};
+		break;
+	case "getChartEMRSummaryByChartNo":
+		return {
+			serviceName : "EMRViewService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"method":"getChartEMRSummaryByChartNo"}'
+		};
+		break;
+	case "getPatientListOpd":
+		return {
+			serviceName : "PatientListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"rangeOfDays":' + QueryObj.opddays
+					+ ',"method":"getPatientListOpd"}'
+		};
+		break;
+	case "getPatientListInp":
+		return {
+			serviceName : "PatientListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"rangeOfDays":' + QueryObj.opddays
+					+ ',"method":"getPatientListInp"}'
+		};
+		break;
+	case "getPatientListDischarge":
+		return {
+			serviceName : "PatientListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"rangeOfDays":' + QueryObj.disdays
+					+ ',"method":"getPatientListDischarge"}'
+		};
+		break;
+	case "getChartByChartNoPtNameBirthDateTel":
+		return {
+			serviceName : "ChartService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + QueryObj.chartNo
+					+ ',"ptName":' + QueryObj.ptName + ',"birthDate":'
+					+ QueryObj.birth + ',"tel":' + QueryObj.tel
+					+ ',"method":"getChartByChartNoPtNameBirthDateTel"}'
+		}
+		break;
+	case "getEmrViewListByYearsChartNo":
+		return {
+			serviceName : "EMRViewListService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'
+					+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no
+					+ ',"years":' + PatObj.recentYear
+					+ ',"method":"getEmrViewListByYearsChartNo"}'
+		};
+		break;
+	case "getLabCountByChartNoDateRangeGroupByKind":
+		return {
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getLabCountByChartNoDateRangeGroupByKind"}'
+		};
+		break;	
+	case "getLabCountByChartNoYearsGroupByKind":
+		return {
+			serviceName : "LabRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"years":'+ PatObj.recentYear +',"method":"getLabCountByChartNoYearsGroupByKind"}'
+		};
+		break;		
+	case "getPatopdOPDataByChartNoDateRange":
+		return {
+			serviceName : "OrRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getPatopdOPDataByChartNoDateRange"}'
+		};
+		break;
+	case "getPatinpOPDataByChartNoDateRange":
+		return {
+			serviceName : "OrRecordService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getPatinpOPDataByChartNoDateRange"}'
+		};
+	break;	
+	case "getXrayCountByChartNoDateRangeGroupByType":
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"startDate":'+ ViewListObj.sdate +',"endDate":'+ ViewListObj.edate+',"method":"getXrayCountByChartNoDateRangeGroupByType"}'
+		};
+	break;
+	case "getXrayCountByChartNoYearsGroupByType":
+		return {
+			serviceName : "XrayReportService",
+			parameters : '{"empNo":' + UserObj.emp_no + ',"sessionID":'+ UserObj.session_id + ',"chartNo":' + PatObj.chart_no +',"years":'+ PatObj.recentYear +',"method":"getXrayCountByChartNoYearsGroupByType"}'
+		};
+	break;
+	default:
+		return false;
+	}
+}
+
+// -----------------
+// 資料驗證區(正規表達式)---------
+number_regex = /^\d+$/;
+years_regex = /^([1-9]?\d|100)$/;
+ROCdata_regex = /^\d{3}\d{2}\d{2}$/;
+char_regex = /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/;
+
+function stateChange(state, objID, msg) {
+	if (state) {
+		// $(objID).parent().removeClass('has-error').addClass('has-success');
+		$(objID).parent().removeClass('has-error')
+		$(objID).tooltip('destroy');
+	} else {
+		$(objID).parent().removeClass('has-success').addClass('has-error');
+		$(objID).tooltip({
+			title : msg,
+			placement : "bottom"
+		}).tooltip('show');
+	}
+}
+// ---------------
+// 顯示遮罩區 Format
+function date_format(dateString) {
+	if (dateString === null) {
+		return "";
+	}
+
+	alert(dateString);
+
+	var rtnVal = "";
+	if (dateString.substr(0, 1) == "0") {
+		rtnVal += dateString.substr(1, 2);
+	} else {
+		rtnVal += dateString.substr(0, 3);
+	}
+
+	rtnVal += "/";
+
+	if (dateString.substr(3, 1) == "0") {
+		rtnVal += dateString.substr(4, 1);
+	} else {
+		rtnVal += dateString.substr(3, 2);
+	}
+
+	rtnVal += "/";
+
+	if (dateString.substr(5, 1) == "0") {
+		rtnVal += dateString.substr(6, 1);
+	} else {
+		rtnVal += dateString.substr(5, 7);
+	}
+
+	return rtnVal;
+}
+// ------------------------
+
+// 畫面生成 事件設定----------
+function render() {
+	$('#currentList').hide(); // 隱藏查詢Table
+	$('#chartBaseList').hide(); // 隱藏查詢Table
+	processPage();
+
+	$("#btn_ShowQueryPage").click(
+			function() { // 切換查詢區塊
+				callQuery();
+			});
+
+	$("#btn_block1").click(function() { // 註記1
+		alert(JSON.stringify(UserObj));
+	});
+	$("#btn_block2").click(function() { // 註記2
+		alert(JSON.stringify(PatObj));
+	});
+	$("#btn_block3").click(function() { // 註記3
+		alert(ajaxErrMsg);
+	});
+	$("#btn_block4").click(function() { // 註記4
+		alert(JSON.stringify(QueryObj));
+	});
+	$("#btn_block5").click(function() { // 註記5
+		alert(JSON.stringify(PageObj));
+	});
+
+	//檢驗
+	$("#LabYear").change(function() { // 搜尋範圍 (年)
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#LabYear');
+			PatObj.recentYear = $(this).val();
+			//showLoading();			
+			LabgetYear();
+		} else {
+			stateChange(false, '#LabYear', "請輸入1-100之間");
+		}
+	});
+						
+	//影像
+	$("#XrayYear").change(function() { // 搜尋範圍 (年)
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#XrayYear');
+			PatObj.recentYear = $(this).val();
+			//showLoading();
+			$.when(getXrayCountByChartNoYearsGroupByType()).done(function(dataLab){
+				
+			});
+		} else {
+			stateChange(false, '#XrayYear', "請輸入1-100之間");
+		}
+	});
+	
+	
+	
+	$("#recentYear").change(function() { // 搜尋範圍 (年)
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#recentYear');
+			PatObj.recentYear = $(this).val();
+			showLoading();
+			ajax_getChartEMRSummaryByChartNoAndYears();
+		} else {
+			stateChange(false, '#recentYear', "請輸入1-100之間");
+		}
+	});
+
+	$("#btn_query1").click(function() {
+		changeQueryTable();
+	});
+
+	$("#btn_query2").click(function() {
+		changeQueryTable("chart_base");
+	});
+
+	$("#query_ptName").change(function() { // 搜尋姓名
+		if ($(this).val().length == 0 || char_regex.test($(this).val())) {
+			stateChange(true, '#query_ptName');
+			if ($(this).val().length > 0)
+				QueryObj.ptName = $(this).val();
+			else
+				QueryObj.ptName = null;
+		} else {
+			stateChange(false, '#query_ptName', "請輸入字元");
+		}
+	});
+
+	$("#query_birth").change(function() { // 搜尋日期
+		if ($(this).val().length == 0 || ROCdata_regex.test($(this).val())) {
+			stateChange(true, '#query_birth');
+			if ($(this).val().length > 0)
+				QueryObj.birth = $(this).val();
+			else
+				QueryObj.birth = null;
+		} else {
+			stateChange(false, '#query_birth', "請輸入正確的日期格式 範例:'1070101' ");
+		}
+	});
+
+	$("#query_tel").change(function() { // 搜尋電話
+		if ($(this).val().length == 0 || number_regex.test($(this).val())) {
+			stateChange(true, '#query_tel');
+			if ($(this).val().length > 0)
+				QueryObj.tel = $(this).val();
+			else
+				QueryObj.tel = null;
+		} else {
+			stateChange(false, '#query_tel', "請輸入數字");
+		}
+	});
+
+	$("#query_chartNo").change(function() { // 搜尋病歷號
+		if ($(this).val().length == 0 || number_regex.test($(this).val())) {
+			stateChange(true, '#query_chartNo');
+			if ($(this).val().length > 0)
+				QueryObj.chartNo = $(this).val();
+			else
+				QueryObj.chartNo = null;
+		} else {
+			stateChange(false, '#query_chartNo', "請輸入數字");
+		}
+	});
+
+	// ---視窗顯示
+	$(".btn-close").click(function() {
+		closePage($(this).parent().parent().parent().parent().attr('id'));
+	});
+
+	$(".pageControl").click(function() {
+		if ($(this).children("span").hasClass("glyphicon-ok"))
+			setPageVisible($(this).attr('id').substr(3), false);
+		else
+			setPageVisible($(this).attr('id').substr(3), true);
+	});
+	// --------------
+	$(".btn-popUp").click(function() {
+		if (!$('#'+ $(this).parent().parent().parent().parent().attr('id')).hasClass("ui-draggable")) {
+			setPopUp($(this).parent().parent().parent().parent().attr('id'), true);
+		} else {
+			setPopUp($(this).parent().parent().parent().parent().attr('id'), false);
+		}
+	});
+
+	$(".page").click(function() {
+		zIndex += 10;
+		$(this).css('z-index', zIndex);
+	});
+		
+	if (getQueryVariable("chartNo").length > 0) {
+		PatObj.chart_no = getQueryVariable("chartNo");//取得QueryString	
+	}
+}
+// ----------------------
+
+// 共用 function
+
+var countObj = function(obj) {
+	var total = Object.keys(obj).length;
+	// $('#loading-total').html(total);
+	// showLoading();
+}
+
+var showLoading = function() {
+	$('#LoadingModal').modal('show');
+}
+
+var hideLoading = function() {
+	$('#LoadingModal').modal('hide');
+}
+
+var getQueryVariable = function(variable) {
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i = 0; i < vars.length; i++) {
+		var pair = vars[i].split("=");
+		if (pair[0] == variable) {
+			return pair[1];
+		}
+	}
+	return (false);
+}
+
+var changeQueryTable = function(type) {
+	if (type == "chart_base") {
+		if (QueryObj.ptName == null && QueryObj.birth == null
+				&& QueryObj.tel == null && QueryObj.chartNo == null) {
+			alert("請至少輸入一項查詢資料");
+		} else {
+			showLoading();
+			ajax_getChartByChartNoPtNameBirthDateTel();
+		}		
+	} else {
+
+		if ($('#chk_queryOPD').is(":checked")) {
+			if ($('#input_OPDdays').val().length > 0
+					&& number_regex.test($('#input_OPDdays').val())) {
+				QueryObj.chkopd = true;
+				QueryObj.opddays = $('#input_OPDdays').val();
+				stateChange(true, '#input_OPDdays');
+			} else {
+				stateChange(false, '#input_OPDdays', "請輸入數字");
+			}
+		} else {
+			QueryObj.chkopd = false;
+		}
+
+		if ($('#chk_queryINP').is(":checked")) {
+			QueryObj.chkinp = true;
+			ajax_getPatientListDischarge();
+		} else {
+			QueryObj.chkinp = false;
+		}
+
+		if ($('#chk_queryDIS').is(":checked")) {
+			if ($('#input_DISdays').val().length > 0
+					&& number_regex.test($('#input_DISdays').val())) {
+				QueryObj.chkdis = true;
+				QueryObj.disdays = $('#input_DISdays').val();
+				stateChange(true, '#input_DISdays');
+			} else {
+				stateChange(false, '#input_DISdays', "請輸入數字");
+			}
+		} else {
+			QueryObj.chkdis = false;
+		}
+		mergeTable_PatList();
+		
+	}
+}
+
+var mergeTable_PatList = function() {
+	showLoading();
+	$.when(ajax_getPatientListOpd(), ajax_getPatientListInp(),
+			ajax_getPatientListDischarge()).done(
+			function(dataOpd, dataInp, dataDis) {
+				QueryPatArray =[];
+				if (QueryObj.chkopd) {
+					if (dataOpd[0].status == "Success") {
+						$.each(dataOpd[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataOpd[0].errorMessage;
+					}
+				}
+				if (QueryObj.chkinp) {
+					if (dataInp[0].status == "Success") {
+						$.each(dataInp[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataInp[0].errorMessage;
+					}
+				}
+				if (QueryObj.chkdis) {
+					if (dataDis[0].status == "Success") {
+						$.each(dataDis[0].resultSet, function(index, obj) {
+							QueryPatArray.push(obj);
+						});
+					} else {
+						ajaxErrMsg = dataDis[0].errorMessage;
+					}
+				}
+				jqGrid_PatList();								
+				hideLoading();
+			});
+}
+
+var zIndex = 100;
+var element; 
+//可拖曳
+function setPopUp(id,flag){
+	if(flag){
+		zIndex += 10; 		
+		$('#' + id).draggable();
+		$('#' + id).addClass('popUp');
+		$('#' + id).css('top', 0);
+		$('#' + id).css('left', 0);
+		$('#' + id).css('z-index', zIndex);							
+	}else{
+		if ($('#' + id).hasClass( "popUp" )) {
+			$('#' + id).draggable( "destroy" );	
+		}			
+		$('#' + id).css('top', 0);
+		$('#' + id).css('left', 0);
+		$('#' + id).css('z-index', 0);
+		$('#' + id).removeClass('popUp');
+	}	
+}
+
+
+var setPageVisible = function(page, visible) {	//***important****
+
+	PageObj[page] = visible;
+	if (visible == true) {
+		$('#' + page).show();
+		$('#collapse_' + page).collapse('show');
+	} else {
+		setPopUp(page,false);
+		$('#' + page).hide();		
+		$('#collapse_' + page).collapse('hide');
+	}
+	processPage();
+}
+
+var processPage = function (){
+	$('#bottom-toolbar').html("");
+	$.each( PageObj, function( key, value ) {
+		  //alert( key + ": " + value );		  
+		  if(value){
+			  var title = $('#' + key).attr('name');
+			  var btn;
+			  if(key =="mainPage"){
+				  btn = '<div class="col-xs-2 ' + key + '" style="padding: 5px; ">' +
+			  		'<a href="#' + key +'" class="btn btn-info btn-block" id="a_' + key +'">'+ title+'<button class="pull-right btn-link btn-close hide" id="X_' + key +'"><span class="glyphicon glyphicon-remove"></span></button></a>'	+			
+			  		'</div>';			
+			  }else{
+				  btn = '<div class="col-xs-2 ' + key + '" style="padding: 5px; ">' +
+			  		'<a href="#' + key +'" class="btn btn-info btn-block" id="a_' + key +'">'+ title+'<button class="pull-right btn-link btn-close" id="X_' + key +'"><span class="glyphicon glyphicon-remove"></span></button></a>'	+			
+			  		'</div>';
+				 
+			  }
+			  $('#bottom-toolbar').append(btn);
+			  
+			  $('#a_' + key).click(function() {
+				  setPageVisible(key,true);
+			  });
+			  
+			  $('#X_' + key).click(function() {
+				  closePage(key);
+			  });
+		  }else{			  
+			  $('#' + key).hide();
+		  }		
+		 
+	});
+};
+
+var closePage = function(id){
+	setPageVisible(id, false);
+	collapseShow("mainPage");
+}
+
+var collapseHide = function(key){
+	$('#collapse_' + key).collapse('hide');
+}
+var collapseShow = function(key){
+	$('#collapse_' + key).collapse('show');
+}
+
+var callQuery = function(){
+	collapseHide("mainPage");
+	setPageVisible("queryPage", true);
+	if ($('#currentList').is(":visible")
+			|| $('#chartBaseList').is(":visible")) {
+
+	} else {
+		changeQueryTable();
+	}
+}
+
+var callLab = function(flag){
+	collapseHide("mainPage");
+	setPageVisible("labPage", true);
+	if(flag == "date"){
+		$('#LabMasterDate').show();
+		LabgetDate();	
+		var title = ViewListObj.sdate + "-" +ViewListObj.edate + "&nbsp;" + (ViewListObj.type == "OPD" ? '門急紀錄':'住院紀錄') + "-檢驗";
+		title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+		$('#labTitle').html(title);
+	}else if(flag =="year"){
+		$('#LabMasterDate').hide();
+		LabgetYear();
+		$('#labTitle').html('檢驗');
+	}else{
+		$('#LabMasterDate').hide();
+		LabgetAll();
+		$('#labTitle').html('檢驗');
+	}
+			
+	$('#LabMasterAll').find("span").html($("#allLAB").html());
+}
+
+var LabgetYear = function(){
+	$.when(ajax_getLabCountByChartNoYearsGroupByKind()).done(function(dataLab){
+		if (dataLab.status == "Success") {
+			var box = "";
+			$.each(dataLab.resultSet, function(index, obj) {
+				
+				if(index == "summary"){
+					//alert(obj);
+					$('#LabYear').val(PatObj.recentYear);
+					$('#LabMasterYear').html(PatObj.recentYear + '年檢驗&nbsp;<span class="badge">'+ obj + '</span>')
+				}else{
+					$.each(obj, function(index, obj_d){
+						box += '&nbsp;<button class="btn btn-info btn-lab-d">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+					});
+				}
+				//alert(index + ":" + obj);
+			});
+			$('#LabDetail').html(box);
+			box = null;
+		} else {
+			ajaxErrMsg = dataLab.errorMessage;
+		}		
+	});
+}
+
+var LabgetDate = function(){
+	$.when(ajax_getLabCountByChartNoDateRangeGroupByKind()).done(function(dataLab){
+		if (dataLab.status == "Success") {
+			var box = "";
+			$.each(dataLab.resultSet, function(index, obj) {
+				
+				if(index == "summary"){
+					//alert(obj);
+					$('#LabMasterDate').html('檢驗&nbsp;<span class="badge">'+ obj + '</span>')
+				}else{
+					$.each(obj, function(index, obj_d){
+						box += '&nbsp;<button class="btn btn-info btn-lab-d">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+					});
+				}
+				//alert(index + ":" + obj);
+			});
+			$('#LabDetail').html(box);
+			box = null;
+		} else {
+			ajaxErrMsg = dataLab.errorMessage;
+		}		
+	});
+}
+
+var LabgetAll = function(){
+	$('#LabDetail').html("");
+}
+
+
+var callXray = function(){
+	collapseHide("mainPage");
+	setPageVisible("XrayPage", true);
+}

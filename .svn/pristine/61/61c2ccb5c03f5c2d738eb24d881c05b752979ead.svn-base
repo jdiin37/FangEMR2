@@ -1,0 +1,38 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="opdRecordPage_Title">門急紀錄</span>
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('opdRecordPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('opdRecordPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<div class="panel-body fix-body">
+					
+					
+						<div class="col-sm-12 form-inline" id="opdRecordInfo"></div>
+					
+					
+					<div class="row">
+						<div class="col-sm-5">
+							<table id="opdRecordList" class="table-hover">
+							</table>
+							<div id="opdRecordList_Pager"></div>
+						</div>
+						<div class="col-sm-7">
+							
+							<div class="panel panel-info">
+								
+								<div class="panel-heading" id="opdRecordListHead">門急診標題</div>
+								<div class="panel-body pre-scrollable" id="opdRecordListBody">門急診內容</div>
+							</div>
+							
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		

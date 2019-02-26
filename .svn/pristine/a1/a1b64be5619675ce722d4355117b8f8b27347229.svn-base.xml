@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" version="3.1">
+  <display-name>TimaServices</display-name>
+  <welcome-file-list>
+    <welcome-file>/html/login/welcome002.html</welcome-file>
+  </welcome-file-list>
+
+  <servlet>
+    <display-name>ServletAgent</display-name>
+    <servlet-name>ServletAgent</servlet-name>
+    <servlet-class>servlets.ServletAgent</servlet-class>
+  </servlet>
+  <servlet>
+    <display-name>ServletAgentTest</display-name>
+    <servlet-name>ServletAgentTest</servlet-name>
+    <servlet-class>servlets.ServletAgentTest</servlet-class>
+  </servlet> 
+    
+  <servlet-mapping>
+    <servlet-name>ServletAgent</servlet-name>
+    <url-pattern>/servlets/ServletAgent</url-pattern>
+  </servlet-mapping>
+    <servlet-mapping>
+    <servlet-name>ServletAgentTest</servlet-name>
+    <url-pattern>/servlets/ServletAgentTest</url-pattern>
+  </servlet-mapping>
+
+  <filter>
+  	<filter-name>SetCharacterEncoding</filter-name>
+  	<filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>
+  		<init-param>
+  			<param-name>encoding</param-name>
+  			<param-value>UTF-8</param-value>
+  		</init-param>
+  </filter> 
+
+  <filter>
+    <filter-name>CorsFilter</filter-name>
+	<filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+  </filter>    
+  
+  <filter-mapping>
+  	<filter-name>SetCharacterEncoding</filter-name>
+  	<!--將全部的請求都mapping給filter-->
+  	<url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
+  <filter-mapping>
+    <filter-name>CorsFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>  
+  
+  <resource-ref>
+    <description>Oracle Datasource</description>
+    <res-ref-name>jdbc/myoracle</res-ref-name>
+    <res-type>javax.sql.DataSource</res-type>
+    <res-auth>Container</res-auth>
+  </resource-ref>
+</web-app>

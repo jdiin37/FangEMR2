@@ -1,0 +1,340 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import library.utility.MapEntryUtil;
+import model.Freeze;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import library.utility.TableUtil;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
+
+/**
+ * Created by jeffy on 2017/8/25.
+ */
+public class FreezeMADService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Freeze freeze;
+    private TableUtil tableUtil;
+    private List<String> pkColNames;
+    private List<String> noNullColNames;
+    private List<String> tableColNames;
+    private List<Map<String, Object>> tableMetaData;
+    private String resultString;
+
+    public void getTableConstrains(String tableName, TableUtil tableUtil) throws SQLException {
+        pkColNames = tableUtil.getPKColNames(tableName);
+        tableMetaData =  tableUtil.getTableMetaData(tableName);
+        noNullColNames = tableUtil.getNoNullColNames(tableMetaData);
+        tableColNames = tableUtil.getTableColNames(tableMetaData);
+    }
+
+    public Map<String, Object> insertFreeze2Log(Map<String, Object> dataParametersMap) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            List<String> insertKeyList = Arrays.asList(
+                    "stock", "bar_no", "freeze_no", "rec_count", "item_no", "price", "current_qty",
+                    "expense_qty", "freeze_qty", "tot_qty", "take_qty", "update_flag", "stat_qty",
+                    "pad_date", "pad_clerk", "trans_date", "trans_clerk");
+
+            List<Object> inputObjects = MapEntryUtil.getMapValuesByKeyList(dataParametersMap, insertKeyList);
+            result = freeze.insertFreeze2Log(inputObjects);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        return result;
+    }
+
+    public Map<String, Object> updateFreeze2Log(Map<String, Object> dataParametersMap) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            List<String> updateKeyList = Arrays.asList(
+                    "take_qty", "pad_date", "pad_clerk", "trans_date", "trans_clerk",
+                    "stock", "bar_no", "freeze_no", "rec_count");
+
+            List<Object> inputObjects = MapEntryUtil.getMapValuesByKeyList(dataParametersMap, updateKeyList);
+            result = freeze.updateFreeze2Log(inputObjects);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        return result;
+    }
+
+    public String batchInsertFreeze2Log(Connection conn, List<Map<String, Object>> dataParametersListMap) {
+        Map<String, Object> upsertResult;
+        String sqlErrorMessage = "";
+        int totalUpsertCounts = 0; // 記錄新增紀錄筆數
+        int currRowIndex = 0;   // 記錄目前處理紀錄index
+
+        try {
+            JDBCUtilities.setAutoCommitFalse(conn);
+            List<String> primaryKeyList = Arrays.asList("stock", "bar_no", "freeze_no", "rec_count");
+
+            for (Map<String, Object> map : dataParametersListMap) {
+                List<Object> inputObjects = MapEntryUtil.getMapValuesByKeyList(map, primaryKeyList);
+
+                // Only insert update_flag_pad = 'Y' means stock counted
+                if (map.get("update_flag_pad").equals("Y")) {
+                    if (freeze.getFreeze2LogCountByStockBarNoFreezeNoRecCount(inputObjects) == 0) {
+                        upsertResult = insertFreeze2Log(map);
+                    } else {
+                        upsertResult = updateFreeze2Log(map);
+                    }
+                    sqlErrorMessage = (String)upsertResult.get("errorMessage");
+                    totalUpsertCounts++;
+                }
+
+                currRowIndex++;
+
+                if (!sqlErrorMessage.equals("")) break;
+            }
+
+            if (sqlErrorMessage.equals("")) {
+                resultString = String.format("Success Insert %d record.", totalUpsertCounts);
+                jsonObject = MapUtil.getSuccessResult(resultString);
+                JDBCUtilities.commitConnection(conn);
+            } else {
+                resultString = String.format("Error Insert on row=%d; DataRecord=%s; Message=%s", currRowIndex , dataParametersListMap.get(currRowIndex - 1), sqlErrorMessage);
+                jsonObject = MapUtil.getFailureResult(resultString);
+                JDBCUtilities.rollbackConnection(conn);
+            }
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            resultString = ex.getMessage();
+            jsonObject = MapUtil.getFailureResult(resultString);
+        } finally {
+            JDBCUtilities.setAutoCommitTrue(conn);
+        }
+        return jsonObject.toString();
+    }
+
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+        JsonObject dataParametersJsObj;
+        JsonArray dataParametersJsArray;
+        Map<String, Object> dataParametersMap;
+        List<Map<String, Object>> dataParametersListMap;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            tableUtil = new TableUtil(myConnection);
+            freeze = new Freeze(myConnection);
+
+            String method = parametersJsObj.get("method").getAsString();
+
+            if (method.equals("batchInsertFreeze2Log")) {
+                dataParametersJsArray = parametersJsObj.get("dataParameters").getAsJsonArray();
+                dataParametersListMap = MapUtil.jsonArrayToListMap(dataParametersJsArray);
+                String checkMessages = "";
+
+                this.getTableConstrains("freeze2_log", tableUtil);
+
+                for (Map<String, Object> map : dataParametersListMap) {
+                    checkMessages = checkMessages
+                            + tableUtil.checkPKColsMissing(pkColNames, map) + " "
+                            + tableUtil.checkNoNullColsMissing(noNullColNames, map) + " "
+                            + tableUtil.checkValueConstrains(tableMetaData, map);
+                }
+
+                System.out.println(checkMessages.trim().isEmpty()
+                        ? "checkPKColsMissing & checkNoNullColsMissing & dataCheck.checkValueConstrains Passed"
+                        : "checkMessage: " + checkMessages);
+
+                if (checkMessages.trim().isEmpty()) {
+                    result = batchInsertFreeze2Log(myConnection, dataParametersListMap);
+                } else {
+                    result = MapUtil.getFailureResult(checkMessages).toString();
+                }
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        JsonObject dataJsonObject = new JsonObject();
+        JsonArray dataJsonArray = new JsonArray();
+        //Map<String, String> map = new LinkedHashMap<>();
+        FreezeMADService freezeMADService = new FreezeMADService();
+        String resultStrng;
+
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("bar_no", "ALLALL");
+        dataJsonObject.addProperty("freeze_no", "10512005");
+        dataJsonObject.addProperty("rec_count", 1);
+        dataJsonObject.addProperty("item_no", "EBC");
+        dataJsonObject.add("barcode", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("price", 0);
+        dataJsonObject.addProperty("current_qty", 4);
+        dataJsonObject.addProperty("expense_qty", 0);
+        dataJsonObject.addProperty("freeze_qty", 4);
+        dataJsonObject.addProperty("tot_qty", 4);
+        dataJsonObject.addProperty("take_qty", 4);
+        dataJsonObject.addProperty("update_flag", "N");
+        dataJsonObject.add("stat_qty", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("bar_no", "ALLALL");
+        dataJsonObject.addProperty("freeze_no", "10512005");
+        dataJsonObject.addProperty("rec_count", 2);
+        dataJsonObject.addProperty("item_no", "EER");
+        dataJsonObject.add("barcode", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("price", 0);
+        dataJsonObject.addProperty("current_qty", 104);
+        dataJsonObject.addProperty("expense_qty", 0);
+        dataJsonObject.addProperty("freeze_qty", 104);
+        dataJsonObject.addProperty("tot_qty", 104);
+        dataJsonObject.addProperty("take_qty", 104);
+        dataJsonObject.addProperty("update_flag", "N");
+        dataJsonObject.add("stat_qty", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("bar_no", "ALLALL");
+        dataJsonObject.addProperty("freeze_no", "10512005");
+        dataJsonObject.addProperty("rec_count", 3);
+        dataJsonObject.addProperty("item_no", "EERY");
+        dataJsonObject.add("barcode", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("price", 0);
+        dataJsonObject.addProperty("current_qty", 0);
+        dataJsonObject.addProperty("expense_qty", 0);
+        dataJsonObject.addProperty("freeze_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 0);
+        dataJsonObject.addProperty("take_qty", 10);
+        dataJsonObject.addProperty("update_flag", "N");
+        dataJsonObject.add("stat_qty", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "Y");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("bar_no", "ALLALL");
+        dataJsonObject.addProperty("freeze_no", "10512005");
+        dataJsonObject.addProperty("rec_count", 4);
+        dataJsonObject.addProperty("item_no", "EEX");
+        dataJsonObject.add("barcode", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("price", 53);
+        dataJsonObject.addProperty("current_qty", 94);
+        dataJsonObject.addProperty("expense_qty", 0);
+        dataJsonObject.addProperty("freeze_qty", 94);
+        dataJsonObject.addProperty("tot_qty", 94);
+        dataJsonObject.addProperty("take_qty", 94);
+        dataJsonObject.addProperty("update_flag", "N");
+        dataJsonObject.add("stat_qty", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "N");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("bar_no", "ALLALL");
+        dataJsonObject.addProperty("freeze_no", "10512005");
+        dataJsonObject.addProperty("rec_count", 5);
+        dataJsonObject.addProperty("item_no", "EGLY");
+        dataJsonObject.add("barcode", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("price", 0);
+        dataJsonObject.addProperty("current_qty", 0);
+        dataJsonObject.addProperty("expense_qty", 0);
+        dataJsonObject.addProperty("freeze_qty", 0);
+        dataJsonObject.addProperty("tot_qty", 0);
+        dataJsonObject.addProperty("take_qty", 0);
+        dataJsonObject.addProperty("update_flag", "N");
+        dataJsonObject.add("stat_qty", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "N");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("bar_no", "ALLALL");
+        dataJsonObject.addProperty("freeze_no", "10512005");
+        dataJsonObject.addProperty("rec_count", 6);
+        dataJsonObject.addProperty("item_no", "EGLY1");
+        dataJsonObject.add("barcode", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("price", 0);
+        dataJsonObject.addProperty("current_qty", 569);
+        dataJsonObject.addProperty("expense_qty", 0);
+        dataJsonObject.addProperty("freeze_qty", 569);
+        dataJsonObject.addProperty("tot_qty", 569);
+        dataJsonObject.addProperty("take_qty", 569);
+        dataJsonObject.addProperty("update_flag", "N");
+        dataJsonObject.add("stat_qty", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "N");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        dataJsonObject = new JsonObject();
+        dataJsonObject.addProperty("stock", "SS");
+        dataJsonObject.addProperty("bar_no", "ALLALL");
+        dataJsonObject.addProperty("freeze_no", "10512005");
+        dataJsonObject.addProperty("rec_count", 7);
+        dataJsonObject.addProperty("item_no", "ESCA");
+        dataJsonObject.add("barcode", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("price", 0);
+        dataJsonObject.addProperty("current_qty", 142);
+        dataJsonObject.addProperty("expense_qty", 0);
+        dataJsonObject.addProperty("freeze_qty", 142);
+        dataJsonObject.addProperty("tot_qty", 142);
+        dataJsonObject.addProperty("take_qty", 142);
+        dataJsonObject.addProperty("update_flag", "N");
+        dataJsonObject.add("stat_qty", JsonNull.INSTANCE);
+        dataJsonObject.addProperty("update_flag_pad", "N");
+        dataJsonObject.addProperty("pad_date", "1060825");
+        dataJsonObject.addProperty("pad_clerk", "KSPH");
+        dataJsonObject.addProperty("trans_date", "1060825");
+        dataJsonObject.addProperty("trans_clerk", "KSPH");
+        dataJsonArray.add(dataJsonObject);
+
+        jsonObject.addProperty("empNo", "KSPH");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.add("dataParameters", dataJsonArray);
+        jsonObject.addProperty("method", "batchInsertFreeze2Log");
+        resultStrng = freezeMADService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nFreezeMADService.run batchInsertFreeze2Log : " + resultStrng);
+    }
+}

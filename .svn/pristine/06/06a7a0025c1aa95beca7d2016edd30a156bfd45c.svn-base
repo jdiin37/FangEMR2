@@ -1,0 +1,85 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static library.utility.MapUtil.castToInt;
+
+/**
+ * Created by jeffy on 2017/10/31.
+ */
+public class XrayReport {
+    private Connection con;
+
+    public XrayReport(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryXrayCountByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        List<Map<String, Object>> objects;
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        objects = queryXrayCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+
+        int count = objects.stream()
+                .mapToInt(map -> castToInt(map.get("count")))
+                .sum();
+        result.put("count", count);
+
+        return result;
+    }
+
+    public List<Map<String, Object>> queryXrayCountByChartNoDateRangeGroupByType(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT b.xray_type cat_type, c.name cat_name, COUNT(b.xray_type) count  " +
+                "  FROM xrayrpt a, xryform b, justname c " +
+                " WHERE a.chart_no = ? " +
+                "   AND a.view_date BETWEEN ? AND ? " +
+                "   AND a.xray_type = b.form_no(+) " +
+                "   AND (b.xray_type = c.no(+) AND c.categories = 'XRAYTYPE') " +
+                " GROUP BY b.xray_type, c.name " +
+                " ORDER by COUNT(a.xray_type) desc ";
+
+        EntityFactory xrayReportEntity = new EntityFactory(con, queryString);
+        return xrayReportEntity.findMultiple(new Object[]{chartNo, startDate, endDate});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            XrayReport xrayReport = new XrayReport(myConnection);
+
+            int chartNo = 912473;
+            int years = 105;
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-years, ChronoUnit.YEARS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+            System.out.printf("\nXrayReport.queryXrayCountByChartNoDateRange chartNo=%d startDate=%s endDate=%s JsonObject:%s ",
+                    chartNo, startDate, endDate, MapUtil.mapToJsonObject(xrayReport.queryXrayCountByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+            System.out.printf("\nXrayReport.queryXrayCountByChartNoDateRangeGroupByType chartNo=%d startDate=%s endDate=%s JsonArray:%s ",
+                    chartNo, startDate, endDate, MapUtil.listMapToJsonArray(xrayReport.queryXrayCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate)).toString());
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

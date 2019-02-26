@@ -1,0 +1,181 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import library.dateutility.DateComputeUtil;
+import library.dateutility.DateUtil;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import model.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static library.utility.MapUtil.castToStr;
+
+/**
+ * Created by jeffy on 2017/10/18.
+ */
+public class PatientListService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();    
+    private PatientList patientList;
+
+    private int getAge(String birthDate) {
+        int age = 0;
+        String dateString = DateUtil.isVaildDate(birthDate);
+        if (!(dateString == null || dateString.isEmpty())) {
+            String today = DateUtil.dateToROCDateString(LocalDate.now());
+            age = DateComputeUtil.getAgesByYear(dateString, today);
+        }
+
+        return age;
+    }
+
+    public String getPatientListOpd(int rangeOfDays) {
+        try {
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-rangeOfDays, ChronoUnit.DAYS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+//            System.out.println("\nStartDate:" + startDate + " endDate:" + endDate);
+            objects = patientList.queryPatientListOpd(startDate, endDate);
+
+            if (objects.size() > 0) {
+                objects.forEach(map -> map.put("age", getAge(castToStr(map.get("birth_date")))));
+
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("PatientList.queryPatientListOpd rangeOfDays= " + rangeOfDays + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getPatientListInp(int rangeOfDays) {
+        try {
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-rangeOfDays, ChronoUnit.DAYS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+//            System.out.println("\nStartDate:" + startDate + " endDate:" + endDate);
+            objects = patientList.queryPatientListInp(startDate, endDate);
+
+            if (objects.size() > 0) {
+                objects.forEach(map -> map.put("age", getAge(castToStr(map.get("birth_date")))));
+
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("PatientList.queryPatientListInp rangeOfDays= " + rangeOfDays + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getPatientListDischarge(int rangeOfDays) {
+        try {
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-rangeOfDays, ChronoUnit.DAYS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+
+//            System.out.println("\nStartDate:" + startDate + " endDate:" + endDate);
+            objects = patientList.queryPatientListDischarge(startDate, endDate);
+
+            if (objects.size() > 0) {
+                // add age
+                objects.forEach(map -> map.put("age", getAge(castToStr(map.get("birth_date")))));
+
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("PatientList.queryPatientListDischarge rangeOfDays= " + rangeOfDays + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            patientList = new PatientList(myConnection);
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get opd patient list
+            if (method.equals("getPatientListOpd")) {
+                int rangeOfDays = parametersJsObj.get("rangeOfDays").getAsInt();
+                result = getPatientListOpd(rangeOfDays);
+            }
+
+            //  get inp patient list
+            if (method.equals("getPatientListInp")) {
+                int rangeOfDays = parametersJsObj.get("rangeOfDays").getAsInt();
+                result = getPatientListInp(rangeOfDays);
+            }
+
+            //  get discharge patient list
+            if (method.equals("getPatientListDischarge")) {
+                int rangeOfDays = parametersJsObj.get("rangeOfDays").getAsInt();
+                result = getPatientListDischarge(rangeOfDays);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        PatientListService patientListService = new PatientListService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+
+        jsonObject.addProperty("rangeOfDays", 400);
+        jsonObject.addProperty("method", "getPatientListOpd");
+        resultStrng = patientListService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPatientListService.run getPatientListOpd rangeOfDays=400 : " + resultStrng);
+
+        jsonObject.addProperty("method", "getPatientListInp");
+        resultStrng = patientListService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPatientListService.run getPatientListInp rangeOfDays=400 : " + resultStrng);
+
+        jsonObject.addProperty("rangeOfDays", 720);
+        jsonObject.addProperty("method", "getPatientListDischarge");
+        resultStrng = patientListService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPatientListService.run getPatientListDischarge rangeOfDays=720 : " + resultStrng);
+
+    }
+}
+

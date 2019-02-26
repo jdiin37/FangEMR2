@@ -1,0 +1,11 @@
+dbms = oracle
+driver = oracle.jdbc.driver.OracleDriver
+dbName = tima
+userName = orcl
+password = unimaxorcl
+serverName = 172.16.1.61
+portNumber = 1521
+urlString = jdbc:oracle:thin:@172.16.1.61:1521:tima
+dbConnectionType=JNDI
+#dbConnectionType=JDBC
+sessionTimeOut=30

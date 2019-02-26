@@ -1,0 +1,64 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/11/7.
+ */
+public class Admission {
+    private Connection con;
+
+    public Admission(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryAdmissionCountByChartNoSerno(int chartNo, int serno) throws SQLException {
+        String queryString =
+                "SELECT count(a.chart_no) count " +
+                "  FROM admission a " +
+                " WHERE a.chart_no = ? " +
+                "   AND a.serno = ? ";
+
+        EntityFactory admissionEntity = new EntityFactory(con, queryString);
+        return admissionEntity.findSingle(new Object[]{chartNo, serno});
+    }
+
+    public List<Map<String, Object>> queryAdmissionByMultiple() throws SQLException {
+        String queryString =
+                "";
+
+        EntityFactory admissionEntity = new EntityFactory(con, queryString);
+        return admissionEntity.findMultiple(new Object[]{});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            Admission admission = new Admission(myConnection);
+
+            System.out.println("\nAdmission.queryAdmissionCountByChartNoSerno chartNo=912473 serno=94771 JsonObject: " +
+                    MapUtil.mapToJsonObject(admission.queryAdmissionCountByChartNoSerno(912473, 94771)));
+
+//            System.out.println("\nAdmission.queryAdmissionByMultiple chartNo=912473 JsonArray: " +
+//                    MapUtil.listMapToJsonArray(admission.queryAdmissionByMultiple()));
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

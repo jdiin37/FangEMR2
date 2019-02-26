@@ -1,0 +1,284 @@
+<!-- <!DOCTYPE html> -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="device=device-width" />
+<title>EMR</title>
+<link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
+<link rel="stylesheet" href="jqwidgets/styles/jqx.bootstrap.css" type="text/css" />
+<link rel="stylesheet" href="styles/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="styles/select2.css" type="text/css" />
+<link rel="stylesheet" href="styles/select2-bootstrap.css" type="text/css" />
+<link rel="stylesheet" href="styles/dataTables.bootstrap.min.css" type="text/css" />
+<script src="scripts/jquery-1.11.1.min.js"></script>
+<script src="scripts/bootstrap.min.js"></script>
+<script src="scripts/select2.full.js"></script>
+<script src="scripts/EMRfunction.js"></script>
+<script src="scripts/getDataField.js"></script>
+<script src="scripts/getDataColumn.js"></script>
+<script src="scripts/jquery.dataTables.min.js"></script>
+<script src="scripts/dataTables.bootstrap.min.js"></script>
+
+<script type="text/javascript" src="jqwidgets/jqxcore.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxdata.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxbuttons.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxscrollbar.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxmenu.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxlistbox.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxdropdownlist.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.selection.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.columnsresize.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.filter.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.sort.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.pager.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.grouping.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.edit.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxnumberinput.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxnavbar.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxcombobox.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxwindow.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxpanel.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxnavigationbar.js"></script>
+<script src="scripts/local_TW.js"></script>
+
+<style>
+.modal {
+	text-align: center;
+	padding: 0 !important;
+}
+
+.modal:before {
+	content: '';
+	display: inline-block;
+	height: 100%;
+	vertical-align: middle;
+	margin-right: -4px;
+}
+
+.modal-dialog {
+	display: inline-block;
+	text-align: left;
+	vertical-align: middle;
+}
+
+.well-sm {
+	margin-left: 0px;
+	margin-right: 0px;
+}
+
+.clickable-row {
+	cursor: pointer;
+}
+</style>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		$(".select2-single").select2({
+			theme : "bootstrap",
+			width : null,
+			containerCssClass : ':all:'
+		});
+
+		getPatInfo(); //取得客戶基本資料
+		$("#queryPage").hide();
+		$("#btn_ShowQueryPage").click(function() {
+			$('#queryBlock3').hide();
+			$('#queryPage').toggle("slow");
+		});
+		
+		$("#btn_queryBlock1").click(function() {
+			$('#queryBlock3TableRow').html("");
+			getQueryPatList();	
+			$('#table_queryPat').DataTable();
+			$('#table_queryPat_filter').hide();
+			$('#queryBlock3').show();
+		});
+	});
+</script>
+
+</head>
+<!-- 鎖住F5 onkeydown="return (event.keyCode != 116)" -->
+
+<body>
+	<!--LoadingModal-->
+	<div class="modal fade" tabindex="-1" role="dialog" id="LoadingModal">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-body" id="alertMsg">
+					<h4 class="modal-title">Loading...</h4>
+					<span id="loading-msg"></span>
+					<div class="progress">
+						<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+					</div>
+				</div>
+			</div>
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+	<!--LoadingModal-->
+
+	<div class="container-fluid" id="queryPage">
+		<div class="panel panel-info">
+			<div class="panel-heading clearfix">
+				<div class="panel-title pull-left panel-tool">
+					<a href="mainEMR.html">查詢病患</a>
+				</div>
+				<div class="pull-right">
+					<button type="button" class="btn btn-link btn-sm" id="btn_QueryPOP">口</button>
+					<button type="button" class="btn btn-link btn-sm" id="btn_QueryX">X</button>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div class="row form-group" id="queryBlock1">
+					<div class="col-sm-12">
+						<mark class="h4" id=""></mark>
+					</div>
+				</div>
+				<div class="row well well-sm" id="queryBlock2">
+
+					<div class="col-sm-4 form-inline">
+						<div class="form-group">
+							<label class="checkbox-inline"><input type="checkbox" value="" checked>門診 </label>
+						</div>
+						<div class="form-group">
+							<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="query_opdday" value="1"><label
+								for="query_opdday">天 </label>
+						</div>
+						<div class="form-group">
+							<label class="checkbox-inline"><input type="checkbox" value="" checked>住院 </label>
+						</div>
+						<div class="form-group">
+							<label class="checkbox-inline"><input type="checkbox" value="">出院</label>
+						</div>
+						<div class="form-group">
+							<input type="text" class="form-control input-sm" style="max-width: 48px; margin: 0px;" placeholder="" id="query_ipd2day"><label
+								for="query_ipd2day">天 </label>
+						</div>
+						<button type="button" class="btn btn-primary" id="btn_queryBlock1"><span class="glyphicon glyphicon-search"></span></button>
+					</div>
+					<div class="col-sm-8 form-inline">
+						<div class="form-group">
+							<label for="queryBlockName">姓名 </label> <input type="text" class="form-control input-sm" placeholder="" id="queryBlockName" value="">
+						</div>
+						<div class="form-group">
+							<label for="queryBlockBirth">生日 </label> <input type="text" class="form-control input-sm" placeholder="" id="queryBlockBirth" value="">
+						</div>
+						<div class="form-group">
+							<label for="queryBlockPhone">電話 </label> <input type="text" class="form-control input-sm" placeholder="" id="queryBlockPhone" value="">
+						</div>
+						<div class="form-group">
+							<label for="queryBlockChartNo">病歷號 </label> <input type="text" class="form-control input-sm" placeholder="" id="queryBlockChartNo" value="">
+						</div>
+						<button type="button" class="btn btn-primary" id="btn_queryBlock2"><span class="glyphicon glyphicon-search"></span></button>
+					</div>
+				</div>
+				<div class="row" id="queryBlock3">
+					<div class="col-sm-12">
+						<div class="form-group table-responsive">
+							<table id="table_queryPat" class="table table-bordered table-hover">
+								<thead>
+									<tr>
+										<th>病歷號</th>
+										<th>姓名</th>
+										<th>性別</th>
+										<th>年齡</th>
+										<th>身分證字號</th>
+										<th>電話</th>
+										<th>門診日期</th>
+										<th>出生日期</th>
+										<th>住院日期</th>
+										<th>出院日期</th>
+										<th>主治醫師</th>
+										<th>科別</th>
+										<th>早/午/晚</th>
+										<th>診間</th>
+										<th>床位</th>
+										<th>護理站</th>
+									</tr>
+								</thead>
+								<tbody id="queryBlock3TableRow">
+								</tbody>
+							</table>							
+						</div>
+					</div>
+
+					<div class="col-sm-2">
+						<select class="form-control select2-single">
+							<option value="0">病歷號</option>
+							<option value="1">姓名</option>
+							<option value="2">性別</option>
+						</select>
+					</div>
+					<div class="col-sm-2">
+						<input type="text" class="form-control" placeholder="關鍵字搜尋" id="input_filter" value="" onkeyup="filter_qeuryPat()">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="container-fluid" id="mainPage">
+		<div class="panel panel-info">
+			<div class="panel-heading clearfix">
+				<div class="panel-title pull-left panel-tool">
+					<a href="mainEMR.html">EMR</a>
+				</div>
+				<div class="pull-right">
+					<button type="button" class="btn btn-link btn-sm" id="btn_MasterPOP">口</button>
+					<button type="button" class="btn btn-link btn-sm" id="btn_MasterX">X</button>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div class="row form-group" id="mainBlock1">
+					<div class="col-sm-12 form-inline">
+						<button type="button" class="btn btn-primary" id="btn_ShowQueryPage"><span class="glyphicon glyphicon-user"></span></button>
+						<mark class="h4" id="mainBlock1-patInfo"></mark>
+						<div class="pull-right">
+							<button type="button" class="btn btn-primary" id="btn_block1"><span class="glyphicon glyphicon-star"></span></button>
+							<button type="button" class="btn btn-primary" id="btn_block2"><span class="glyphicon glyphicon-star"></span></button>
+							<button type="button" class="btn btn-primary" id="btn_block3"><span class="glyphicon glyphicon-star"></span></button>
+							<button type="button" class="btn btn-primary" id="btn_block4"><span class="glyphicon glyphicon-star"></span></button>
+							<button type="button" class="btn btn-primary" id="btn_block5"><span class="glyphicon glyphicon-star"></span></button>
+						</div>
+					</div>
+				</div>
+				<div class="row form-group well well-sm" id="mainBlock2">
+					<div class="col-sm-6 form-inline">
+						<div class="form-group">
+							<label for="part_year">查詢範圍 <input type="text" class="form-control input-sm" style="max-width: 48px;" placeholder="" id="part_year" value="1">
+								年
+							</label>
+						</div>
+						<button class="btn btn-primary">住院 <span class="badge" id="part_ipd">22</span></button>
+						<button class="btn btn-primary">門急 <span class="badge" id="part_opd">22</span></button>
+						<button class="btn btn-primary">手術 <span class="badge" id="part_op">22</span></button>
+						<button class="btn btn-primary">影像 <span class="badge" id="part_img">22</span></button>
+						<button class="btn btn-primary">檢驗 <span class="badge" id="part_exam">22</span></button>
+					</div>
+					<div class="col-sm-6 form-inline">
+						<div class="form-group">
+							<label for="">全部 </label>
+						</div>
+						<button class="btn btn-primary">住院 <span class="badge" id="all_ipd">100</span></button>
+						<button class="btn btn-primary">門急 <span class="badge" id="all_opd">100</span></button>
+						<button class="btn btn-primary">手術 <span class="badge" id="all_op">100</span></button>
+						<button class="btn btn-primary">影像 <span class="badge" id="all_img">100</span></button>
+						<button class="btn btn-primary">檢驗 <span class="badge" id="all_exam">100</span></button>
+					</div>
+				</div>
+				<div class="row" id="mainBlock3">
+					<div class="col-sm-12">
+						<div class="panel-group" id="timeLine"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>

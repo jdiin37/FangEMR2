@@ -1,0 +1,224 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static library.utility.MapUtil.castToInt;
+
+/**
+ * Created by jeffy on 2017/4/2.
+ */
+public class PatopdEX {
+    private Connection con;
+
+    public PatopdEX(Connection con) {
+        this.con = con;
+    }
+
+
+    private List<Map<String, Object>> queryOpdDis10ListByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, a.rec_count, a.disease_code, " +
+                "       b.title1 code_name_c, b.title2 code_name_e, b.range_no1, b.range_no2, " +
+                "       c.name_c range_name_c, c.name_e range_name_e " +
+                "  FROM chgopdicdcm a, disicd10 b, vicd10cmrange2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.view_date >= '1050101'    " +
+                "   AND a.report_class = 'O' " +
+                "   AND a.disease_type = 'D' " +
+                "   AND a.icd_type = 'ICD10' " +
+                "   AND a.disease_code = b.code(+) " +
+                "   AND b.range_no2 = c.range_no2(+) " +
+                "ORDER BY view_date, chart_no, duplicate_no, rec_count ";
+
+        EntityFactory patopdEXEntity = new EntityFactory(con, queryString);
+        return patopdEXEntity.findMultiple(new Object[]{startDate, endDate, chartNo});
+    }
+
+    private List<Map<String, Object>> queryOpdDis9ListByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        Object[] inputParas = {
+                startDate, endDate, chartNo,
+                startDate, endDate, chartNo,
+                startDate, endDate, chartNo,
+                startDate, endDate, chartNo,
+                startDate, endDate, chartNo,
+                startDate, endDate, chartNo,
+                startDate, endDate, chartNo};
+        String queryString =
+                // 主診斷
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, 1 rec_count, a.disease_code, " +
+                "       b.title2 code_name_c, b.title1 code_name_e, '' range_no1, " +
+                "       c.start_code||'-'|| c.end_code range_no2, c.c_name range_name_c, c.e_name range_name_e " +
+                "  FROM patopd a, disicd b, icdop_item2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.view_date < '1050101' " +
+                "   AND a.chart_no = ? " +
+                "   AND (a.opd_clerk IS NOT NULL OR a.treat_clerk IS NOT NULL) " +
+                "   AND a.disease_code = b.code(+) " +
+                "   AND substr(a.disease_code, 1, 3) BETWEEN c.start_code AND c.end_code " +
+                "   AND c.dis_type = '1' " +
+                "UNION ALL " +
+                // 次診斷 1
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, 2 rec_count, a.disease_code1, " +
+                "       b.title2 code_name_c, b.title1 code_name_e, '' range_no1, " +
+                "       c.start_code||'-'|| c.end_code range_no2, c.c_name range_name_c, c.e_name range_name_e " +
+                "  FROM patopd a, disicd b, icdop_item2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.view_date < '1050101' " +
+                "   AND a.chart_no = ? " +
+                "   AND (a.opd_clerk IS NOT NULL OR a.treat_clerk IS NOT NULL) " +
+                "   AND a.disease_code1 = b.code(+) " +
+                "   AND substr(a.disease_code1, 1, 3) BETWEEN c.start_code AND c.end_code " +
+                "   AND c.dis_type = '1' " +
+                "UNION ALL " +
+                // 次診斷 2
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, 3 rec_count, a.disease_code2, " +
+                "       b.title2 code_name_c, b.title1 code_name_e, '' range_no1, " +
+                "       c.start_code||'-'|| c.end_code range_no2, c.c_name range_name_c, c.e_name range_name_e " +
+                "  FROM patopd a, disicd b, icdop_item2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.view_date < '1050101' " +
+                "   AND a.chart_no = ? " +
+                "   AND (a.opd_clerk IS NOT NULL OR a.treat_clerk IS NOT NULL) " +
+                "   AND a.disease_code2 = b.code(+) " +
+                "   AND substr(a.disease_code2, 1, 3) BETWEEN c.start_code AND c.end_code " +
+                "   AND c.dis_type = '1' " +
+                "UNION ALL " +
+                // 次診斷 3
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, 4 rec_count, a.disease_code3, " +
+                "       b.title2 code_name_c, b.title1 code_name_e, '' range_no1, " +
+                "       c.start_code||'-'|| c.end_code range_no2, c.c_name range_name_c, c.e_name range_name_e " +
+                "  FROM patopd a, disicd b, icdop_item2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.view_date < '1050101' " +
+                "   AND a.chart_no = ? " +
+                "   AND (a.opd_clerk IS NOT NULL OR a.treat_clerk IS NOT NULL) " +
+                "   AND a.disease_code3 = b.code(+) " +
+                "   AND substr(a.disease_code3, 1, 3) BETWEEN c.start_code AND c.end_code " +
+                "   AND c.dis_type = '1' " +
+                "UNION ALL " +
+                // 次診斷 4
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, 5 rec_count, a.disease_code4,  " +
+                "       b.title2 code_name_c, b.title1 code_name_e, '' range_no1,   " +
+                "       c.start_code||'-'|| c.end_code range_no2, c.c_name range_name_c, c.e_name range_name_e " +
+                "  FROM patopd a, disicd b, icdop_item2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.view_date < '1050101' " +
+                "   AND a.chart_no = ? " +
+                "   AND (a.opd_clerk IS NOT NULL OR a.treat_clerk IS NOT NULL) " +
+                "   AND a.disease_code4 = b.code(+) " +
+                "   AND substr(a.disease_code4, 1, 3) BETWEEN c.start_code AND c.end_code " +
+                "   AND c.dis_type = '1'           " +
+                "UNION ALL " +
+                // 次診斷 5
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, 6 rec_count, a.disease_code5, " +
+                "       b.title2 code_name_c, b.title1 code_name_e, '' range_no1, " +
+                "       c.start_code||'-'|| c.end_code range_no2, c.c_name range_name_c, c.e_name range_name_e " +
+                "  FROM patopd a, disicd b, icdop_item2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.view_date < '1050101' " +
+                "   AND a.chart_no = ? " +
+                "   AND (a.opd_clerk IS NOT NULL OR a.treat_clerk IS NOT NULL) " +
+                "   AND a.disease_code5 = b.code(+) " +
+                "   AND substr(a.disease_code5, 1, 3) BETWEEN c.start_code AND c.end_code " +
+                "   AND c.dis_type = '1' " +
+                "UNION ALL " +
+                // 次診斷 6
+                "SELECT a.view_date, a.chart_no, a.duplicate_no, 7 rec_count, a.disease_code6, " +
+                "       b.title2 code_name_c, b.title1 code_name_e, '' range_no1, " +
+                "       c.start_code||'-'|| c.end_code range_no2, c.c_name range_name_c, c.e_name range_name_e " +
+                "  FROM patopd a, disicd b, icdop_item2 c " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.view_date < '1050101' " +
+                "   AND a.chart_no = ? " +
+                "   AND (a.opd_clerk IS NOT NULL OR a.treat_clerk IS NOT NULL) " +
+                "   AND a.disease_code6 = b.code(+) " +
+                "   AND substr(a.disease_code6, 1, 3) BETWEEN c.start_code AND c.end_code " +
+                "   AND c.dis_type = '1' " +
+                "ORDER BY view_date, chart_no, duplicate_no, rec_count ";
+
+
+        EntityFactory patopdEXEntity = new EntityFactory(con, queryString);
+        return patopdEXEntity.findMultiple(inputParas);
+    }
+
+    // 取得某病號 在一段日期區間中，所有看診紀錄中[所有診斷碼]相關資料
+    public List<Map<String, Object>> queryOpdDisListByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        List<Map<String, Object>> resultMapList = new ArrayList<>();
+        List<Map<String, Object>> dis9MapList = new ArrayList<>();
+        List<Map<String, Object>> dis10MapList = new ArrayList<>();
+
+        // query opd dis9
+        dis9MapList = queryOpdDis9ListByChartNoDateRange(chartNo, startDate, endDate);
+        // query opd dis10
+        dis10MapList = queryOpdDis10ListByChartNoDateRange(chartNo, startDate, endDate);
+
+        resultMapList.addAll(dis9MapList);
+        resultMapList.addAll(dis10MapList);
+
+        return resultMapList;
+    }
+
+
+    // 取得某病號 在一段日期區間中，所有看診紀錄中 [主診斷碼]相關資料
+    public List<Map<String, Object>> queryOpdMainDisByChartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        List<Map<String, Object>> opdDisMapList;
+        List<Map<String, Object>> resultMapList = new ArrayList<>();
+
+        opdDisMapList = queryOpdDisListByChartNoDateRange(chartNo, startDate, endDate);
+
+        if (!opdDisMapList.isEmpty()) {
+            resultMapList = opdDisMapList.stream()
+                    .filter(map -> castToInt(map.get("rec_count")) == 1)
+                    .collect(Collectors.toList());
+        }
+
+        return resultMapList;
+    }
+
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            PatopdEX patopdEX = new PatopdEX(myConnection);
+
+            int chartNo;
+            String startDate;
+            String endDate;
+
+            chartNo = 912473;
+            startDate = "1041211";
+            endDate = "1050304";
+            System.out.printf("\nPatopdEX.queryOpdDisListByChartNoDateRange chartNo=%d startDate='%s' endDate='%s' JsonArray:%s ",
+                    chartNo, startDate, endDate, MapUtil.listMapToJsonArray(patopdEX.queryOpdDisListByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+
+            chartNo = 912473;
+            startDate = "1041211";
+            endDate = "1050304";
+            System.out.printf("\nPatopdEX.queryOpdMainDisByChartNoDateRange chartNo=%d startDate='%s' endDate='%s' JsonArray:%s ",
+                    chartNo, startDate, endDate, MapUtil.listMapToJsonArray(patopdEX.queryOpdMainDisByChartNoDateRange(chartNo, startDate, endDate)).toString());
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}
+

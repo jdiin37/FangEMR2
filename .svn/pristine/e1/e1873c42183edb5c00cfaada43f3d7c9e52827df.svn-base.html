@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>Login</title>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+<style>
+*{
+font-family:helvetica,"微軟正黑體",sans-serif
+}
+body{
+color:black;
+background-image:url(purple_bg.png);
+background-repeat:no-repeat;
+background-position:center;
+background-attachment:fixed;
+background-size:cover;
+}
+
+#login_outline{
+border: 2px #D3D6E5 solid;
+padding:5px;
+width:50%;
+border-radius:5px 5px;
+background-color:#E5E7FE;
+opacity: 0.8;
+}
+
+label{
+color:#353535;
+text-align:center;
+}
+
+.success{
+color:#1AA260;
+font-size: 20px;
+
+}
+
+.failure{
+color:#E1263B;
+font-size: 20px;
+}
+
+
+</style>
+
+
+<script>
+
+$(document).ready(function() {
+	
+	$("input#btnLogin").click(function(){
+		   var userName = $("input#userName").val();
+		   var password = $("input#password").val();
+		   console.log(userName+";"+password);
+		   if(userName.length==0||password.length==0){  
+		       var status = document.getElementById("statusMsg");
+		       $("#statusMsg").addClass("failure");
+		       $("#statusMsg").removeClass("success");
+		       status.innerHTML = "帳號密碼不能為空值";
+		   }else{
+		       var status = document.getElementById("statusMsg");
+		       $("#statusMsg").removeClass("failure");
+		       $("#statusMsg").addClass("success");
+		       status.innerHTML = "登入成功";
+		   }
+				
+		});	
+
+	
+});
+
+</script>
+
+</head>
+<body>
+
+<p class="text-center h1">登入</p>
+<form method="POST">
+<div class="container" id="login_outline">
+<label for="userName">帳號:</label>
+<input type="text" placeholder="帳號" class="form-control" required id="userName">
+<label for="password">密碼:</label>
+<input type="password" placeholder="密碼" class="form-control" required id="password"><br/>
+<!-- 顯示錯誤訊息 -->
+<div id="statusMsg" class="success"></div>
+<input id="btnLogin" type="button" value="Login" class="btn btn-success center-block">
+
+</div>
+
+</form>
+
+
+</body>
+</html>

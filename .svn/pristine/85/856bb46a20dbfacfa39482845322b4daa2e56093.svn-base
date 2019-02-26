@@ -1,0 +1,196 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.managedbean.SystemBean;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static library.utility.MapUtil.castToInt;
+
+
+/**
+ * Created by jeffy on 2017/7/26.
+ */
+public class PadLogonRec {
+    private Connection con;
+
+    public PadLogonRec(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> insertPadLogonRec(String idNo) {
+        PreparedStatement insertStmt = null;
+        Map<String, Object> results = new LinkedHashMap<>();
+
+        String insertString =
+                "INSERT INTO padlogonrec" +
+                " (id_no, logon_time, session_id, last_action_time, deadline_time) " +
+                " VALUES (?,?,?,?,?)";
+
+        try {
+            insertStmt = con.prepareStatement(insertString);
+
+            SeqPadSession seqPadSession = new SeqPadSession(con);
+            long sessionID = seqPadSession.getSeqPadSessionNextVal();
+            //System.out.println("SEQPADSESSION NextVal: " + sessionID);
+
+            Timestamp logonTime = DateUtil.getSystemDateTime(con);
+            //System.out.println("logonTime: " + logonTime);
+            Timestamp deadLineTime = new Timestamp(logonTime.getTime() + SystemBean.getSessionTimeOut() * 60 * 1000);
+            //System.out.println("deadLineTime: " + deadLineTime);
+
+            insertStmt.setString(1, idNo);
+            insertStmt.setTimestamp(2, logonTime);
+            insertStmt.setLong(3, sessionID);
+            insertStmt.setTimestamp(4, logonTime);
+            insertStmt.setTimestamp(5, deadLineTime);
+            int count = insertStmt.executeUpdate();
+
+            if (count > 0) {
+                results.put("status", "Success");
+                results.put("insert_count", String.valueOf(count));
+                results.put("id_no", idNo);
+                results.put("session_id", sessionID);
+            } else {
+                results.put("status", "Failure");
+                results.put("errorMessage", "PadLogonRec.insertPadLogonRec: " +
+                                        " id_no: " + idNo +
+                                        " logon_time: " + logonTime +
+                                        " session_id: " + sessionID +
+                                        " last_action_time: " + logonTime +
+                                        " deadline_time: " + deadLineTime);
+            }
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            results.put("status", "Failure");
+            results.put("errorMessage", "PadLogonRec.insertPadLogonRec: " + ex.getMessage());
+        } finally {
+            if (insertStmt != null) { JDBCUtilities.closeStatement(insertStmt); }
+        }
+//        System.out.println("PadLogonRec.insertPadLogonRec" + MapUtil.mapToJsonObject(results).toString());
+        return results;
+    }
+
+    public Map<String, Object> updatePadLogonRec(String idNo, long sessionID) throws SQLException {
+        PreparedStatement updateStmt = null;
+        Map<String, Object> results = new LinkedHashMap<>();
+
+        String updateString =
+                "UPDATE PADLOGONREC " +
+                "   SET last_action_time = ?, deadline_time = ? " +
+                " WHERE id_no = ? " +
+                "   AND session_id = ? ";
+
+        try {
+            updateStmt = con.prepareStatement(updateString);
+            SystemBean.iniAllParameter();    
+            Timestamp logonTime = DateUtil.getSystemDateTime(con);
+            Timestamp deadLineTime = new Timestamp(logonTime.getTime() + SystemBean.getSessionTimeOut() * 60 * 1000);
+
+            updateStmt.setTimestamp(1, logonTime);
+            updateStmt.setTimestamp(2, deadLineTime);
+            updateStmt.setString(3, idNo);
+            updateStmt.setLong(4, sessionID);
+            int count = updateStmt.executeUpdate();
+
+            if (count > 0) {
+                results.put("status", "Success");
+                results.put("update_count", String.valueOf(count));
+                results.put("id_no", idNo);
+                results.put("session_id", sessionID);
+            } else {
+                results.put("status", "Failure");
+                results.put("errorMessage", "PadLogonRec.updatePadLogonRec: " +
+                                            " id_no: " + idNo +
+                                            " logon_time: " + logonTime +
+                                            " session_id: " + sessionID +
+                                            " last_action_time: " + logonTime +
+                                            " deadline_time: " + deadLineTime);
+            }
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            results.put("status", "Failure");
+            results.put("errorMessage", "PadLogonRec.updatePadLogonRec: " + ex.getMessage());
+        } finally {
+            if (updateStmt != null) { JDBCUtilities.closeStatement(updateStmt); }
+        }
+
+//        System.out.println("PadLogonRec.updatePadLogonRec" + MapUtil.mapToJsonObject(results).toString());
+        return results;
+    }
+
+    public Map<String, Object> countPadLogonRec(String idNo, long sessionID) throws SQLException {
+        Map<String, Object> results = new LinkedHashMap<>();
+        String queryString =
+                "SELECT count(*) count " +
+                "  FROM padlogonrec " +
+                " WHERE id_no = ? " +
+                "   AND session_id = ? ";
+
+        EntityFactory padLogonRecEntity = new EntityFactory(con, queryString);
+        Map<String, Object> map = padLogonRecEntity.findSingle(new Object[]{idNo, sessionID});
+
+        int count = castToInt(map.get("count"));
+
+        if (count > 0) {
+            results.put("status", "Success");
+            results.put("count", String.valueOf(count));
+            results.put("id_no", idNo);
+            results.put("session_id", sessionID);
+        } else {
+            results.put("status", "Failure");
+            results.put("errorMessage", "PadLogonRec.countPadLogonRec: " +
+                        " id_no: " + idNo +
+                        " session_id: " + sessionID);
+        }
+
+//        System.out.println("PadLogonRec.countPadLogonRec" + MapUtil.mapToJsonObject(results).toString());
+        return results;
+    }
+
+    public static void main(String[] args) {
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        Connection myConnection = null;
+        Map<String, Object> results;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            PadLogonRec padLogonRec = new PadLogonRec(myConnection);
+
+            results = padLogonRec.insertPadLogonRec("orcl");
+            System.out.println("PadLogonRec.insertPadLogonRec: " + results);
+
+            System.out.println();
+            long sessionID = 0L;
+            if (results.get("status").equals("Success")) {
+                sessionID = (Long)results.get("session_id");
+            }
+            System.out.println("\nCurrent Session ID: " + sessionID);
+
+            results = padLogonRec.updatePadLogonRec("orcl", sessionID);
+            System.out.println("\nPadLogonRec.updatePadLogonRec: " + results);
+
+            results = padLogonRec.countPadLogonRec("orcl", sessionID);
+            System.out.println("\nPadLogonRec.countPadLogonRec idNo='orcl' sessionID=" + sessionID + " Map: " + results);
+            System.out.println("\nPadLogonRec.countPadLogonRec idNo='orcl' sessionID=" + sessionID + " JsonObject: " +
+                    MapUtil.mapToJsonObject(results));
+
+
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

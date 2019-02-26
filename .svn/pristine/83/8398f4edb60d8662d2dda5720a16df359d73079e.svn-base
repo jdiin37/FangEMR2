@@ -1,0 +1,177 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.*;
+import java.util.*;
+
+/**
+ * Created by jeffy on 2017/7/21.
+ */
+public class Freeze {
+    private Connection con;
+
+    public Freeze(Connection con) {
+        this.con = con;
+    }
+
+    public List<Map<String, Object>> queryFreezeMasterListByStockAndSerialIdAndRangeOfFreezeNo(String stock, String startFreezeNo, String endFreezeNo, String serialId) throws SQLException {
+        String queryString =
+                "SELECT a.stock, a.freeze_no, a.keyin_date, a.keyin_time, a.keyin_clerk, b.emp_name keyin_clerk_name, '' isChecked " +
+                "  FROM freeze1 a, employee b " +
+                " WHERE a.stock = ? " +
+                "   AND a.freeze_no BETWEEN ? AND ? " +
+                "   AND NVL(a.update_date,' ') = ' ' " +
+                "   AND NOT EXISTS (SELECT 1 FROM invapprec c " +
+                "                    WHERE c.serialid = ? " +
+                "                      AND c.kind_type = 'FREEZE' " +
+                "                      AND c.stock = a.stock " +
+                "                      AND c.kind_no = a.freeze_no) " +
+                "   AND a.keyin_clerk = b.emp_no(+) " +
+                " ORDER BY a.stock, a.freeze_no desc ";
+
+
+        EntityFactory freezeEntity = new EntityFactory(con, queryString);
+        return freezeEntity.findMultiple(new Object[]{stock, startFreezeNo, endFreezeNo, serialId});
+    }
+
+    public List<Map<String, Object>> queryFreezeDetailByStockFreezeNo(String stock, String freezeNo) throws SQLException {
+        String queryString =
+                "SELECT a.stock, a.freeze_no, a.rec_count, a.item_no, b.barcode, b.full_name, " +
+                "       b.orig_unit, b.sale_unit, c.unit_name, a.price, a.current_qty, a.expense_qty, " +
+                "       a.freeze_qty, a.tot_qty, a.take_qty, a.update_flag, a.stat_qty, " +
+                "       '' bar_no, '' update_flag_pad, '' pad_date, '' pad_clerk, '' trans_date, '' trans_clerk " +
+                "  FROM freeze2 a, inv b, packunit c " +
+                " WHERE a.stock = ? " +
+                "   AND a.freeze_no = ? " +
+//                "   AND a.stock = b.stock(+) " +
+                "   AND a.item_no = b.item_no(+) " +
+                "   AND b.orig_unit = c.unit_no(+) " +
+                " ORDER BY a.rec_count, a.item_no ";
+
+        EntityFactory freezeEntity = new EntityFactory(con, queryString);
+        return freezeEntity.findMultiple(new Object[]{stock, freezeNo});
+    }
+
+    public int getFreeze2LogMaxRecCountByStockFreezeNo(String stock, String freezeNo) throws SQLException {
+        Object obj;
+        String queryString =
+                "SELECT MAX(rec_count) + 1 next_rec_count " +
+                        "  FROM freeze2_log " +
+                        " WHERE stock = ?  " +
+                        "   AND freeze_no = ? ";
+
+        EntityFactory freezeEntity = new EntityFactory(con, queryString);
+        Map<String, Object> result = freezeEntity.findSingle(new Object[]{stock, freezeNo});
+        obj = result.get("next_rec_count");
+        return (obj == null) ? 1 : MapUtil.castToInt(obj);
+    }
+
+    public int getFreeze2LogCountByStockBarNoFreezeNoRecCount(List<Object> inputObjects) throws SQLException {
+        Object obj;
+        String queryString =
+                "SELECT count(*) count " +
+                "  FROM freeze2_log " +
+                " WHERE stock = ?  " +
+                "   AND bar_no = ? " +
+                "   AND freeze_no = ? " +
+                "   AND rec_count = ? ";
+
+        EntityFactory freezeEntity = new EntityFactory(con, queryString);
+        Map<String, Object> result = freezeEntity.findSingle(inputObjects.toArray());
+        obj = result.get("count");
+        return (obj == null) ? 1 : MapUtil.castToInt(obj);
+    }
+
+    public Map<String, Object> insertFreeze2Log(List<Object> objects) throws SQLException {
+        String updateString =
+                "INSERT INTO freeze2_log( " +
+                "    stock, bar_no, freeze_no, rec_count, item_no, price, current_qty,  " +
+                "    expense_qty, freeze_qty, tot_qty, take_qty, update_flag, stat_qty,  " +
+                "    pad_date, pad_clerk, trans_date, trans_clerk) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?,  " +
+                "       ?, ?, ?, ?, ?, ?,  " +
+                "       ?, ?, ?, ?) ";
+
+        EntityFactory freezeEntity = new EntityFactory(con, updateString);
+        return freezeEntity.upsertSingle(objects);
+    }
+
+    public Map<String, Object> updateFreeze2Log(List<Object> objects) throws SQLException {
+        String updateString =
+                "UPDATE freeze2_log " +
+                "   SET take_qty    = take_qty + ? , " +
+                "       pad_date    = ? , " +
+                "       pad_clerk   = ? , " +
+                "       trans_date  = ? , " +
+                "       trans_clerk = ?   " +
+                " WHERE stock       = ? " +
+                "   AND bar_no      = ? " +
+                "   AND freeze_no   = ? " +
+                "   AND rec_count   = ? " +
+                "   AND his_date is null ";
+
+        EntityFactory freezeEntity = new EntityFactory(con, updateString);
+        return freezeEntity.upsertSingle(objects);
+    }
+
+    public List<Integer> batchInsertFreeze2Log(List<List<Object>> listObjects) throws SQLException {
+        String updateString =
+                "INSERT INTO freeze2_log( " +
+                "    stock, bar_no, freeze_no, rec_count, item_no, price, current_qty,  " +
+                "    expense_qty, freeze_qty, tot_qty, take_qty, update_flag, stat_qty,  " +
+                "    pad_date, pad_clerk, trans_date, trans_clerk) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?,  " +
+                "       ?, ?, ?, ?, ?, ?,  " +
+                "       ?, ?, ?, ?) ";
+
+        EntityFactory freezeEntity = new EntityFactory(con, updateString);
+        return freezeEntity.batchUpsert(listObjects);
+    }
+
+    public static void main(String[] args) {
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        Connection myConnection = null;
+        String resultString = null;
+        Map<String, Object> upsertResult = new LinkedHashMap<>();
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            Freeze freeze = new Freeze(myConnection);
+
+            System.out.println("\nFreeze.queryFreezeMasterListByStockAndSerialIdAndRangeOfFreezeNo stock='SS' startFreezeNo ='10510000' endFreezeNo='10512999' serialId='H2NPCV0011382TA' ListMap: " +
+                    freeze.queryFreezeMasterListByStockAndSerialIdAndRangeOfFreezeNo("SS", "10510000", "10512999", "H2NPCV0011382TA"));
+
+            System.out.println("\nFreeze.queryFreezeMasterListByStockAndSerialIdAndRangeOfFreezeNo stock='SS' startFreezeNo ='10510000' endFreezeNo='10512999' serialId='H2NPCV0011382TA' JsonArray: " +
+                    MapUtil.listMapToJsonArray(freeze.queryFreezeMasterListByStockAndSerialIdAndRangeOfFreezeNo("SS", "10510000", "10512999", "H2NPCV0011382TA")));
+
+            System.out.println("\nFreeze.queryFreezeDetailByStockFreezeNo stock='SS' freeze_no='10512005' ListMap: " +
+                    freeze.queryFreezeDetailByStockFreezeNo("SS", "10512005"));
+
+            System.out.println("\nFreeze.queryFreezeDetailByStockFreezeNo stock='SS' freeze_no='10512005' JsonArray: " +
+                    MapUtil.listMapToJsonArray(freeze.queryFreezeDetailByStockFreezeNo("SS", "10512005")));
+
+            List<Object> object = Arrays.asList("SS", "ALLALL", "10512005", 1, "EBC", 0, 4, 0, 4, 4, 4, "N", 0, "1060825", "KSPH", "1060825", "KSPH");
+            upsertResult = freeze.insertFreeze2Log(object);
+            System.out.println("\nFreeze.insertFreeze2Log object: " + object);
+            System.out.println("\nFreeze.insertFreeze2Log upsertResult: " + upsertResult);
+
+            object = Arrays.asList(4, "1060825", "KSPH", "1060825", "KSPH", "SS", "ALLALL", "10512005", 1);
+            upsertResult = freeze.updateFreeze2Log(object);
+            System.out.println("\nFreeze.updateFreeze2Log object: " + object);
+            System.out.println("\nFreeze.updateFreeze2Log upsertResult: " + upsertResult);
+
+        } catch (BatchUpdateException bex) {
+            JDBCUtilities.printBatchUpdateException(bex);
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}
+

@@ -1,0 +1,178 @@
+var zIndex = 100;
+var element; 
+//可拖曳
+function setPopUp(id,flag){
+	if(flag){
+		zIndex += 10; 		
+		$('#' + id).draggable();
+		$('#' + id).addClass('popUp');
+		$('#' + id).css('top', 0);
+		$('#' + id).css('left', 0);
+		$('#' + id).css('z-index', zIndex);							
+	}else{
+		if ($('#' + id).hasClass( "popUp" )) {
+			$('#' + id).draggable( "destroy" );	
+		}			
+		$('#' + id).css('top', 0);
+		$('#' + id).css('left', 0);
+		$('#' + id).css('z-index', 0);
+		$('#' + id).removeClass('popUp');
+	}	
+}
+
+
+var setPageVisible = function(page, visible) {	//***important****
+
+	PageObj[page] = visible;
+	if (visible == true) {
+		$('#' + page).show();
+		$('#collapse_' + page).collapse('show');
+	} else {
+		setPopUp(page,false);
+		$('#' + page).hide();		
+		$('#collapse_' + page).collapse('hide');
+	}
+	processPage();
+}
+
+var processPage = function (){
+	$('#bottom-toolbar').html("");
+	$.each( PageObj, function( key, value ) {
+		  //alert( key + ": " + value );		  
+		  if(value){
+			  var title = $('#' + key + '_Title').html();	  
+			  if(title.length > 25)
+				  title = "<span title='" + title + "'>" + title.substr(0, 25) +"...</span>";
+			  
+			  var btn;
+			  if(key =="mainPage"){
+				  btn = '<div class="col-xs-2 ' + key + '" style="padding: 5px; ">' +
+			  		'<a href="#' + key +'" class="btn btn-info btn-block" id="a_' + key +'">'+ title+'<button class="pull-right btn-link btn-close hide" id="X_' + key +'"><span class="glyphicon glyphicon-remove"></span></button></a>'	+			
+			  		'</div>';			
+			  }else{
+				  btn = '<div class="col-xs-2 ' + key + '" style="padding: 5px;">' +
+			  		'<a href="#' + key +'" class="btn btn-info btn-block" id="a_' + key +'">'+ title+'<button class="pull-right btn-link btn-close" id="X_' + key +'"><span class="glyphicon glyphicon-remove"></span></button></a>'	+			
+			  		'</div>';
+				 
+			  }
+			  $('#bottom-toolbar').append(btn);
+			  
+			  $('#a_' + key).click(function() {
+				  setPageVisible(key,true);
+			  });
+			  
+			  $('#X_' + key).click(function() {
+				  closePage(key);
+			  });
+		  }else{			  
+			  $('#' + key).hide();
+		  }		
+		 
+	});
+};
+
+var closePage = function(id){
+	setPageVisible(id, false);
+	collapseShow("mainPage");
+}
+
+var collapseHide = function(key){
+	$('#collapse_' + key).collapse('hide');
+}
+var collapseShow = function(key){
+	$('#collapse_' + key).collapse('show');
+}
+
+var callQuery = function(){
+	collapseHide("mainPage");
+	setPageVisible("queryPage", true);
+	if ($('#currentList').is(":visible")
+			|| $('#chartBaseList').is(":visible")) {
+
+	} else {
+		changeQueryTable();
+	}
+}
+
+var callLab = function(flag){
+	
+	if(flag == "date"){
+		$('#LabMasterDate').show();
+		LabgetDate();	
+		var title = ViewListObj.sdate + "-" +ViewListObj.edate + "&nbsp;" + (ViewListObj.type == "OPD" ? '門急紀錄':'住院紀錄') + "-檢驗";
+		title += "&nbsp;病患:" + PatObj.chart_no + "&nbsp; "+ PatObj.pt_name + "&nbsp; "+ PatObj.sex_name + "&nbsp; "+ PatObj.age ;
+		$('#labPage_Title').html(title);
+	}else if(flag =="year"){
+		$('#LabMasterDate').hide();
+		LabgetYear();
+		$('#labTitle').html('檢驗');
+	}else{
+		$('#LabMasterDate').hide();
+		LabgetAll();
+		$('#labTitle').html('檢驗');
+	}
+			
+	$('#LabMasterAll').find("span").html($("#allLAB").html());
+	
+	collapseHide("mainPage");
+	setPageVisible("labPage", true);
+}
+
+var LabgetYear = function(){
+	$.when(ajax_getLabCountByChartNoYearsGroupByKind()).done(function(dataLab){
+		if (dataLab.status == "Success") {
+			var box = "";
+			$.each(dataLab.resultSet, function(index, obj) {
+				
+				if(index == "summary"){
+					//alert(obj);
+					$('#LabYear').val(PatObj.recentYear);
+					$('#LabMasterYear').html(PatObj.recentYear + '年檢驗&nbsp;<span class="badge">'+ obj + '</span>')
+				}else{
+					$.each(obj, function(index, obj_d){
+						box += '&nbsp;<button class="btn btn-info btn-lab-d">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+					});
+				}
+				//alert(index + ":" + obj);
+			});
+			$('#LabDetail').html(box);
+			box = null;
+		} else {
+			ajaxErrMsg = dataLab.errorMessage;
+		}		
+	});
+}
+
+var LabgetDate = function(){
+	$.when(ajax_getLabCountByChartNoDateRangeGroupByKind()).done(function(dataLab){
+		if (dataLab.status == "Success") {
+			var box = "";
+			$.each(dataLab.resultSet, function(index, obj) {
+				
+				if(index == "summary"){
+					//alert(obj);
+					$('#LabMasterDate').html('檢驗&nbsp;<span class="badge">'+ obj + '</span>')
+				}else{
+					$.each(obj, function(index, obj_d){
+						box += '&nbsp;<button class="btn btn-info btn-lab-d">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+					});
+				}
+				//alert(index + ":" + obj);
+			});
+			$('#LabDetail').html(box);
+			box = null;
+		} else {
+			ajaxErrMsg = dataLab.errorMessage;
+		}		
+	});
+}
+
+var LabgetAll = function(){
+	$('#LabDetail').html("");
+}
+
+
+var callXray = function(){
+	collapseHide("mainPage");
+	setPageVisible("XrayPage", true);
+}

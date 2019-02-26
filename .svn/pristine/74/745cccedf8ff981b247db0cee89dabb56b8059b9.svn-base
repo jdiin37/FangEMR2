@@ -1,0 +1,70 @@
+/**
+ * 查詢病患頁面 專用 js檔
+ */
+
+function renderQueryPatient(){
+	
+	
+	$(document).on('click', '#btn_query1', function(event) {
+		changeQueryTable();
+	});
+
+	$(document).on('click', '#btn_query2', function(event) {
+		changeQueryTable("chart_base");
+	});
+	
+	//搜尋姓名
+	$(document).on('change', '#query_ptName', function(event) {
+		if ($(this).val().length == 0 || char_regex.test($(this).val())) {
+			stateChange(true, '#query_ptName');
+			if ($(this).val().length > 0)
+				QueryObj.ptName = $(this).val();
+			else
+				QueryObj.ptName = null;
+		} else {
+			stateChange(false, '#query_ptName', "請輸入字元");
+		}
+	});
+	
+	//搜尋出生日期
+	$(document).on('change', '#query_birth', function(event) {
+		if ($(this).val().length == 0 || ROCdata_regex.test($(this).val())) {
+			stateChange(true, '#query_birth');
+			if ($(this).val().length > 0)
+				QueryObj.birth = $(this).val();
+			else
+				QueryObj.birth = null;
+		} else {
+			stateChange(false, '#query_birth', "請輸入正確的日期格式 範例:'1070101' ");
+		}
+	});
+
+    //搜尋電話	
+	$(document).on('change', '#query_tel', function(event) {
+		if ($(this).val().length == 0 || number_regex.test($(this).val())) {
+			stateChange(true, '#query_tel');
+			if ($(this).val().length > 0)
+				QueryObj.tel = $(this).val();
+			else
+				QueryObj.tel = null;
+		} else {
+			stateChange(false, '#query_tel', "請輸入數字");
+		}
+	});
+	
+	//搜尋病歷號
+	$(document).on('change', '#query_chartNo', function(event) {
+		if ($(this).val().length == 0 || number_regex.test($(this).val())) {
+			stateChange(true, '#query_chartNo');
+			if ($(this).val().length > 0)
+				QueryObj.chartNo = $(this).val();
+			else
+				QueryObj.chartNo = null;
+		} else {
+			stateChange(false, '#query_chartNo', "請輸入數字");
+		}
+	})
+	
+
+	
+}

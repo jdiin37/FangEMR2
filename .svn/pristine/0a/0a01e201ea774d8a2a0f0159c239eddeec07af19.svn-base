@@ -1,0 +1,53 @@
+		
+			<div class="panel panel-info">
+				<!--檢驗彙總 -->
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="labSumPage_Title">檢驗彙總表</span>
+						<span id="strLabSumItem" style="display:none;"></span>
+						<span id="strLabSumKindId" style="display:none;"></span>
+						
+						
+					</div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('labSumPage')"><span class="glyphicon glyphicon-new-window"></span></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('labSumPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				
+				<div class="panel-body pre-scrollable" id="labSumListBody">
+					
+					 <!-- <div id="labRadioGroup" class="labRadioGroup  pull-right col-sm-12">
+								    <label class="radio-inline"><input type="radio" name="labRadio" checked="checked" value="1個月">1個月</label>
+								    <label class="radio-inline"><input type="radio" name="labRadio" value="3個月">3個月</label>
+                                                    			    <label class="radio-inline"><input type="radio" name="labRadio" value="半年">半年</label>
+                                                    			    <label class="radio-inline"><input type="radio" name="labRadio" value="1年">1年</label>
+                                                    			    
+                                                    			    <label class="radio-inline form-inline text-center">
+                                                    			     <input type="radio" name="labRadio" value="自訂">自訂:
+                                                    			     </label>
+                                                    			     <input  id="inputLabStartDate" type="date" class="form-inline input-sm">
+                                                    			     <input  id="inputLabEndDate" type="date" class="form-inline input-sm">
+                                                    			     
+
+                          
+								</div>-->
+					
+					<div class="row" id="LabSumCol">
+						<div class="col-sm-12">
+						  <button id="labSumLineChart" class="btn btn-primary">趨勢圖</button>
+						  <hr class="hr_noline" />
+						  <div id="LabSumContainer">
+						   <!--  <table id="LabSumList" class="table-hover"></table>
+						    <div id="LabSumList_Pager"></div>-->
+						  </div>
+						    
+							
+						</div>
+					</div>
+				</div>
+			</div>	
+				
+		
+		
+		

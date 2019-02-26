@@ -1,0 +1,54 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/8/2.
+ */
+public class Employee {
+    private Connection con;
+
+    public Employee(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryEmployeeByEmpNo(String empNo) throws SQLException {
+        String queryString =
+                "SELECT a.emp_no, a.emp_name, a.passwd " +
+                "  FROM employee a " +
+                "  WHERE a.emp_no = ? " ;
+
+        EntityFactory employeeEntity = new EntityFactory(con, queryString);
+        return employeeEntity.findSingle(new Object[]{empNo});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            Employee employee = new Employee(myConnection);
+
+            System.out.println("\nEmployee.queryEmployeeByEmpNo empNo='KSPH' Map: " +
+                    employee.queryEmployeeByEmpNo("KSPH"));
+
+            System.out.println("\nEmployee.queryEmployeeByEmpNo empNo='KSPH' JsonObject: " +
+                    MapUtil.mapToJsonObject(employee.queryEmployeeByEmpNo("KSPH")));
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

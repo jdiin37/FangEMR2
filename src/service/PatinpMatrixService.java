@@ -1,0 +1,422 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import library.dateutility.DateUtil;
+import library.utility.JDBCUtilities;
+import library.utility.MapGroupingUtil;
+import library.utility.MapUtil;
+import library.utility.MatrixUtil;
+import model.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static library.utility.MapUtil.castToInt;
+import static library.utility.MapUtil.castToStr;
+
+/**
+ * Created by jeffy on 2018/3/8.
+ */
+public class PatinpMatrixService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private OrRecord orRecord;
+    private NurseProgress nurseProgress;
+    private DrProgress drProgress;
+    private XrayReport xrayReport;
+    private LabRecord labRecord;
+
+    // get OrRecord Data by chart_no, start_date, end_date
+    // if no record return then create a record with record_value == null
+    private List<Map<String, Object>> getOrRecordData(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> map = new LinkedHashMap<>();
+
+        try {
+            objects = orRecord.queryOPDataByChartNoDateRange(chartNo, startDate, endDate);
+            //System.out.println("\nOrRecord.queryOPDataByChartNoDateRange:" + MapUtil.listMapToJsonArray(objects));
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        if (objects.isEmpty()) {
+            map.put("chart_no", chartNo);
+            map.put("record_date", startDate);
+            map.put("record_type", "ORRECORD");
+            map.put("record_value", "");
+            result.add(map);
+        } else {
+            for (Map<String, Object> recMap : objects) {
+                map = new LinkedHashMap<>();
+                map.put("chart_no", recMap.get("chart_no"));
+                map.put("record_date", recMap.get("op_date"));
+                map.put("record_type", "ORRECORD");
+                map.put("record_value", "手術");
+                result.add(map);
+            }
+        }
+
+        return new ArrayList<>(new HashSet(result));
+    }
+
+    // get NurseProgress Data by chart_no, start_date, end_date
+    // if no record return then create a record with record_value == null
+    private List<Map<String, Object>> getNurseProgressData(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> map = new LinkedHashMap<>();
+
+        try {
+            objects = nurseProgress.queryNurseProgressListByChartNoDateRange(chartNo, startDate, endDate);
+            //System.out.println("\nNurseProgress.queryNurseProgressListByChartNoDateRange:" + MapUtil.listMapToJsonArray(objects));
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        if (objects.isEmpty()) {
+            map.put("chart_no", chartNo);
+            map.put("record_date", startDate);
+            map.put("record_type", "NURSEPROGRESS");
+            map.put("record_value", "");
+            result.add(map);
+        } else {
+            for (Map<String, Object> recMap : objects) {
+                map = new LinkedHashMap<>();
+                map.put("chart_no", recMap.get("chart_no"));
+                map.put("record_date", recMap.get("progress_date"));
+                map.put("record_type", "NURSEPROGRESS");
+                map.put("record_value", "護理紀錄");
+                result.add(map);
+            }
+        }
+        return result;
+    }
+
+    // get DrProgress Data by chart_no, start_date, end_date
+    // if no record return then create a record with record_value == null
+    private List<Map<String, Object>> getDrProgressData(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> map = new LinkedHashMap<>();
+
+        try {
+            objects = drProgress.queryDrProgressListByChartNoDateRange(chartNo, startDate, endDate);
+            //System.out.println("\nDrProgress.queryDrProgressListByChartNoDateRange:" + MapUtil.listMapToJsonArray(objects));
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        if (objects.isEmpty()) {
+            map.put("chart_no", chartNo);
+            map.put("record_date", startDate);
+            map.put("record_type", "DRPROGRESS");
+            map.put("record_value", "");
+            result.add(map);
+        } else {
+            for (Map<String, Object> recMap : objects) {
+                map = new LinkedHashMap<>();
+                map.put("chart_no", recMap.get("chart_no"));
+                map.put("record_date", recMap.get("progress_date"));
+                map.put("record_type", "DRPROGRESS");
+                map.put("record_value", "病程記錄");
+                result.add(map);
+            }
+        }
+        return result;
+    }
+
+    // get LabRecord Data by chart_no, start_date, end_date
+    // if no record return then create a record with record_value == null
+    private List<Map<String, Object>> getLabRecordInpData(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> inpList = new ArrayList<>();
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        Map<String, Object> map = new LinkedHashMap<>();
+
+        try {
+            objects = labRecord.queryLabListByChartNoDateRange(chartNo, startDate, endDate);
+            if (!objects.isEmpty()) {
+                // filter pt_source = 'I' -> 住院
+                inpList = objects.stream()
+                        .filter(innerMap -> castToStr(innerMap.get("pt_source")).equals("I"))
+                        .collect(Collectors.toList());
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        if (inpList.isEmpty()) {
+            map.put("chart_no", chartNo);
+            map.put("record_date", startDate);
+            map.put("record_type", "LABRECORD");
+            map.put("record_value", "");
+            resultList.add(map);
+        } else {
+            for (Map<String, Object> recMap : inpList) {
+                map = new LinkedHashMap<>();
+                map.put("chart_no", recMap.get("chart_no"));
+                map.put("record_date", DateUtil.adDateStringToROCDateString(MapUtil.castToStr(recMap.get("lab_date"))));
+                map.put("record_type", "LABRECORD");
+                map.put("record_value", "檢驗");
+                resultList.add(map);
+            }
+        }
+
+        return new ArrayList<>(new HashSet(resultList));
+    }
+
+    // get LabRecord Data by chart_no, start_date, end_date and grouping by kind_id
+    private List<Map<String, Object>> getLabRecordInpDataGroupByKind(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        try {
+            objects = labRecord.queryLabCountByChartNoDateRangeGroupByKind(chartNo, startDate, endDate);
+
+            // filter pt_source = 'I' -> 住院
+            if (!objects.isEmpty()) {
+                resultList = objects.stream()
+                        .filter(map -> castToStr(map.get("pt_source")).equals("I"))
+                        .collect(Collectors.toList());
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return resultList;
+    }
+
+    // get XrayReport Data by chart_no, start_date, end_date
+    // if no record return then create a record with record_value == null
+    private List<Map<String, Object>> getXrayReportInpData(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> inpList = new ArrayList<>();
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        Map<String, Object> map = new LinkedHashMap<>();
+        try {
+            objects = xrayReport.queryXrayListByChartNoDateRange(chartNo, startDate, endDate);
+
+            if (!objects.isEmpty()) {
+                // filter pt_source = 'I' -> 住院
+                inpList = objects.stream()
+                        .filter(innerMap -> castToStr(innerMap.get("inp_opd")).equals("I"))
+                        .collect(Collectors.toList());
+            }
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+
+        if (inpList.isEmpty()) {
+            map.put("chart_no", chartNo);
+            map.put("record_date", startDate);
+            map.put("record_type", "XRAYREPORT");
+            map.put("record_value", "");
+            resultList.add(map);
+        } else {
+            for (Map<String, Object> recMap : inpList) {
+                map = new LinkedHashMap<>();
+                map.put("chart_no", recMap.get("chart_no"));
+                map.put("record_date", recMap.get("view_date"));
+                map.put("record_type", "XRAYREPORT");
+                map.put("record_value", "影像");
+                resultList.add(map);
+            }
+        }
+
+        return new ArrayList<>(new HashSet(resultList));
+    }
+
+
+    // get XrayReport Data by chart_no, start_date, end_date and grouping data by xray_type
+    private List<Map<String, Object>> getXrayReportInpDataGroupByType(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        try {
+            objects = xrayReport.queryXrayCountByChartNoDateRangeGroupByType(chartNo, startDate, endDate);
+            // filter inp_opd = 'I' -> 住院
+            if (!objects.isEmpty()) {
+                resultList = objects.stream()
+                        .filter(map -> castToStr(map.get("inp_opd")).equals("I"))
+                        .collect(Collectors.toList());
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        }
+        return resultList;
+    }
+
+    private List<Map<String, Object>> collectData(int chartNo, String startDate, String endDate) {
+        List<Map<String, Object>> dataObjects;
+
+        // add OrRecord List of Maps
+        dataObjects = getOrRecordData(chartNo, startDate, endDate);
+        List<Map<String, Object>> resultObjects = new ArrayList<>(dataObjects);
+
+        // add NurseProgress
+        dataObjects = getNurseProgressData(chartNo, startDate, endDate);
+        resultObjects.addAll(dataObjects);
+
+        // add DrProgress
+        dataObjects = getDrProgressData(chartNo, startDate, endDate);
+        resultObjects.addAll(dataObjects);
+
+        // add XrayReport
+        dataObjects = getXrayReportInpData(chartNo, startDate, endDate);
+        resultObjects.addAll(dataObjects);
+
+        // add LabRecord
+        dataObjects = getLabRecordInpData(chartNo, startDate, endDate);
+        resultObjects.addAll(dataObjects);
+
+        //System.out.println("\nCollectData resultObjects:" + MapUtil.listMapToJsonArray(resultObjects));
+
+        return resultObjects;
+    }
+
+    private Map<Map<String, Object>, List<Map<String, Object>>> mergeLabAndXrayData(
+            Map<Map<String, Object>, List<Map<String, Object>>> originalGroupingMap) {
+        int chartNo;
+        String recordDate;
+        String recordType;
+        String recordValue;
+        Map<String, Object> keyMap;
+        List<Map<String, Object>> valueListMap;
+        Map<Map<String, Object>, List<Map<String, Object>>> resultGroupinpMap = new LinkedHashMap<>();
+
+        for (Map.Entry<Map<String, Object>, List<Map<String, Object>>> entry : originalGroupingMap.entrySet()) {
+            keyMap = entry.getKey();
+            valueListMap = entry.getValue();
+            recordDate = castToStr(keyMap.get("record_date"));
+            chartNo = castToInt(keyMap.get("chart_no"));
+
+            List<Map<String, Object>> resultListMap = new ArrayList<>();
+            resultListMap.addAll(valueListMap);
+
+            for (Map<String, Object> map : valueListMap) {
+                recordType = castToStr(map.get("record_type"));
+                recordValue = castToStr(map.get("record_value"));
+
+                if (recordType.equals("LABRECORD") && recordValue != null) {
+                    objects = getLabRecordInpDataGroupByKind(chartNo, recordDate, recordDate);
+                    resultListMap.addAll(objects);
+                    //System.out.println("getLabRecordDataGroupByKind:" + objects);
+                }
+
+                if (recordType.equals("XRAYREPORT") && recordValue != null) {
+                    objects = getXrayReportInpDataGroupByType(chartNo, recordDate, recordDate);
+                    resultListMap.addAll(objects);
+                    //System.out.println("getXrayReportDataGroupByType:" + objects);
+                }
+            }
+
+            resultGroupinpMap.put(keyMap, resultListMap);
+        }
+
+        return resultGroupinpMap;
+    }
+
+    private JsonArray transformRelateData(int chartNo, String startDate, String endDate) {
+
+        // Collect OrRecord, NurseProgress, DrProgress, LabRecord, XrayRecord and merged together
+        List<Map<String, Object>> mergedObjects = collectData(chartNo, startDate, endDate);
+        //System.out.println("\nMergedObjects:" + MapUtil.listMapToJsonArray(mergedObjects));
+
+        // Create Matrix from mergedObjects use record_type as X-Axial, record_date as Y-Axial, record_value as CellValue
+        MatrixUtil matrixUtil = new MatrixUtil(mergedObjects, "record_type", "record_date", "record_value");
+        List<Map<String, Object>> matrixObjects = matrixUtil.getMatrixObjects();
+        //System.out.println("\nMatrixObjects:" + MapUtil.listMapToJsonArray(matrixObjects));
+
+        // Add chart_no, start_date, end_date to MatrixObjects
+        List<Map<String, Object>> resultObjects = new ArrayList<>();
+        for (Map<String, Object> map : matrixObjects) {
+            map.put("chart_no", chartNo);
+            map.put("start_date", startDate);
+            map.put("end_date", endDate);
+            resultObjects.add(map);
+        }
+        //System.out.println("\nResultObjects:" + MapUtil.listMapToJsonArray(resultObjects));
+
+        // Create Mater-Detail Map from ResultObjects
+        // Defined record_date, chart_no, start_date, end_date as Master Sets
+        // Defined record_type, record_value as Detail Sets
+        List<String> masterCols = Arrays.asList("record_date", "chart_no", "start_date", "end_date");
+        List<String> detailCols = Arrays.asList("record_type", "record_value");
+        Map<Map<String, Object>, List<Map<String, Object>>> groupinpMap = MapGroupingUtil.getGroupingResultMap(resultObjects, masterCols, detailCols);
+
+        // For each record_date add Lab and Xray data if exists
+        Map<Map<String, Object>, List<Map<String, Object>>> resultGroupinpMap = mergeLabAndXrayData(groupinpMap);
+
+        // Transfer Mater-Detail Map into JsonArray
+        JsonArray jsonArray = MapGroupingUtil.groupListMapToJsonArray(resultGroupinpMap);
+
+        return jsonArray;
+    }
+
+    public String getAdmitMatrixByChartNoAndDateRange(int chartNo, String startDate, String endDate) {
+
+        JsonArray jsonArray = transformRelateData(chartNo, startDate, endDate);
+
+        if (!jsonArray.isJsonNull()) {
+            jsonObject = MapUtil.getSuccessResult(jsonArray);
+        } else {
+            jsonObject = MapUtil.getFailureResult("TransformRelateData chartNo= " + chartNo +
+                    " serno= " + startDate + " No Data Found ");
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            orRecord = new OrRecord(myConnection);
+            nurseProgress = new NurseProgress(myConnection);
+            drProgress = new DrProgress(myConnection);
+            xrayReport = new XrayReport(myConnection);
+            labRecord = new LabRecord(myConnection);
+
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get admin matrix data
+            if (method.equals("getAdmitMatrixByChartNoAndDateRange")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                String startDate = parametersJsObj.get("startDate").getAsString();
+                String endDate = parametersJsObj.get("endDate").getAsString();
+                result = getAdmitMatrixByChartNoAndDateRange(chartNo, startDate, endDate).toString();
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        PatinpMatrixService patientListService = new PatinpMatrixService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 46271);
+        jsonObject.addProperty("startDate", "1050324");
+        jsonObject.addProperty("endDate", "1050330");
+        jsonObject.addProperty("method", "getAdmitMatrixByChartNoAndDateRange");
+        resultStrng = patientListService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPatinpMatrixService.run getAdmitMatrixByChartNoAndDateRange chartNo=46271 startDate='1050324' endDate='1050330' : " + resultStrng);
+
+    }
+}
+
+

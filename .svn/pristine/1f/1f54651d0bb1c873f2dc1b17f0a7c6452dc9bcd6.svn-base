@@ -1,0 +1,90 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapEntryUtil;
+import library.utility.MapUtil;
+import model.PacsSetting;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2018/4/18.
+ */
+
+public class PacsSettingService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private PacsSetting pacsSetting;
+
+
+    public String getPacsSetting() {
+
+        try {
+            object = pacsSetting.queryPacsSetting();
+
+            object = MapEntryUtil.getSubMapByKeyList(object, Arrays.asList("pacs_company", "pacs_server_ip"));
+
+            if (!object.isEmpty()) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.mapToJsonObject(object));
+            } else {
+                jsonObject = MapUtil.getFailureResult("PacsSetting.queryPacsSetting No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            pacsSetting = new PacsSetting(myConnection);
+
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            // get pacs_setting
+            if (method.equals("getPacsSetting")) {
+                result = getPacsSetting();
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        PacsSettingService pacsSettingService = new PacsSettingService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("method", "getPacsSetting");
+        resultStrng = pacsSettingService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nPacsSettingService.run getPacsSetting :"  + resultStrng);
+
+    }
+}
+

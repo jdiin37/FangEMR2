@@ -1,0 +1,58 @@
+package model;
+
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/10/11.
+ */
+public class Chart {
+    private Connection con;
+
+    public Chart(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryChartByChartNo(int chartNo) throws SQLException {
+        String queryString =
+                "SELECT a.chart_no, a.pt_name, a.id_no, a.birth_date, a.sex, " +
+                "       CASE WHEN a.sex = 1 THEN '男' " +
+                "            WHEN a.sex = 2 THEN '女' " +
+                "            ELSE '未知' " +
+                "       END AS sex_name " +
+                "  FROM chart a " +
+                " WHERE a.chart_no = ? ";
+
+        EntityFactory chartEntity = new EntityFactory(con, queryString);
+        return chartEntity.findSingle(new Object[]{chartNo});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            Chart chart = new Chart(myConnection);
+
+            System.out.println("\nChart.queryChartByChartNo chartNo=180 Map: " +
+                    chart.queryChartByChartNo(990473));
+
+            System.out.println("\nChart.queryChartByChartNo chartNo=912473 JsonObject: " +
+                    MapUtil.mapToJsonObject(chart.queryChartByChartNo(912473)));
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }    
+}

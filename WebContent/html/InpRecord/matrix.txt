@@ -1,0 +1,272 @@
+﻿[
+  {
+    "record_date": "1050324",
+    "chart_no": 46271,
+    "start_date": "1050324",
+    "end_date": "1050330",
+    "detailData": [
+      {
+        "record_type": "DRPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "LABRECORD",
+        "record_value": "檢驗"
+      },
+      {
+        "record_type": "NURSEPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "ORRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "XRAYREPORT",
+        "record_value": "影像"
+      },
+      {
+        "kind_id": "A4",
+        "kind_name": "生化檢驗單",
+        "report_subtitle": "生化",
+        "count": 2
+      },
+      {
+        "kind_id": "A1",
+        "kind_name": "尿液檢驗單",
+        "report_subtitle": "尿液",
+        "count": 1
+      },
+      {
+        "kind_id": "A3",
+        "kind_name": "血液檢驗單",
+        "report_subtitle": "血液",
+        "count": 1
+      },
+      {
+        "kind_id": "AG",
+        "kind_name": "輸血申請單",
+        "report_subtitle": "輸血",
+        "count": 1
+      },
+      {
+        "kind_id": "AT",
+        "kind_name": "血液(二)檢驗單",
+        "report_subtitle": "血二",
+        "count": 1
+      },
+      {
+        "cat_type": "A",
+        "cat_name": "一般",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "record_date": "1050325",
+    "chart_no": 46271,
+    "start_date": "1050324",
+    "end_date": "1050330",
+    "detailData": [
+      {
+        "record_type": "DRPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "LABRECORD",
+        "record_value": "檢驗"
+      },
+      {
+        "record_type": "NURSEPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "ORRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "XRAYREPORT",
+        "record_value": "影像"
+      },
+      {
+        "kind_id": "A3",
+        "kind_name": "血液檢驗單",
+        "report_subtitle": "血液",
+        "count": 1
+      },
+      {
+        "cat_type": "B",
+        "cat_name": "特殊",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "record_date": "1050326",
+    "chart_no": 46271,
+    "start_date": "1050324",
+    "end_date": "1050330",
+    "detailData": [
+      {
+        "record_type": "DRPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "LABRECORD",
+        "record_value": "檢驗"
+      },
+      {
+        "record_type": "NURSEPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "ORRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "XRAYREPORT",
+        "record_value": "影像"
+      },
+      {
+        "kind_id": "A3",
+        "kind_name": "血液檢驗單",
+        "report_subtitle": "血液",
+        "count": 1
+      },
+      {
+        "cat_type": "B",
+        "cat_name": "特殊",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "record_date": "1050327",
+    "chart_no": 46271,
+    "start_date": "1050324",
+    "end_date": "1050330",
+    "detailData": [
+      {
+        "record_type": "DRPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "LABRECORD",
+        "record_value": "檢驗"
+      },
+      {
+        "record_type": "NURSEPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "ORRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "XRAYREPORT",
+        "record_value": null
+      },
+      {
+        "kind_id": "A3",
+        "kind_name": "血液檢驗單",
+        "report_subtitle": "血液",
+        "count": 1
+      },
+      {
+        "kind_id": "A4",
+        "kind_name": "生化檢驗單",
+        "report_subtitle": "生化",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "record_date": "1050328",
+    "chart_no": 46271,
+    "start_date": "1050324",
+    "end_date": "1050330",
+    "detailData": [
+      {
+        "record_type": "DRPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "LABRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "NURSEPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "ORRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "XRAYREPORT",
+        "record_value": "影像"
+      },
+      {
+        "cat_type": "A",
+        "cat_name": "一般",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "record_date": "1050329",
+    "chart_no": 46271,
+    "start_date": "1050324",
+    "end_date": "1050330",
+    "detailData": [
+      {
+        "record_type": "DRPROGRESS",
+        "record_value": "病程記錄"
+      },
+      {
+        "record_type": "LABRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "NURSEPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "ORRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "XRAYREPORT",
+        "record_value": null
+      }
+    ]
+  },
+  {
+    "record_date": "1050330",
+    "chart_no": 46271,
+    "start_date": "1050324",
+    "end_date": "1050330",
+    "detailData": [
+      {
+        "record_type": "DRPROGRESS",
+        "record_value": "病程記錄"
+      },
+      {
+        "record_type": "LABRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "NURSEPROGRESS",
+        "record_value": null
+      },
+      {
+        "record_type": "ORRECORD",
+        "record_value": null
+      },
+      {
+        "record_type": "XRAYREPORT",
+        "record_value": null
+      }
+    ]
+  }
+]

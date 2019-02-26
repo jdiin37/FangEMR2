@@ -1,0 +1,74 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/10/13.
+ */
+public class XrayOrd {
+    private Connection con;
+
+    public XrayOrd(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryXrayCountBychartNoDateRange(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT COUNT(*) count " +
+                "  FROM xrayord a " +
+                " WHERE a.view_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? ";
+
+        EntityFactory xrayOrdEntity = new EntityFactory(con, queryString);
+        return xrayOrdEntity.findSingle(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public List<Map<String, Object>> queryXrayVisitedBychartNoAndYears(int chartNo, String startDate, String endDate) throws SQLException {
+        String queryString =
+                "SELECT a.xray_type, b.form_name, COUNT(a.xray_type) count  " +
+                        "  FROM xrayord a, xryform b  " +
+                        " WHERE a.view_date BETWEEN ? AND ? " +
+                        "   AND a.chart_no = ? " +
+                        "   AND a.xray_type = b.form_no(+) " +
+                        " GROUP BY a.xray_type, b.form_name " +
+                        " ORDER by 3 desc ";
+
+        EntityFactory xrayOrdEntity = new EntityFactory(con, queryString);
+        return xrayOrdEntity.findMultiple(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            XrayOrd xrayOrd = new XrayOrd(myConnection);
+
+            int chartNo = 912473;
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-4, ChronoUnit.YEARS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+            System.out.printf("\nXrayOrd.queryXrayCountBychartNoDateRange chartNo=%d startDate=%s endDate=%s JsonObject:%s ",
+                    chartNo, startDate, endDate, MapUtil.mapToJsonObject(xrayOrd.queryXrayCountBychartNoDateRange(chartNo, startDate, endDate)).toString());
+
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}

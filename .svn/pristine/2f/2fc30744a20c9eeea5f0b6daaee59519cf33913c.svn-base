@@ -1,0 +1,1058 @@
+/**
+ * 門急診
+ */
+
+var OpdObj = { // 影像物件
+		OpdYear : 5,
+		OpdSDate : "",
+		OpdEDate : "",
+		viewType: "",
+		serno:0
+	};
+
+//var OpdRecordArray = 
+//	[ {years:105,record_date:1010101,view_type:"門診",chart_no:912473,dis_cat:"570-579",name_c:"急性及亞急性肝壞死",name_e:"ACUTE AND SUBACUTE NECROSIS OF LIVER",cat_type:"B",start_date:"1051124",end_date:"1051206",cat_name:"影像",report_subtitle:"檢驗",kind_id:"A2",labCount:10,xrayCount:2},
+//	  {years:105,record_date:1010102,view_type:"急診",chart_no:912473,dis_cat:"350-359",name_c:"三叉神經疾患",name_e:"TRIGEMINAL NERVE DISORDERS",cat_type:"A",start_date:"1051213",end_date:"1051217",cat_name:"影像",report_subtitle:"檢驗",kind_id:"A3",labCount:7,xrayCount:3}
+//	];
+	 
+
+var OpdRecordKind;
+var OpdRecordTypeName;
+var OpdRange;
+var OpdDiseaseSumListArray;
+
+
+var OpdSumDateRangeInputObj = function(empNo,sessionID,chartNo,startDate,endDate,cashType,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.startDate = startDate;
+	this.endDate = endDate;
+	this.cashType=cashType;
+	this.method = method;
+};
+
+var OpdSumYearsInputObj = function(empNo,sessionID,chartNo,years,cashType,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.years = years;
+	this.cashType = cashType;
+	this.method = method;		
+};
+
+
+var OpdSumAllInputObj = function(empNo,sessionID,chartNo,cashType,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.chartNo = chartNo;
+	this.cashType = cashType;
+	this.method = method;
+};
+
+
+/**主訴 理學 診斷 病史 OBJ
+ * Chart1Service***/ 
+//* {"empNo":"ORCL","sessionID":1,"viewDate":"1051209","chartNo":912473,"duplicateNo":1,"method":"getChart1ByPrimaryKeys"}
+var OpdDARTInputObj = function(empNo,sessionID,viewDate,chartNo,duplicateNo,method){
+	this.empNo = empNo;
+	this.sessionID = sessionID;
+	this.viewDate = viewDate;
+	this.chartNo = chartNo;
+	this.duplicateNo = duplicateNo;
+	this.method = method;
+};
+
+
+function renderOpd(){
+	
+	$(document).on('change', '#OpdYear', function(event) {
+		if ($(this).val().length > 0 && years_regex.test($(this).val())) { // 驗證回傳值
+			stateChange(true, '#OpdYear');
+			OpdObj.OpdYear = $(this).val();
+			//showLoading();
+			ajax_getOpdRecordInfoData("year");
+		} else {
+			stateChange(false, '#OpdYear', "請輸入1-100之間");
+		}
+	});
+	
+	
+	
+
+	
+}
+
+
+
+//--call OPD  門急  for 過濾疾病代碼  undefined
+var callOPD = function(flag,typeName,kind,cashType){
+	OpdRecordKind = kind;
+//	OpdRecordTypeName = typeName;
+	$("#opdRecordPage_Title").html("門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+	OpdObj.OpdYear = PatObj.recentYear;
+	OpdObj.OpdSDate = ViewListObj.sdate;
+	OpdObj.OpdEDate = ViewListObj.edate;
+	OpdObj.viewType = "OPD";
+	
+	
+	if(flag=="date"){
+		$("#OpdMasterDate").show();
+		$("#OpdMasterDate1").show();
+		$("#OpdMasterDate2").show();
+		ajax_getOpdRecordInfoData("date",typeName,cashType);
+		document.getElementById('OpdMasterDate').setAttribute("title",OpdObj.OpdSDate+"-"+OpdObj.OpdEDate);
+		$("#opdRecordPage_Title").html(OpdObj.OpdSDate+"-"+OpdObj.OpdEDate+" 門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+
+
+	}else if(flag=="year"){
+		$("#OpdMasterDate").hide();
+		$("#OpdMasterDate1").hide();
+		$("#OpdMasterDate2").hide();
+		ajax_getOpdRecordInfoData("year",typeName,cashType);
+		$("#opdRecordPage_Title").html(OpdObj.OpdYear+"年 門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+
+	}else if(flag=="all"){
+		$("#OpdMasterDate").hide();
+		$("#OpdMasterDate1").hide();
+		$("#OpdMasterDate2").hide();
+		ajax_getOpdRecordInfoData("all",typeName,cashType);
+		$("#opdRecordPage_Title").html("全部 門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+
+	}
+	
+	 $('#OpdYear').val(OpdObj.OpdYear);
+	
+}
+
+//--call OPD  門急  for 過濾疾病代碼
+var callOPDType = function(flag,typeName,kind,cashType){
+	OpdRecordTypeName = cashType;
+	OpdRecordKind = kind;
+	$("#opdRecordPage_Title").html("門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+//	OpdObj.OpdYear = PatObj.recentYear;
+//	OpdObj.OpdSDate = ViewListObj.sdate;
+//	OpdObj.OpdEDate = ViewListObj.edate;
+//	OpdObj.viewType = "OPD";
+	
+	
+	if(flag=="date"){
+		$("#OpdMasterDate").show();
+		$("#OpdMasterDate1").show();
+		$("#OpdMasterDate2").show();
+		ajax_getOpdRecordInfoData("date",typeName,cashType);
+		document.getElementById('OpdMasterDate').setAttribute("title",OpdObj.OpdSDate+"-"+OpdObj.OpdEDate);
+		$("#opdRecordPage_Title").html(OpdObj.OpdSDate+"-"+OpdObj.OpdEDate+" 門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+
+	}else if(flag=="year"){
+//		$("#OpdMasterDate").hide();
+//		$("#OpdMasterDate1").hide();
+//		$("#OpdMasterDate2").hide();
+		$("#opdRecordPage_Title").html(OpdObj.OpdYear+"年 門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+		ajax_getOpdRecordInfoData("year",typeName,cashType);
+	}else if(flag=="all"){
+//		$("#OpdMasterDate").hide();
+//		$("#OpdMasterDate1").hide();
+//		$("#OpdMasterDate2").hide();
+		$("#opdRecordPage_Title").html("全部 門急記錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+		ajax_getOpdRecordInfoData("all",typeName,cashType);
+	}
+	
+	 $('#OpdYear').val(OpdObj.OpdYear);
+	
+}
+
+
+
+
+/**取得 門急紀錄 日期範圍/年/全部 InfoData***/	
+var ajax_getOpdRecordInfoData = function(range,typeName,cashType){
+	$("#OpdRecordCol").show(); //顯示門急診日期清單
+	$("#OpdDiseaseSumCol").hide(); //隱藏 疾病彙總清單
+	$("#OpdOrderSumCol").hide();//隱藏  醫令彙總清單
+	
+	
+	    $("#opdRecordInfo").html(""); //先清空  門急診button資訊
+		$("#OpdIcd10Name").html("");
+		var OpdRecordArray=[];
+		showLoading();
+		//取得門急診資訊
+		
+		var diseaseTitle = "";
+		var orderTitle = "";
+		
+		if(range=="date"){
+			diseaseTitle = (OpdObj.OpdSDate)+" ~ "+(OpdObj.OpdEDate)+" 疾病彙總";
+			orderTitle = (OpdObj.OpdSDate)+" ~ "+(OpdObj.OpdEDate)+" 醫令彙總";
+		}else if(range=="year"){
+			diseaseTitle = OpdObj.OpdYear+"年疾病彙總 ";
+			orderTitle = OpdObj.OpdYear+"年醫令彙總 ";
+		}else if(range=="all"){
+			diseaseTitle = "全部疾病彙總 ";
+			orderTitle = "全部醫令彙總";
+		}
+		
+			
+	    
+		if(range=="date"){
+			var xrayParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getXrayCountByChartNoDateRangeGroupByType");
+		}else if(range=="year"){
+			var xrayParam =  new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdYear,"getXrayCountByChartNoYearsGroupByType");	
+		}else if(range=="all"){
+			var xrayParam =  new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getXrayCountByChartNoGroupByType");	
+		}
+		
+		
+		if(range=="date"){
+			var labParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getLabCountByChartNoDateRangeGroupByKind");
+		}else if(range=="year"){
+			var labParam =  new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdYear,"getLabCountByChartNoYearsGroupByKind");	
+		}else if(range=="all"){
+			var labParam =  new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getLabCountByChartNoGroupByKind");	
+		}
+		
+		/**if(range=="date"){
+			var opdParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getPatopdSummaryByChartNoDateRange");
+		}else if(range=="year"){
+			var opdParam = new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdYear,"getPatopdSummaryByChartNoYears");	
+
+		}else if(range=="all"){
+			var opdParam = new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getPatopdSummaryByChartNo");	
+
+		}**/
+		if(range=="date"){
+			var opdParam = new OpdSumDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,typeName,"getPatopdSummaryByChartNoDateRange");
+		}else if(range=="year"){
+			var opdParam = new OpdSumYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdYear,typeName,"getPatopdSummaryByChartNoYears");	
+		}else if(range=="all"){
+			var opdParam = new OpdSumAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,typeName,"getPatopdSummaryByChartNo");	
+
+		}
+		
+		if(range=="date"){
+			var opdListParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getPatopdListByChartNoDateRange");
+		}else if(range=="year"){
+			var opdListParam =  new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdYear,"getPatopdListByChartNoYears");	
+		}else if(range=="all"){
+			var opdListParam =  new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getPatopdListByChartNo");	
+		}
+		
+		
+		//取得 全部   1.日期  2.年範圍 & 3.全部的 門急診 count 1070403 add opdDateParam()
+		var opdDateParam = new OpdSumDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"ALL","getPatopdSummaryByChartNoDateRange");	
+		var opdYearParam = new OpdSumYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdYear,"ALL","getPatopdSummaryByChartNoYears");	
+		var opdAllParam = new OpdSumAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"ALL","getPatopdSummaryByChartNo");	
+
+	
+		var box ="";
+		var contentBox = "";
+		 var request = $.when(ajax_setPostData("PatopdService",JSON.stringify(opdDateParam)),ajax_setPostData("PatopdService",JSON.stringify(opdParam)),ajax_setPostData("XrayReportService",JSON.stringify(xrayParam)),ajax_setPostData("LabRecordService",JSON.stringify(labParam)),ajax_setPostData("PatopdService",JSON.stringify(opdYearParam)),ajax_setPostData("PatopdService",JSON.stringify(opdAllParam)),ajax_setPostData("PatopdService",JSON.stringify(opdListParam))).done(
+					function(opdDateData,opddata,xraydata,labdata,opdYearData,opdAllData,opdListData) {
+						
+						//門急診日期範圍  1070403 add 
+						if(opdDateData[0].status == "Success"){
+							var SummaryBtnWidth = 86;
+							$.each(opdDateData[0].resultSet, function(index, obj) {
+								
+								if(range=="date"){
+									
+									if(index == "summary"){
+										//alert(obj);
+										if(obj >=1000){
+											SummaryBtnWidth += 8;
+										}
+										$('#OpdMasterDate').find("span").html(obj);
+									}
+									
+									if(index =="visit_details"){
+										$.each(obj, function(index, obj_d) {
+											
+											if(obj.length==2){
+												if(obj_d.cash_type=="OPD"){
+													$('#OpdMasterDate1').find("span").html(obj_d.count);
+												}else {
+													$('#OpdMasterDate2').find("span").html(obj_d.count);
+												}
+											}else if(obj.length==1&&obj_d.cash_type=="OPD"){
+												$('#OpdMasterDate1').find("span").html(obj_d.count);
+												$('#OpdMasterDate2').find("span").html("0");
+												
+											}else if(obj.length==1&&obj_d.cash_type=="EMG"){
+												$('#OpdMasterDate2').find("span").html(obj_d.count);
+												$('#OpdMasterDate1').find("span").html("0");
+											}else{
+												$('#OpdMasterDate1').find("span").html("0");
+												$('#OpdMasterDate2').find("span").html("0");
+											}
+
+										});
+									}
+									
+								}
+																
+//								if(index =="dis_details"){
+//									$.each(obj, function(index, obj_d) {
+//										if(index%4 == 0 ){
+////											contentBox += '<hr class="hr_noline" /><span style="margin-right:' + SummaryBtnWidth + 'px"></span>'
+//										}
+////										box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">' + obj_d.dis_cat + " "+ obj_d.name_c +' <span class="badge">' + obj_d.count +'</span></button>';
+////										contentBox += '<button class="OpdIcd10">' + obj_d.range_no2 + " "+ obj_d.range_name_c +' <span class="OpdIcd10Count">(' + obj_d.count +')</span></button>';
+////										contentBox += '&nbsp;<button class="OpdIcd10" onclick="filterOpdRangeNo2List(\'' + obj_d.range_no2 + '\');">' + obj_d.range_no2 + " "+ obj_d.range_name_c +' <span class="OpdIcd10Count">' + obj_d.count +'</span></button>';
+//										contentBox += '<button class="OpdIcd10" value="' + obj_d.range_no2 +'">' + obj_d.range_no2 + " "+ obj_d.range_name_c +' <span class="OpdIcd10Count">' + obj_d.count +'</span></button>';
+//
+//									});
+//								}
+							
+							});
+//							box += '<br/>';
+						}else {
+							var ajaxErrMsg = opddata[0].errorMessage;
+						}
+						
+						//門急診 日期範圍	/年/全部					
+						if(opddata[0].status == "Success"){
+							var SummaryBtnWidth = 86;
+							$.each(opddata[0].resultSet, function(index, obj) {
+								
+																
+								if(index =="dis_details"){
+									$.each(obj, function(index, obj_d) {
+										if(index%4 == 0 ){
+//											contentBox += '<hr class="hr_noline" /><span style="margin-right:' + SummaryBtnWidth + 'px"></span>'
+										}
+//										box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">' + obj_d.dis_cat + " "+ obj_d.name_c +' <span class="badge">' + obj_d.count +'</span></button>';
+//										contentBox += '<button class="OpdIcd10">' + obj_d.range_no2 + " "+ obj_d.range_name_c +' <span class="OpdIcd10Count">(' + obj_d.count +')</span></button>';
+//										contentBox += '&nbsp;<button class="OpdIcd10" onclick="filterOpdRangeNo2List(\'' + obj_d.range_no2 + '\');">' + obj_d.range_no2 + " "+ obj_d.range_name_c +' <span class="OpdIcd10Count">' + obj_d.count +'</span></button>';
+										contentBox += '<button class="OpdIcd10" value="' + obj_d.range_no2 +'">' + obj_d.range_no2 + " "+ obj_d.range_name_c +' <span class="OpdIcd10Count">' + obj_d.count +'</span></button>';
+
+									});
+								}
+							
+							});
+//							box += '<br/>';
+						}else {
+							var ajaxErrMsg = opddata[0].errorMessage;
+						}
+						
+						//門急診 年範圍
+						if(opdYearData[0].status == "Success"){
+							var SummaryBtnWidth = 86;
+							$.each(opdYearData[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									//alert(obj);
+									if(obj >=1000){
+										SummaryBtnWidth += 8;
+									}
+//									$('#OpdMasterYear').find("span").html(obj);
+									$('#OpdMasterYear').html(OpdObj.OpdYear + '年門急&nbsp;<span class="badge">'+ obj + '</span>');
+//									box += '<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">門急 <span class="badge">' + obj +'</span></button>';
+								}
+								
+								if(index =="visit_details"){
+									$.each(obj, function(index, obj_d) {
+//										var viewtype = obj_d.cash_type =="OPD"? '門診' : '急診';
+										if(obj_d.cash_type=="OPD"){
+//											$('#OpdMasterYear1').find("span").html(obj_d.count);
+											$('#OpdMasterYear1').html(OpdObj.OpdYear + '年門診&nbsp;<span class="badge">'+ obj_d.count + '</span>');
+										}else {
+//											$('#OpdMasterYear2').find("span").html(obj_d.count);
+											$('#OpdMasterYear2').html(OpdObj.OpdYear + '年急診&nbsp;<span class="badge">'+ obj_d.count + '</span>');
+
+										}
+										
+										
+//										box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">' + viewtype +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+//									box+= '&nbsp;<input value="5" id="OpdYear" type="text" class="form-control input-sm input-center" style="max-width: 48px;"><label class="EMRLabel" for="OpdYear">&nbsp;年&nbsp;</label>'+
+//										'<button class="btn btn-primary" id="OpdMasterYear">'+OpdObj.OpdYear+'年門急 <span class="badge">'+ $("#yearsOPD").html()+'</span></button>'+
+//										'&nbsp;<button class="btn btn-primary" id="OpdMasterAll">全部門急 <span class="badge">'+$("#allOPD").html()+'</span></button>';
+								}
+							
+							
+							});
+//							box += '<br/>';
+						}else {
+							var ajaxErrMsg = opddata[0].errorMessage;
+						}
+						
+						
+						//門急診全部範圍
+						if(opdAllData[0].status == "Success"){
+							var SummaryBtnWidth = 86;
+							$.each(opdAllData[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									//alert(obj);
+									if(obj >=1000){
+										SummaryBtnWidth += 8;
+									}
+									$('#OpdMasterAll').find("span").html(obj);
+//									box += '<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">門急 <span class="badge">' + obj +'</span></button>';
+								}
+								
+								if(index =="visit_details"){
+									$.each(obj, function(index, obj_d) {
+//										var viewtype = obj_d.cash_type =="OPD"? '門診' : '急診';
+										if(obj_d.cash_type=="OPD"){
+											$('#OpdMasterAll1').find("span").html(obj_d.count);
+										}else {
+											$('#OpdMasterAll2').find("span").html(obj_d.count);
+										}
+										
+										
+//										box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">' + viewtype +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+//									box+= '&nbsp;<input value="5" id="OpdYear" type="text" class="form-control input-sm input-center" style="max-width: 48px;"><label class="EMRLabel" for="OpdYear">&nbsp;年&nbsp;</label>'+
+//										'<button class="btn btn-primary" id="OpdMasterYear">'+OpdObj.OpdYear+'年門急 <span class="badge">'+ $("#yearsOPD").html()+'</span></button>'+
+//										'&nbsp;<button class="btn btn-primary" id="OpdMasterAll">全部門急 <span class="badge">'+$("#allOPD").html()+'</span></button>';
+								}
+							
+							
+							});
+//							box += '<br/>';
+						}else {
+							var ajaxErrMsg = opddata[0].errorMessage;
+						}
+						
+						//醫令彙總; 疾病彙總 ;  主訴、理學、診斷、病史彙總
+//						box += '<hr class="hr_noline" />';
+						box += '<div class="right">';						
+						box += '<button class="btn btn-primary" title="'+orderTitle+'">醫令彙總</button>';
+//						box += '&nbsp;<button class="btn btn-primary" onclick="DiseaseSummary();">疾病彙總</button>';
+						box += '&nbsp;<button class="btn btn-primary"  onclick="DiseaseSummary('+"'"+range+"'"+');" title="'+diseaseTitle+'">疾病彙總</button>';
+//						box += '&nbsp;<button class="btn btn-primary">主訴、理學、診斷、病史彙總</button>&nbsp;';
+						box += '</div>';
+						
+						
+
+						
+						//影像
+						if (xraydata[0].status == "Success") {
+							$.each(xraydata[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									
+									if(range=="date"){
+										box += '&emsp;<button class="btn btn-primary" onclick="callOPDXray(' + "'date'" +' )">影像 <span class="badge">' + obj +'</span></button>';
+										}else if(range=="year"){
+											box += '&emsp;<button class="btn btn-primary" onclick="callOPDXray(' + "'year'" +' )">影像 <span class="badge">' + obj +'</span></button>';
+										}else if(range=="all"){
+											box += '&emsp;<button class="btn btn-primary" onclick="callOPDXray(' + "'all'" +' )">影像 <span class="badge">' + obj +'</span></button>';
+
+										}
+								}
+								/**else{
+									$.each(obj, function(index, obj_d){
+										box += '&nbsp;<button class="btn btn-primary" onclick="callXray(' + "'date',\'" + obj_d.cat_type + "\'" +')">' + obj_d.cat_name +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}**/
+								//alert(index + ":" + obj);
+							});
+//							box += '<hr/>';
+						} else {
+						  var ajaxErrMsg = xraydata[0].errorMessage;
+						}
+						
+						//檢驗
+						
+						if (labdata[0].status == "Success") {
+							$.each(labdata[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									//alert(obj);
+									if(range=="date"){
+								    box += '&nbsp;<button class="btn btn-primary btn-lab" onclick="callOPDLab(' + "'date'" +' )">檢驗 <span class="badge">' + obj +'</span></button>';
+									}else if(range=="year"){
+									box += '&nbsp;<button class="btn btn-primary btn-lab" onclick="callOPDLab(' + "'year'" +' )">檢驗 <span class="badge">' + obj +'</span></button>';
+									}else if(range=="all"){
+									box += '&nbsp;<button class="btn btn-primary btn-lab" onclick="callOPDLab(' + "'all'" +' )">檢驗 <span class="badge">' + obj +'</span></button>';
+
+									}
+								}
+								/**else{
+									$.each(obj, function(index, obj_d){
+										box += '&nbsp;<button class="btn btn-primary btn-lab" onclick="callLab(' + "'date',\'" + obj_d.kind_id + "\'" +' )">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}**/
+				
+							});
+							
+						} else {
+							var ajaxErrMsg = labdata[0].errorMessage;
+						}
+						
+						
+						$("#opdRecordInfo").append(box);
+						$("#OpdIcd10Name").append(contentBox);
+						
+						/**門診日期清單 1070331 add***/						
+						if (opdListData[0].status == "Success") {
+							$.each(opdListData[0].resultSet, function(index, obj) {
+								OpdRecordArray.push(obj);
+
+							});
+
+							OpdRange = range;
+							
+							jqGrid_OpdRecordList("#OpdRecordList","#OpdRecordList_Pager",OpdRecordArray);
+							if(OpdRecordKind != undefined)
+							{
+								jqGrid_OpdRecordList("#OpdRecordList","#OpdRecordList_Pager",setRangeNo2NewArray(OpdRecordArray,OpdRecordKind,cashType));
+								OpdRecordKind = undefined;
+							}
+							
+							cashType = OpdRecordTypeName;
+							
+							if(OpdRecordTypeName != undefined)
+							{
+								jqGrid_OpdRecordList("#OpdRecordList","#OpdRecordList_Pager",setTypeNameNewArray(OpdRecordArray,OpdRecordTypeName));
+								OpdRecordTypeName = undefined;
+							}
+							
+							
+							
+							
+							
+						} else {
+							var ajaxErrMsg = opdListData[0].errorMessage;
+						}
+						
+						//測試假資料  需接真正的API 資料 1070330 
+						
+						
+						hideLoading();
+						setPageVisible("opdRecordPage", true);
+						popUpPageFixPos("opdRecordPage");
+						
+						/**點下門診紀錄的 疾病代碼 監聽器**/
+						$(document).on('click', '.OpdIcd10', function(event) {
+							
+							 $(this).addClass("OpdIcd10-active").siblings().removeClass("OpdIcd10-active");
+							 jqGrid_OpdRecordList("#OpdRecordList","#OpdRecordList_Pager",setRangeNo2NewArray(OpdRecordArray,$(this).val(),cashType));
+//							 jqGrid_OpdRecordList("#OpdRecordList","#OpdRecordList_Pager",setRangeNo2NewArray(setTypeNameNewArray(OpdRecordArray,cashType),$(this).val()));
+
+							 
+						});
+							
+
+					});
+		 
+		    request.onreadystatechange = null;
+			request.abort = null;
+			request = null;
+		
+		
+	};
+
+/**過濾 疾病碼中文 key= "code_name_c"**/
+var setCodeNameCNewArray = function(originalArray,diseaseCode){
+			  var newArr = $.grep(originalArray,function(o,index){
+			        return (o.disease_code==diseaseCode);
+			     });
+			    
+			    return newArr;
+		};	
+	
+
+/**過濾 疾病碼 key= "range_no2"**/
+//var setRangeNo2NewArray = function(originalArray,rangeNo2){
+//		  var newArr = $.grep(originalArray,function(o,index){
+//		        return (o.range_no2==rangeNo2);
+//		     });
+//		    
+//		    return newArr;
+//	};
+
+/***修改過濾條件 1070403 依據門急診&疾病代碼過濾**/		
+var setRangeNo2NewArray = function(originalArray,rangeNo2,typeName){
+	
+	if(typeName=="E"){
+		 var newArr = $.grep(originalArray,function(o,index){
+			   if(o.cash_type==(typeName)&&o.range_no2==rangeNo2){
+				  return typeName;	
+			  }
+	
+		     });
+		    
+		    return newArr;		 
+	 }else if(typeName=="門診"){		 
+		 var newArr = $.grep(originalArray,function(o,index){
+			   if(o.cash_type_name.indexOf(typeName)!==-1&&o.range_no2==rangeNo2){
+				  return typeName;	
+			  }
+	
+		     });
+		    
+		    return newArr;
+		 
+	 }else{
+		 
+		 var newArr = $.grep(originalArray,function(o,index){
+		        return (o.range_no2==rangeNo2);
+		     });
+		    
+		    return newArr;
+	 }
+	
+	
+		  
+	};
+	
+/**過濾 門急診 key="cash_type_name" ***/	
+var setTypeNameNewArray = function(originalArray,typeName){
+	if(typeName=="E"){
+		 var newArr = $.grep(originalArray,function(o,index){
+			   if(o.cash_type==(typeName)){
+				  return typeName;	
+			  }
+	
+		     });
+		    
+		    return newArr;		 
+	 }else if(typeName=="門診"){		 
+		 var newArr = $.grep(originalArray,function(o,index){
+			   if(o.cash_type_name.indexOf(typeName)!==-1){
+				  return typeName;	
+			  }
+	
+		     });
+		    
+		    return newArr;
+		 
+	 }
+		
+		 
+		
+};	
+
+//過濾疾病彙總 
+var setDiseaseCodeNewArray = function(originalArray,diseaseCode){
+	var diseaseArray = [];
+//	console.log("diseaseCode="+diseaseCode+";Array=>"+originalArray);
+		  var newArr = $.grep(originalArray,function(o,index){
+//			     console.log("o.disease_code=>"+o.disease_code);
+			     if(o.disease_code==diseaseCode){
+			    	 
+//			    	 for(var i=0;i<o.detailData.length;i++){
+//			    		 diseaseArray.push(o.detailData[i]); 
+//			    	 }
+			    	 
+			    	 $.each(o.detailData, function(index, obj) {
+			    		 
+			    		 diseaseArray.push(obj);
+						 
+					                   });
+			    	 
+			    	
+			     }
+
+		     });
+//		     console.log(diseaseArray);
+		    return diseaseArray;
+	};
+
+
+	
+/**門急看診日期清單 1070330 add jqGrid_OpdRecordList("OpdRecordList","OpdRecordList_Pager",OpdRecordArray);***/
+function jqGrid_OpdRecordList(tableName,pagerName,dataArray){
+		$(tableName).jqGrid({
+		    datatype: "local",
+		    height: pageHeight - 220,
+		    colModel: [
+		        { label: '病歷號', name: 'chart_no', width: 45,hidden:true },
+		        { label: 'duplicate_no', name: 'duplicate_no', width: 45,hidden:true },  
+		        { label: '年份', name: 'years', width: 45 },
+		        { label: '日期', name: 'view_date', width: 90 },
+		        { label: '門|急', name: 'cash_type', width: 60,align:'center',formatter: function(cellvalue, options, rowobject){
+		        	if(rowobject.cash_type=="E"){
+		        		return  '<span class="" >急診</span>';
+		        	}else{
+		        		return  '<span class="" >門診</span>';
+		        	}
+		        	
+		        	
+		        }},
+		        { label: '病歷號', name: 'chart_no', width: 90,hidden:true },
+		        { label: '疾病代碼名稱', name: 'range_no2', width:440,hidden:true,formatter: function(cellvalue, options, rowobject){
+		        	return  '<span class="" >' + filterNull(rowobject.range_no2) +" "+ filterNull(rowobject.range_name_c) +'</span>';
+		        } },
+		        { label: '疾病代碼名稱', name: 'disease_code', width:440,hidden:false,formatter: function(cellvalue, options, rowobject){
+		        	return  '<span class="" >' + filterNull(rowobject.disease_code) +" "+ filterNull(rowobject.code_name_c) +'</span>';
+		        } },
+		        
+		        { label: '中文', name: 'range_name_c', width: 90,hidden:true },
+		        { label: '英文', name: 'range_name_e', width: 90,hidden:true },
+		        { label: '疾病代碼名稱', name: 'range_no2', width: 500,hidden:true },
+		        { label: '影像', name: 'XRAY', width: 105,align:'center',formatter: function(cellvalue, options, rowobject){
+		        	
+		        	if(cellvalue!=null&&cellvalue!=""){
+//		        		return  '<button class="btn btn-primary btn-lab">影像 <span class="badge">' + cellvalue +'</span></button>';
+		        		return  '<button class="btn btn-primary btn-lab" onclick="callOPDXray(' +"\'"+ OpdRange + "\',\'" + rowobject.view_date + "\'" +')">影像 <span class="badge">' + cellvalue +'</span></button>';
+
+
+		        	}else{
+		        		return'';
+		        	} 
+		        	
+//	        		return  '<button class="btn btn-primary btn-lab " onclick="callInpRecordXray('+"\'" + rowobject.cat_type + "\',\'"+rowobject.start_date+"\',\'"+rowobject.end_date+"\'"+' )"><img alt="影像" src="/FangEmrServices/img/24_xray.png"> ' + obj.cat_name +'X光</button>&nbsp;';
+
+	
+		        } },
+		        
+		        { label: '檢驗', name: 'LAB', width: 105,align:'center',formatter: function(cellvalue, options, rowobject){
+		        	if(cellvalue!=null&&cellvalue!=""){
+		        		return  '<button class="btn btn-primary btn-lab" onclick="callOPDLab(' +"\'"+ OpdRange + "\',\'" + rowobject.view_date + "\'" +')">檢驗 <span class="badge">' + cellvalue +'</span></button>';
+		        	}else{
+		        		return'';
+		        	}
+//			        return '<button class="btn btn-primary btn-lab " onclick="callInpRecordLab('+"\'" + rowobject.kind_id + "\',\'"+rowobject.start_date+"\',\'"+rowobject.end_date+"\'"+' )"><img alt="檢驗" src="/FangEmrServices/img/24_lab.png">' + obj.report_subtitle +'</button>&nbsp;';
+
+		        } },
+		       
+		      
+		        
+		    ],
+		    viewrecords: true, // show the current page, data rang and total records on the toolbar
+		    //caption: "病歷主檔",
+		    onSelectRow:getSelectedRow,
+		    ondblClickRow: function(rowId) {
+		    	
+	        },
+	        width: null,
+//	        rowNum: Math.floor((pageHeight - 220)/33),
+		    shrinkToFit:false,
+		    sortable: false,
+			pager: pagerName,
+			pagerpos:'left',
+			loadComplete : function () {
+				$(this).jqGrid('setSelection', 1, true);
+			}
+		});
+		$(tableName).jqGrid('clearGridData');
+		$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: dataArray});
+		$(tableName).jqGrid('sortGrid','view_date', true, 'desc');
+		$(tableName).trigger('reloadGrid');
+		//$("#XrayList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+		
+		function getSelectedRow() {
+			
+		    var grid = $(tableName);
+		    var rowKey = grid.jqGrid('getGridParam',"selrow");
+		    if (rowKey){
+		    	var recordDate = $(tableName).jqGrid('getCell',rowKey,'view_date');
+		    	var viewType = $(tableName).jqGrid('getCell',rowKey,'cash_type');
+		    	var viewDate = $(tableName).jqGrid('getCell',rowKey,'view_date');
+		    	var chartNo = $(tableName).jqGrid('getCell',rowKey,'chart_no');
+		    	var duplicateNo = $(tableName).jqGrid('getCell',rowKey,'duplicate_no');
+		    	
+		    	var extraBtn="";
+		    	extraBtn += '<div class="pull-right"><button  type="button" id="extraInp" class="btn btn-link btn-popUp btn-img24 img24_pumpWindow" onclick="justPopUp(this)"></button></div>';
+		    	$('#OpdRecordListHead').html(recordDate +" "+ viewType+" 【主訴、理學、診斷、病史彙總 】  病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲 " +extraBtn);
+		    	ajax_getOpdDARTDetailData("Chart1Service",viewDate,chartNo,duplicateNo);
+    	
+//		    	var serno = $(tableName).jqGrid('getCell',rowKey,'serno');
+//		    	var times = $(tableName).jqGrid('getCell',rowKey,'times');
+//		    	ajax_getOpAntibioList("OrRecordService",opDate,serno,times);
+//		    	
+//		    	ajax_getOpDetailData("OrRecordService",opDate,serno,times);
+		    		    		    
+		    }
+		    else{
+		        alert("沒有資料被選擇");
+		    }
+		}
+		
+
+	}
+/**過濾 opdRecordList ***/		
+var filterOpdRangeNo2List = function(type){
+	var myfilter = { groupOp: "AND", rules: []};
+	myfilter.rules.push({field:"range_no2",op:"eq",data:type});	
+	$("#OpdRecordList").setGridParam({
+	postData: { filters: JSON.stringify(myfilter)},
+	search:true
+	}).trigger('reloadGrid',[{page:1}]);
+		}
+
+function DiseaseSummary(range){
+	$("#OpdRecordCol").hide(); // hide 門急記錄清單
+	$("#OpdDiseaseSumCol").show(); // show 疾病彙總
+	$("#OpdOrderSumCol").hide();//hide 醫令彙總
+//	getDiseaseSummaryJson();
+	ajax_getDiseaseSummaryData("PatopdDisService",range);
+}
+
+/**ajax 取得 疾病彙總資料 ***/
+var ajax_getDiseaseSummaryData = function(serviceName,range){
+	var OpdDiseaseSumList = [];
+	OpdDiseaseSumListArray = [];
+	OpdDiseaseSumListArray = OpdDiseaseSumList;
+	if(range=="date"){
+		var diseaseSumParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getOpdDisSummaryByChartNoDateRange");
+//		$("#opdRecordPage_Title").html(OpdObj.OpdSDate+"-"+OpdObj.OpdEDate+" 門急記錄 - 病史彙總 -疾病彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+	}else if(range=="year"){
+		var diseaseSumParam =  new EMRYearsInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdYear,"getOpdDisSummaryByChartNoYears");	
+	}else if(range=="all"){
+		var diseaseSumParam =  new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getOpdDisSummaryByChartNo");	
+	}
+	
+	
+	 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(diseaseSumParam))).done(
+				function(data) {
+					if (data.status == "Success") {
+						showLoading();
+						$.each(data.resultSet, function(index, obj) {
+							OpdDiseaseSumList.push(obj);
+																			
+								});
+						OpdDiseaseSumListArray = OpdDiseaseSumList;
+//						console.log(OpdDiseaseSumList.length);
+				
+						 jqGrid_OpdDiseaseSumList("#OpdDiseaseSumList","#OpdDiseaseSumList_Pager");
+						 
+//						 $(document).on('click', '.pickDisease', function(event) {
+////								console.log($(this).val());
+//							 jqGrid_OpdDiseaseSumDetailList("#OpdDiseaseSumDetailList","#OpdDiseaseSumDetailList_Pager",setDiseaseCodeNewArray(OpdDiseaseSumList,$(this).val()));
+//							 var codeNameC = setCodeNameCNewArray(OpdDiseaseSumList,$(this).val());
+////							 console.log("codeNameC=>"+codeNameC[0].code_name_c);
+//							 $('#OpdDiseaseSumListHead').html($(this).val()+" "+codeNameC[0].code_name_c+"("+codeNameC[0].summary+")"+" 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+//							 
+//						});
+//						 
+						
+					} else {
+						var ajaxErrMsg = data.errorMessage;	
+//						 if(ajaxErrMsg.includes('No Data Found')){
+//							alert("查無資料"); 
+//							
+//						  }
+					}
+					hideLoading();
+											
+
+				});
+	 
+	    request.onreadystatechange = null;
+		request.abort = null;
+		request = null;
+	
+};
+
+/***取得疾病彙總 清單 jsonTest 1070402 測試***/
+var getDiseaseSummaryJson = function(){
+	var OpdDiseaseSumList = [];
+	
+	try{
+		$.getJSON("/FangEmrServices/html/OpdRecord/Temp.txt").done(function(data){
+			 $.each(data, function(index, obj) {
+				 OpdDiseaseSumList.push(obj);
+				 
+			                   });
+//			 console.log(OpdDiseaseSumList.length);
+//			 jqGrid_OpdDiseaseSumList("#OpdDiseaseSumList","#OpdDiseaseSumList_Pager",OpdDiseaseSumList);
+			
+		}).fail(function(jqXHR,textStatus,errorThrown){
+		        alert("OpdDiseaseSumListError: " + jqXHR.responseText+" ;"+errorThrown);
+		});
+	}catch(e){
+//	 alert(e);	
+	}
+	
+};
+
+
+/**門急 疾病彙總 表格***/
+function jqGrid_OpdDiseaseSumList(tableName,pagerName){
+//	console.log("dataArray=>"+dataArray);
+		$(tableName).jqGrid({
+		    datatype: "local",
+		    height: pageHeight - 360,
+		    colModel: [
+		    	{ label: 'disease_code', name: 'disease_code', width: 45,hidden:true },
+		    	{ label: 'code_name_c', name: 'code_name_c', width: 45,hidden:true },
+		    	{ label: 'summary', name: 'summary', width: 45,hidden:true },
+		        { label: '疾病代碼名稱', name: 'disease_code', width:780,hidden:false,formatter: function(cellvalue, options, rowobject){
+		        	return  '<span class="" >' + filterNull(rowobject.disease_code) +" "+ filterNull(rowobject.code_name_c)+" ("+ filterNull(rowobject.summary) +')</span>';
+		        } },
+		        { label: ' ', name: 'disease_code', hidden:true, width: 50,formatter: function(cellvalue, options, rowobject){ 	
+		            return '<button type="button" class="btn btn-primary btn-sm ButtonfontSize pickDisease" value="' + cellvalue +'"></button>';
+		        } },
+//				contentBox += '<button class="OpdIcd10" value="' + obj_d.range_no2 +'">' + obj_d.range_no2 + " "+ obj_d.range_name_c +' <span class="OpdIcd10Count">' + obj_d.count +'</span></button>';
+
+		        
+		       
+		    ],
+		    viewrecords: true, // show the current page, data rang and total records on the toolbar
+		    //caption: "病歷主檔",
+		    rownumbers: true, //count 序號
+		    rownumWidth:50,
+		    onSelectRow:getSelectedRow,
+		    ondblClickRow: function(rowId) {
+		    	
+	        },
+	        width: null,
+//	        rowNum: Math.floor((pageHeight - 220)/33),
+		    shrinkToFit:false,
+		    sortable: false,
+			pager: pagerName,
+			pagerpos:'left',
+			loadComplete : function () {
+				$(this).jqGrid('setSelection', 1, true);
+				$(this).jqGrid('setLabel', 0, "序號");
+			}
+		});
+		$(tableName).jqGrid('clearGridData');
+		$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: OpdDiseaseSumListArray});
+		$(tableName).trigger('reloadGrid');
+		//$("#XrayList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+		
+		function getSelectedRow() {
+			
+		    var grid = $(tableName);
+		    var rowKey = grid.jqGrid('getGridParam',"selrow");
+		    if (rowKey){
+		    	var diseaseCode = $(tableName).jqGrid('getCell',rowKey,'disease_code');
+		    	var codeNameC = $(tableName).jqGrid('getCell',rowKey,'code_name_c');
+		    	var summary = $(tableName).jqGrid('getCell',rowKey,'summary');
+		    	
+		    	$('#OpdDiseaseSumListHead').html(diseaseCode+" "+codeNameC+"("+summary+")"+" 病患:" + PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+//		    	console.log(OpdDiseaseSumListArray);
+		    	
+		    	var diseaseCodeNewArray = setDiseaseCodeNewArray(OpdDiseaseSumListArray,diseaseCode);
+		    	jqGrid_OpdDiseaseSumDetailList("#OpdDiseaseSumDetailList","#OpdDiseaseSumDetailList_Pager",diseaseCodeNewArray);	    	
+		    		    		    
+		    }
+		    else{
+//		        alert("沒有資料被選擇");
+		    }
+		}
+		
+
+	}
+
+
+
+/**疾病彙總 細項***/
+function jqGrid_OpdDiseaseSumDetailList(tableName,pagerName,dataArray){
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 360,
+	    colModel: [
+	       { label: '日期', name: 'view_date', width: 130 ,formatter: function(cellvalue, options, rowobject){           
+	        	return cellvalue;
+
+	        }},
+	        
+	        { label: '門|急診', name: 'cash_type_name', width: 130,align:'center' ,formatter: function(cellvalue, options, rowobject){           
+	        	return cellvalue;
+
+	        }},
+	        
+	        { label: '醫師', name: 'doctor_name', width: 130 ,align:'center',formatter: function(cellvalue, options, rowobject){           
+	        	return cellvalue;
+
+	        }},
+	        
+	        { label: '科別', name: 'div_name', width: 160 ,formatter: function(cellvalue, options, rowobject){           
+	        	return cellvalue;
+
+	        }},
+	        
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    //caption: "病歷主檔",
+	    rownumbers: true, //count 序號
+	    rownumWidth:50,
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        width: null,
+//        rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit:false,
+	    sortable: false,
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+//			$(this).jqGrid('setSelection', 1, true);
+			$(this).jqGrid('setLabel', 0, "序號");
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: dataArray});
+	$(tableName).trigger('reloadGrid');
+//	$(tableName).jqGrid('hideCol','view_date');
+	$('#gbox_OpdDiseaseSumDetailList .ui-jqgrid-hdiv').hide(); //隱藏 Table 的  th
+
+
+	//$("#XrayList").jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false, defaultSearch: "cn" });
+	
+	function getSelectedRow() {
+		
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+	    		    		    
+	    }
+	    else{
+//	        alert("沒有資料被選擇");
+	    }
+	}
+	
+
+}
+
+
+/**1070403 ajax 取得主訴、理學、診斷、病史資料
+ * {"empNo":"ORCL","sessionID":1,"viewDate":"1051209","chartNo":912473,"duplicateNo":1,"method":"getChart1ByPrimaryKeys"}
+ * Chart1Service
+ * ajax_getOpdDARTDetailData("Chart1Service",viewDate,chartNo,duplicateNo);
+ * ***/
+var ajax_getOpdDARTDetailData = function(serviceName,viewDate,chartNo,duplicateNo){
+	
+	var opdDARTParam = new OpdDARTInputObj(UserObj.emp_no,UserObj.session_id,viewDate,chartNo,duplicateNo,"getChart1ByPrimaryKeys");
+	
+		 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(opdDARTParam))).done(
+					function(data) {
+						
+						if (data.status == "Success") {
+							
+							$.each(data.resultSet, function(index, obj) {
+								
+								setOpdDARTData("opdComplaint",filterNull(data.resultSet.complaint));
+								setOpdDARTData("opdDiagnosis",filterNull(data.resultSet.diagnosis));
+								setOpdDARTData("opdDiagnosis1",filterNull(data.resultSet.diagnosis1));
+								setOpdDARTData("opdChartHistory",filterNull(data.resultSet.chart_history));
+							
+								
+							});
+														
+						
+						} else {
+							var ajaxErrMsg = data.errorMessage;
+							clearOpdDARTData();
+						}	
+											
+
+					});
+		 
+		    request.onreadystatechange = null;
+			request.abort = null;
+			request = null;
+	
+};
+
+var clearOpdDARTData = function(){
+	
+	$('#opdComplaint').html(""); //主訴
+	$('#opdDiagnosis').html(""); //理學
+	$('#opdDiagnosis1').html("");//診斷
+	$('#opdChartHistory').html("");//病史
+	
+};
+
+
+function setOpdDARTData(tag,data){
+	document.getElementById(tag).innerText=data
+}
+
+
+
+

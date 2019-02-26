@@ -1,0 +1,87 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+import model.DrProgress;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2018/2/8.
+ */
+public class DrProgressService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private DrProgress drProgress;
+
+    public String getDrProgressDataByChartNoSerno(int chartNo, int serno) {
+        try {
+            objects = drProgress.queryDrProgressByChartNoSerno(chartNo, serno);
+
+            if (!objects.isEmpty()) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("DrProgress.queryDrProgressByChartNoSerno chartNo= " + chartNo +
+                        " serno= " + serno + " No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            drProgress = new DrProgress(myConnection);
+            
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get drprogress data by {chart_no, serno}
+            if (method.equals("getDrProgressDataByChartNoSerno")) {
+                int chartNo = parametersJsObj.get("chartNo").getAsInt();
+                int serno = parametersJsObj.get("serno").getAsInt();
+                result = getDrProgressDataByChartNoSerno(chartNo, serno);
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        DrProgressService admissionService = new DrProgressService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "ORCL");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("chartNo", 6);
+        jsonObject.addProperty("serno", 61991);
+        jsonObject.addProperty("method", "getDrProgressDataByChartNoSerno");
+        resultStrng = admissionService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nDrProgressService.run getDrProgressDataByChartNoSerno chartNo=6 serno=61991 :"  + resultStrng);
+
+    }
+}

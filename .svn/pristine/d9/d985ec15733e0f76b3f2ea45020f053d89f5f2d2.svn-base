@@ -1,0 +1,551 @@
+﻿<!-- <!DOCTYPE html> -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html charset=utf-8;" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="device=device-width" />
+<title></title>
+<link rel="stylesheet" href="jqwidgets/styles/jqx.base.css" type="text/css" />
+<link rel="stylesheet" href="jqwidgets/styles/jqx.blackberry.css" type="text/css" />
+<link rel="stylesheet" href="styles/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="styles/select2.css" type="text/css" />
+<link rel="stylesheet" href="styles/select2-bootstrap.css"
+	type="text/css" />
+<script src="scripts/jquery-1.11.1.min.js"></script>
+<script src="scripts/bootstrap.min.js"></script>
+<script src="scripts/select2.full.js"></script>
+
+<script src="scripts/getDataField.js"></script>
+<script src="scripts/getDataColumn.js"></script>
+
+<script type="text/javascript" src="jqwidgets/jqxcore.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxdata.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxbuttons.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxscrollbar.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxmenu.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxlistbox.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxdropdownlist.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.selection.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.columnsresize.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.filter.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.sort.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.pager.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.grouping.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxgrid.edit.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxnumberinput.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxnavbar.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxcombobox.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxwindow.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxpanel.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxcalendar.js"></script>
+<script type="text/javascript" src="jqwidgets/jqxdatetimeinput.js"></script>
+<script src="scripts/local_TW.js"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {		
+		$(".select2-single").select2({
+			theme : "bootstrap",
+			width : null,
+			containerCssClass : ':all:'
+		});
+
+		$("#select2_Server").change(function() {
+			//alert($(this).val());
+					
+		});
+				
+		function removeAll(collection) {
+            if (!collection) {
+                return;
+            }
+            var count = collection.length;
+            while (count) {
+                count -= 1;
+                collection[count].remove();
+            }
+        }
+		
+		
+        function addEventListeners() {
+            addEventListeners.windowsCount = 1;
+        	var xPos = 50;
+    		var yPos = 240;
+            $('#showWindowButton').mousedown(function () {
+                var window = $.data(document.body, 'jqxwindows-list'),
+                    count = window.length;
+                while (count) {
+                    count -= 1;
+                    $(window[count]).jqxWindow('open');
+                }
+            });
+            $('#btnSettingOK').mousedown(function () {
+                    $(document.body).append('<div id="newWindow' + addEventListeners.windowsCount + '"><div>Header ' 
+                    						+ addEventListeners.windowsCount
+                                         	+ '</div><div><div id="jqxgrid' + addEventListeners.windowsCount + '">Content of window ' 
+                                         	+ addEventListeners.windowsCount + '</div></div></div>');
+                    
+                    $('#newWindow' + addEventListeners.windowsCount).jqxWindow({ height: 620, width: 1440, theme: 'blackberry',
+                    							maxWidth: 1920,maxHeight: 1080,position: { x: xPos, y: yPos }});
+                    
+                    if($("#select2_Method").val() == "Local"){
+                    		newGrid_dataFromLocal(addEventListeners.windowsCount);
+                    }else{                   	
+                    		newGrid_dataFromURL(addEventListeners.windowsCount);
+                    }
+                    addEventListeners.windowsCount += 1;
+                    xPos +=20;
+                    yPos +=20;
+            });
+            
+            $('#btnSettingReset').mousedown(function () {
+            		location.reload();
+            });
+        }
+		
+		windowsCount = 1;
+        addEventListeners();
+        function newGrid_dataFromLocal(window_no){
+        		var aaa = "pat.txt";
+        		      		
+	        	var sourceDB = {
+						datatype : "json",
+						datafields : getDataFields("getPatinpListInp"),
+						hierarchy : {
+							root : 'resultSet'
+						},
+						url : "pat.txt",
+						pagesize: 15, //一頁筆數
+						addrow: function (rowid, rowdata, position, commit) {
+							alert('add row call back');
+					        // synchronize with the server - send insert command
+					        // call commit with parameter true if the synchronization with the server was successful. 
+					        // and with parameter false if the synchronization has failed.
+					        // you can pass additional argument to the commit callback which represents the new ID if it is generated from a Database. Example: commit(true, idInDB) where "idInDB" is the row's ID in the Database.
+					        commit(true);
+					    }
+					};
+	        	
+	        	var dataAdapter = new $.jqx.dataAdapter(sourceDB);
+	        	
+	        	function getdataAdapter(){
+	        		return dataAdapter;
+	        	};
+	        	
+	        	$("#jqxgrid" + window_no).jqxGrid({
+	        		//theme: 'blackberry',  //設定主題
+					width : 1400,	//寬度
+					autoheight : true, //高度
+					pageable : true, //是否分頁
+					columnsresize: true,	//欄位可否調整
+					sortable: true, //可否排序
+					filterable: true,	//可否過濾
+					showfilterrow: true, //顯示過濾Row
+					editable: true, //可否編輯
+					editmode: 'click', //編輯模式
+					selectionmode: 'multiplecellsadvanced', //選擇模式
+					enabletooltips: true, //顯示tooltip
+					keyboardnavigation:true,
+					//pagerrenderer : pagerrenderer, //載入自訂分頁樣式
+					//pagermode: 'simple', //分頁模式
+					altrows: true, //單數行變色
+					showtoolbar: true, //顯示工具列 (表格上方)
+					localization: getLocalization(), //多國語系檔
+					rendertoolbar: function (statusbar) {   //工具列長相
+	                    // appends buttons to the status bar.
+	                    var container = $("<div class= 'pull-right' style='overflow: hidden; position: relative; margin: 2px;'></div>");
+	                    var jsonButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>json</span></div>");
+	                    var addButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>新增</span></div>");
+	                    var deleteButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>刪除</span></div>");
+	                    var reloadButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>重整</span></div>");
+	                    //var searchButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../images/search.png'/><span style='margin-left: 4px; position: relative; top: -3px;'>Find</span></div>");
+	                    container.append(jsonButton);
+	                    container.append(addButton);
+	                    container.append(deleteButton);
+	                    container.append(reloadButton);
+	                    //container.append(searchButton);
+	                    statusbar.append(container);
+	                    jsonButton.jqxButton({  width: 60, height: 20 });
+	                    addButton.jqxButton({  width: 60, height: 20 });
+	                    deleteButton.jqxButton({  width: 65, height: 20 });
+	                    reloadButton.jqxButton({  width: 65, height: 20 });
+	                    //searchButton.jqxButton({  width: 50, height: 20 });
+	                    
+	                    jsonButton.click(function (event) {
+	                        //var datarow = generatedata(1);
+	                    	var rows = $("#jqxgrid" + window_no).jqxGrid('getrows');
+							var arr = new Array();
+
+							for (i = 0; i < rows.length; i++) {
+								arr[i] = $("#jqxgrid" + window_no).jqxGrid('getrowdata', i);
+						}
+
+								var rowhtml = "[";
+								var myJSON;
+								arr.forEach(function(item) {
+									var jsondata = {};
+									jsondata['chart_no'] = item.chart_no;
+									jsondata['type_name'] = item.type_name;
+									jsondata['sex'] = item.sex;
+									jsondata['dept_name'] = item.dept_name;
+									jsondata['div_name'] = item.div_name;
+									rowhtml += JSON.stringify(jsondata)+ "\n";
+								});
+								alert(rowhtml + "]");
+	                    	});
+			
+							//$("#jqxgrid").jqxGrid('exportdata','json', 'jqxGrid', true,arr);
+	                    
+	                    // add new row.
+	                    addButton.click(function (event) {
+	                        //var datarow = generatedata(1);
+	                        $("#jqxgrid" + window_no).jqxGrid('addrow', null, new Array(),0);
+	                    });
+	                    // delete selected row.
+	                    deleteButton.click(function (event) {
+	                        var selectedrowindex = $("#jqxgrid" + window_no).jqxGrid('getselectedrowindex');
+	                        var rowscount = $("#jqxgrid" + window_no).jqxGrid('getdatainformation').rowscount;
+	                        var id = $("#jqxgrid" + window_no).jqxGrid('getrowid', selectedrowindex);
+	                        $("#jqxgrid" + window_no).jqxGrid('deleterow', id);
+	                    });
+	                    // reload grid data.
+	                    reloadButton.click(function (event) {
+	                    	$("#jqxgrid" + window_no).jqxGrid({ source: getdataAdapter() });
+	                    });
+	                    // search for a record.
+//	                     searchButton.click(function (event) {
+//	                         var offset = $("#grid").offset();
+//	                         $("#jqxwindow").jqxWindow('open');
+//	                         $("#jqxwindow").jqxWindow('move', offset.left + 30, offset.top + 30);
+//	                     });
+	                },
+					handlekeyboardnavigation: function(event)  //鍵盤事件
+	                {
+	                    var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
+	                    if (key == 13) {
+	                        //alert('Pressed Enter Key.');
+	                    	 return event.keyCode = 9;
+	                    }
+	                    else if (key == 27) {
+	                        //alert('Pressed Esc Key.');
+	                       
+	                    }
+	                },
+					source : dataAdapter, //*重要*  資料來源
+					columns : getDataColumns("getPatinpListInp"), // *重要* 欄位長相
+					ready : function() { //回調函數 (最後執行)
+						//$("#jqxgrid" + window_no).jqxGrid('autoresizecolumns');
+						$("#jqxgrid" + window_no).on('cellbeginedit', function (event) {
+						    var args = event.args;
+							//alert(args.datafield);
+							
+							
+							 // Select row - Grid Core
+				            $("#jqxgrid" + window_no).jqxGrid('selectrow', args.rowindex);
+
+				            var selectedRows = $("#jqxgrid" + window_no).jqxGrid('getselectedrowindexes');
+
+				            // Select rows - UI
+//	 			            _.each(selectedRows, function(value) {
+
+//	 			            	$("#jqxgrid" + window_no).find('#row' + value + 'table-widget').find('.jqx-grid-cell').addClass('jqx-grid-cell-selected jqx-fill-state-pressed');
+
+//	 			            });
+							
+						    if ( args.datafield == "Selected" ) {
+						        if ( args.value == true ) {
+						        	
+						            // Select row - Grid Core
+						            $("#jqxgrid" + window_no).jqxGrid('selectrow', args.rowindex);
+
+						            var selectedRows = $("#jqxgrid" + window_no).jqxGrid('getselectedrowindexes');
+
+						            // Select rows - UI
+//	 					            _.each(selectedRows, function(value) {
+
+//	 					            	$("#jqxgrid" + window_no).find('#row' + value + 'table-widget').find('.jqx-grid-cell').addClass('jqx-grid-cell-selected jqx-fill-state-pressed');
+
+//	 					            });
+
+						        } else {
+						            // Nothing for the moment
+						        }
+						    }
+
+						});
+					}
+				});
+	        	
+        }
+        
+        
+        
+        function newGrid_dataFromURL(window_no){
+        	var sourceDB = {
+					datatype : "json",
+					datafields : getDataFields($("#select2_Method").val()),
+					hierarchy : {
+						root : 'resultSet'
+					},
+					type : 'POST',
+					data : {
+						serviceName : $("#select2_Server").val(),
+						parameters : '{"idNo":"ORCL","sessionID":1806,"method":' + $("#select2_Method").val() +'}'
+					},
+					url : 'http://172.16.2.189:8080/SHSTimaServices/servlets/ServletAgent',
+					async : false,
+					pagesize: 15, //一頁筆數
+					addrow: function (rowid, rowdata, position, commit) {
+						alert('add row call back');
+				        // synchronize with the server - send insert command
+				        // call commit with parameter true if the synchronization with the server was successful. 
+				        // and with parameter false if the synchronization has failed.
+				        // you can pass additional argument to the commit callback which represents the new ID if it is generated from a Database. Example: commit(true, idInDB) where "idInDB" is the row's ID in the Database.
+				        commit(true);
+				    }
+				};
+        	
+        	var dataAdapter = new $.jqx.dataAdapter(sourceDB);
+        	
+        	function getdataAdapter(){
+        		return dataAdapter;
+        	};
+        	     	        	
+        	$("#jqxgrid" + window_no).jqxGrid({
+        		//theme: 'blackberry',  //設定主題
+				width : 1400,	//寬度
+				autoheight : true, //高度
+				pageable : true, //是否分頁
+				columnsresize: true,	//欄位可否調整
+				sortable: true, //可否排序
+				filterable: true,	//可否過濾
+				showfilterrow: true, //顯示過濾Row
+				editable: true, //可否編輯
+				editmode: 'click', //編輯模式
+				selectionmode: 'multiplecellsadvanced', //選擇模式
+				enabletooltips: true, //顯示tooltip
+				keyboardnavigation:true,
+				//pagerrenderer : pagerrenderer, //載入自訂分頁樣式
+				//pagermode: 'simple', //分頁模式
+				altrows: true, //單數行變色
+				showtoolbar: true, //顯示工具列 (表格上方)
+				localization: getLocalization(), //多國語系檔
+				rendertoolbar: function (statusbar) {   //工具列長相
+                    // appends buttons to the status bar.
+                    var container = $("<div class= 'pull-right' style='overflow: hidden; position: relative; margin: 2px;'></div>");
+                    var jsonButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>json</span></div>");
+                    var addButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>新增</span></div>");
+                    var deleteButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>刪除</span></div>");
+                    var reloadButton = $("<div style='float: left; margin-left: 5px;'><span style='margin-left: 4px; position: relative; top: 0px;'>重整</span></div>");
+                    //var searchButton = $("<div style='float: left; margin-left: 5px;'><img style='position: relative; margin-top: 2px;' src='../../images/search.png'/><span style='margin-left: 4px; position: relative; top: -3px;'>Find</span></div>");
+                    container.append(jsonButton);
+                    container.append(addButton);
+                    container.append(deleteButton);
+                    container.append(reloadButton);
+                    //container.append(searchButton);
+                    statusbar.append(container);
+                    jsonButton.jqxButton({  width: 60, height: 20 });
+                    addButton.jqxButton({  width: 60, height: 20 });
+                    deleteButton.jqxButton({  width: 65, height: 20 });
+                    reloadButton.jqxButton({  width: 65, height: 20 });
+                    //searchButton.jqxButton({  width: 50, height: 20 });
+                    
+                    jsonButton.click(function (event) {
+                        //var datarow = generatedata(1);
+                    	var rows = $("#jqxgrid" + window_no).jqxGrid('getrows');
+						var arr = new Array();
+
+						for (i = 0; i < rows.length; i++) {
+							arr[i] = $("#jqxgrid" + window_no).jqxGrid('getrowdata', i);
+					}
+
+							var rowhtml = "[";
+							var myJSON;
+							arr.forEach(function(item) {
+								var jsondata = {};
+								jsondata['chart_no'] = item.chart_no;
+								jsondata['type_name'] = item.type_name;
+								jsondata['sex'] = item.sex;
+								jsondata['dept_name'] = item.dept_name;
+								jsondata['div_name'] = item.div_name;
+								rowhtml += JSON.stringify(jsondata)+ "\n";
+							});
+							alert(rowhtml + "]");
+                    	});
+		
+						//$("#jqxgrid").jqxGrid('exportdata','json', 'jqxGrid', true,arr);
+                    
+                    // add new row.
+                    addButton.click(function (event) {
+                        //var datarow = generatedata(1);
+                        $("#jqxgrid" + window_no).jqxGrid('addrow', null, new Array(),0);
+                    });
+                    // delete selected row.
+                    deleteButton.click(function (event) {
+                        var selectedrowindex = $("#jqxgrid" + window_no).jqxGrid('getselectedrowindex');
+                        var rowscount = $("#jqxgrid" + window_no).jqxGrid('getdatainformation').rowscount;
+                        var id = $("#jqxgrid" + window_no).jqxGrid('getrowid', selectedrowindex);
+                        $("#jqxgrid" + window_no).jqxGrid('deleterow', id);
+                    });
+                    // reload grid data.
+                    reloadButton.click(function (event) {
+                    	$("#jqxgrid" + window_no).jqxGrid({ source: getdataAdapter() });
+                    });
+                    // search for a record.
+//                     searchButton.click(function (event) {
+//                         var offset = $("#grid").offset();
+//                         $("#jqxwindow").jqxWindow('open');
+//                         $("#jqxwindow").jqxWindow('move', offset.left + 30, offset.top + 30);
+//                     });
+                },
+				handlekeyboardnavigation: function(event)  //鍵盤事件
+                {
+                    var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
+                    if (key == 13) {
+                        //alert('Pressed Enter Key.');
+                    	 return event.keyCode = 9;
+                    }
+                    else if (key == 27) {
+                        //alert('Pressed Esc Key.');
+                       
+                    }
+                },
+				source : dataAdapter, //*重要*  資料來源
+				columns : getDataColumns($("#select2_Method").val()), // *重要* 欄位長相
+				ready : function() { //回調函數 (最後執行)
+					//$("#jqxgrid" + window_no).jqxGrid('autoresizecolumns');
+					$("#jqxgrid" + window_no).on('cellbeginedit', function (event) {
+					    var args = event.args;
+						//alert(args.datafield);
+						
+						
+						 // Select row - Grid Core
+			            $("#jqxgrid" + window_no).jqxGrid('selectrow', args.rowindex);
+
+			            var selectedRows = $("#jqxgrid" + window_no).jqxGrid('getselectedrowindexes');
+
+			            // Select rows - UI
+// 			            _.each(selectedRows, function(value) {
+
+// 			            	$("#jqxgrid" + window_no).find('#row' + value + 'table-widget').find('.jqx-grid-cell').addClass('jqx-grid-cell-selected jqx-fill-state-pressed');
+
+// 			            });
+						
+					    if ( args.datafield == "Selected" ) {
+					        if ( args.value == true ) {
+					        	
+					            // Select row - Grid Core
+					            $("#jqxgrid" + window_no).jqxGrid('selectrow', args.rowindex);
+
+					            var selectedRows = $("#jqxgrid" + window_no).jqxGrid('getselectedrowindexes');
+
+					            // Select rows - UI
+// 					            _.each(selectedRows, function(value) {
+
+// 					            	$("#jqxgrid" + window_no).find('#row' + value + 'table-widget').find('.jqx-grid-cell').addClass('jqx-grid-cell-selected jqx-fill-state-pressed');
+
+// 					            });
+
+					        } else {
+					            // Nothing for the moment
+					        }
+					    }
+
+					});
+				}
+			});    
+        }
+	});
+</script>
+
+</head>
+<!-- 鎖F5 onkeydown="return (event.keyCode != 116)" -->
+<body>
+	<div class="container-fluid">
+		<div class="navbar navbar-inverse">
+			<div class="navbar-header">
+				<button class="navbar-toggle" data-toggle="collapse"
+					data-target=".navbar-collapse">
+					<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+						class="icon-bar"></span>
+				</button>
+				<a href="Navbar.html" class="navbar-brand">JQwidgets Demo</a>
+			</div>
+
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<!--
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact Us</a></li>
+				-->
+				</ul>
+				<form class="navbar-form navbar-right" target="_blank" method="get"
+					action="https://www.google.com.tw/search">
+					<div class="form-group">
+						<input id="Google" type="text" name="q" class="form-control"
+							placeholder="Please Input Something...." /> <input id="Submit1"
+							type="submit" value="Search" class="btn btn-primary" />
+					</div>
+				</form>
+
+			</div>
+		</div>
+
+		<div class="panel panel-info">
+			<div class="panel-heading clearfix">
+				<div class="panel-title pull-left panel-tool">
+					<a data-toggle="collapse" href="#div_Setting" aria-expanded="true">URL
+						設定</a>
+				</div>
+				<div class="btn-group pull-right">
+					<button type="button" class="btn btn-default btn-sm"
+						id="btnSettingOK">OK</button>
+					<button type="button" class="btn btn-default btn-sm"
+						id="btnSettingReset">Reset</button>
+				</div>
+			</div>
+			<div id="div_Setting" class="panel-collapse collapse in" aria-expanded="true">
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="form-group">
+								<p class="h3">/servlets/ServletAgent</p>
+							</div>
+						</div>
+					</div>
+					<div class="row">						
+						<div class="col-sm-4">
+							<div class="input-group select2-bootstrap-prepend">
+								<div class="input-group-addon">Server</div>
+								<select class="form-control select2-single" id="select2_Server">
+									<option value="Local">Local</option>
+									<option value="ZoneSetService">ZoneSetService</option>
+									<option value="PatinpService">PatinpService</option>
+								</select>
+							</div>
+						</div>
+						<div class="col-sm-8">
+							<div class="input-group select2-bootstrap-prepend" >
+								<div class="input-group-addon">Method</div>
+								<select class="form-control select2-single"  id="select2_Method">
+									<option value="Local">getLocaljson</option>
+									<option value="getZonSet">getZonSet</option>
+									<option value="getPatinpListInp">getPatinpListInp</option>
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	
+
+
+</body>
+
+</html>

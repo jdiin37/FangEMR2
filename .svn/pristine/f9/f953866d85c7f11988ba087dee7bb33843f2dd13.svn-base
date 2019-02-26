@@ -1,0 +1,114 @@
+package service;
+
+import abstracts.ServletAdapter;
+import com.google.gson.JsonObject;
+import model.InvRecord;
+import model.Passtock;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/7/28.
+ */
+public class InvService extends ServletAdapter {
+    private List<Map<String, Object>> objects;
+    private Map<String, Object> object;
+    private JsonObject jsonObject = new JsonObject();
+    private Passtock passtock;
+    private InvRecord invrecord;
+
+    public String getPasstockByEmpNo(String empNo) {
+        try {
+            objects = passtock.queryPasstockByEmpNo(empNo);
+
+            if (objects.size() > 0) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("Passtock.queryPasstockByEmpNo No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    public String getInvDataSet() {
+        try {
+            objects = invrecord.queryInvDataSet();
+
+            if (objects.size() > 0) {
+                jsonObject = MapUtil.getSuccessResult(MapUtil.listMapToJsonArray(objects));
+            } else {
+                jsonObject = MapUtil.getFailureResult("Invrecord.queryInvDataSet No Data Found ");
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+            jsonObject = MapUtil.getFailureResult(ex.getMessage());
+        }
+
+        return jsonObject.toString();
+    }
+
+    @Override
+    public String run(JsonObject parametersJsObj) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String result = null;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            passtock = new Passtock(myConnection);
+            invrecord = new InvRecord(myConnection);
+            String empNo = parametersJsObj.get("empNo").getAsString();
+            String method = parametersJsObj.get("method").getAsString();
+
+            //  get Passtock by emp_no
+            if (method.equals("getPasstockByEmpNo")) {
+                result = getPasstockByEmpNo(empNo);
+            }
+
+            //  get inv dataset
+            if (method.equals("getInvDataSet")) {
+                result = getInvDataSet();
+            }
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) { JDBCUtilities.closeConnection(myConnection); }
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        JsonObject jsonObject = new JsonObject();
+        //Map<String, String> map = new LinkedHashMap<>();
+        InvService invService = new InvService();
+        String resultStrng;
+
+        jsonObject.addProperty("empNo", "KSPH");
+        jsonObject.addProperty("sessionID", 1);
+        jsonObject.addProperty("serialId", "H2NPCV0011382TA");
+
+        jsonObject.addProperty("method", "getPasstockByEmpNo");
+        resultStrng = invService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nInvService.run getPasstockByEmpNo empNo='KSPH' : " + resultStrng);
+
+        jsonObject.addProperty("method", "getInvDataSet");
+        resultStrng = invService.run(jsonObject);
+        System.out.println("\nParameters JsonObject string: " + jsonObject);
+        System.out.println("\nInvService.run getInvDataSet : " + resultStrng);
+
+    }
+}

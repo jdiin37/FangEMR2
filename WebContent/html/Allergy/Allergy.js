@@ -1,0 +1,189 @@
+/**
+ * 過敏記錄 
+ */
+
+var AllergyListArray;
+
+function renderAllergy(){
+	$(document).on('click', '#btn_Allergy', function(event) {
+		var allergyCount = $("#btn_Allergy").find("span").html();
+		if(allergyCount!="0"){
+			ajax_getAllergyData("AllergyService",2);
+		}else {
+			alert("病患: "+PatObj.chart_no + " "+PatObj.pt_name+" 無過敏記錄");
+		}
+		
+	});
+
+}
+
+
+/**ajax 取得 過敏資料 
+ * flag 1 (是否有過敏資料) 2 如果有過敏資料 就將資料
+ * ajax_getAllergyData("AllergyService",1);//首頁
+ * ajax_getAllergyData("AllergyService",2);//
+ * 
+ * ***/
+var ajax_getAllergyData = function(serviceName,flag){
+	
+	AllergyListArray = [];
+
+	var allergyParam =  new EMRAllInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,"getAllergyByChartNo");	
+	
+	 var request = $.when(ajax_setPostData(serviceName,JSON.stringify(allergyParam))).done(
+				function(data) {
+					if (data.status == "Success") {
+						
+						$.each(data.resultSet, function(index, obj) {
+							AllergyListArray.push(obj);
+																			
+								});
+						$("#btn_Allergy").find("span").html(data.resultSet.length);
+						 $("#btn_Allergy").find("img").attr('src', '/FangEmrServices/img/24_HaveAllergies.png');
+						 $("#btn_Allergy").attr('title', '有過敏記錄');
+//						allergyCount
+						 if(flag==2){
+							setPageVisible("allergyPage", true);
+							popUpPageFixPos("allergyPage");
+							$("#allergyPage_Title").html("過敏資料記錄  - 病患:"+PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+							jqGrid_AllergyList("#AllergyList","#AllergyList_Pager"); 
+						 }
+						 
+		
+					} else {
+						var ajaxErrMsg = data.errorMessage;	
+						 if(ajaxErrMsg.includes('No Data Found')){
+							 clearGridData("AllergyList");
+							
+						  }
+						 $("#btn_Allergy").find("span").html("0");
+						 $("#btn_Allergy").find("img").attr('src', '/FangEmrServices/img/24_NoAllergies.png');
+						 $("#btn_Allergy").attr('title', '無過敏記錄');
+//						 alert("無過敏現象");
+					}
+											
+				});
+	 
+	    request.onreadystatechange = null;
+		request.abort = null;
+		request = null;
+	
+};
+
+/**過敏藥物清單(左側) ***/
+function jqGrid_AllergyList(tableName,pagerName){
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 170,
+	    colModel: [
+	        { label: '過敏敘述', name: 'allergy', width: 330,hidden:false,align:'left' },
+
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        width: null,
+//        rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit:false,
+	    sortable: false,
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: AllergyListArray});
+	$(tableName).jqGrid('sortGrid','allergy', true, 'asc');
+	$(tableName).trigger('reloadGrid');
+
+	
+	function getSelectedRow() {
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+	    	var allergy = $(tableName).jqGrid('getCell',rowKey,'allergy');
+	    	var allergyNewArray = setAllergyNewArray(AllergyListArray,allergy);
+	    	jqGrid_AllergyDetailList("#AllergyDetailList","#AllergyDetailList_Pager",allergyNewArray);
+	    }
+	    else{
+//	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+
+/**過敏藥物清單(右側) ***/
+function jqGrid_AllergyDetailList(tableName,pagerName,dataArray){
+	$(tableName).jqGrid({
+	    datatype: "local",
+	    height: pageHeight - 170,
+	    colModel: [
+	    	{ label: '過敏敘述', name: 'allergy', width: 150,hidden:false,align:'center',hidden:true },
+	        { label: '類別', name: 'kind_name', width: 80,hidden:false,align:'center' },
+	        { label: '代碼', name: 'code', width:100,hidden:false,align:'left'},
+	        { label: '名稱', name: 'full_name',align:'left', width: 330,hidden:false },
+	        
+	    ],
+	    viewrecords: true, // show the current page, data rang and total records on the toolbar
+	    onSelectRow:getSelectedRow,
+	    ondblClickRow: function(rowId) {
+	    	
+        },
+        width: null,
+//        rowNum: Math.floor((pageHeight - 220)/33),
+	    shrinkToFit:false,
+	    sortable: false,
+		pager: pagerName,
+		pagerpos:'left',
+		loadComplete : function () {
+//			$(this).jqGrid('setSelection', 1, true);
+		}
+	});
+	$(tableName).jqGrid('clearGridData');
+	$(tableName).jqGrid('setGridParam', {search: false, postData: { "filters": ""},data: dataArray});
+//	$(tableName).jqGrid('sortGrid','view_date', true, 'desc');
+	$(tableName).trigger('reloadGrid');
+
+	
+	function getSelectedRow() {
+	    var grid = $(tableName);
+	    var rowKey = grid.jqGrid('getGridParam',"selrow");
+	    if (rowKey){
+    		    
+	    }
+	    else{
+//	        alert("沒有資料被選擇");
+	    }
+	}
+}
+
+
+var setAllergyNewArray = function(originalArray,allergy){
+	var allergyArray = [];
+//	console.log("diseaseCode="+diseaseCode+";Array=>"+originalArray);
+		  var newArr = $.grep(originalArray,function(o,index){
+//			     console.log("o.disease_code=>"+o.disease_code);
+			     if(o.allergy==allergy){
+			    	 
+//			    	 for(var i=0;i<o.detailData.length;i++){
+//			    		 allergyArray.push(o.detailData[i]); 
+//			    	 }
+			    	 
+			    	 $.each(o.detailData, function(index, obj) {
+			    		 
+			    		 allergyArray.push(obj);
+						 
+					                   });
+			    	 
+			    	
+			     }
+
+		     });
+//		     console.log(allergyArray);
+		    return allergyArray;
+};
+
+

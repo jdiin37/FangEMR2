@@ -1,0 +1,145 @@
+/**
+ * 門急診
+ */
+
+var OpdObj = { // 影像物件
+//		OpdYear : 5,
+		OpdSDate : "",
+		OpdEDate : "",
+		viewType: "",
+		serno:0
+	};
+
+
+//--call OPD  門急
+var callOPD = function(){
+	
+	$("#opdRecordPage_Title").html("門急紀錄 - 病史彙總  病患 : "+ PatObj.chart_no + " "+PatObj.pt_name + " " + PatObj.sex_name + " " + PatObj.age+"歲");
+	
+	OpdObj.OpdSDate = ViewListObj.sdate;
+	OpdObj.OpdEDate = ViewListObj.edate;
+	OpdObj.viewType = ViewListObj.viewType;
+	OpdObj.serno = ViewListObj.serno;
+	ajax_getOpdRecordInfoData();
+	
+//	alert("尚未建造");
+}
+
+
+
+
+
+	
+var ajax_getOpdRecordInfoData = function(){
+	    $("#opdRecordInfo").html(""); //先清空  門急診button資訊
+		showLoading();
+		//取得門急診資訊
+		var opdParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getPatopdSummaryByChartNoDateRange");	
+	
+		var xrayParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getXrayCountByChartNoDateRangeGroupByType");	
+
+		var labParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,OpdObj.OpdSDate,OpdObj.OpdEDate,"getLabCountByChartNoDateRangeGroupByKind");	
+
+	
+		var box ="";
+		 var request = $.when(ajax_setPostData("PatopdService",JSON.stringify(opdParam)),ajax_setPostData("XrayReportService",JSON.stringify(xrayParam)),ajax_setPostData("LabRecordService",JSON.stringify(labParam))).done(
+					function(opddata,xraydata,labdata) {						
+					//門急診						
+						if(opddata[0].status == "Success"){
+							var SummaryBtnWidth = 86;
+							$.each(opddata[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									//alert(obj);
+									if(obj >=1000){
+										SummaryBtnWidth += 8;
+									}
+									
+									box += '<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">門急 <span class="badge">' + obj +'</span></button>';
+								}
+								
+								if(index =="visit_details"){
+									$.each(obj, function(index, obj_d) {
+										var viewtype = obj_d.cash_type =="OPD"? '門診' : '急診';
+										box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">' + viewtype +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}
+								if(index =="dis_details"){
+									$.each(obj, function(index, obj_d) {
+										if(index%4 == 0 ){
+											box += '<hr class="hr_noline" /><span style="margin-right:' + SummaryBtnWidth + 'px"></span>'
+										}
+										box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'門急'" +' )">' + obj_d.dis_cat + " "+ obj_d.name_c +' <span class="badge">' + obj_d.count +'</span></button>';
+
+									});
+								}
+							
+							});
+							box += '<br/>';
+						}else {
+							var ajaxErrMsg = opddata[0].errorMessage;
+						}
+						
+						//醫令彙總; 疾病彙總 ;  主訴、理學、診斷、病史彙總
+						box += '<hr class="hr_noline" />';
+						box += '<button class="btn btn-primary" onclick="alert(' + "'醫令'" +' )">醫令彙總</button>';
+						box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'疾病'" +' )">疾病彙總</button>';
+						box += '&nbsp;<button class="btn btn-primary" onclick="alert(' + "'主訴'" +' )">主訴、理學、診斷、病史彙總</button>';
+
+
+						
+						//影像
+						if (xraydata[0].status == "Success") {
+							$.each(xraydata[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									//alert(obj);
+									box += '<button class="btn btn-primary" onclick="callXray(' + "'date'" +' )">影像 <span class="badge">' + obj +'</span></button>';
+								}
+								/**else{
+									$.each(obj, function(index, obj_d){
+										box += '&nbsp;<button class="btn btn-primary" onclick="callXray(' + "'date',\'" + obj_d.cat_type + "\'" +')">' + obj_d.cat_name +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}**/
+								//alert(index + ":" + obj);
+							});
+//							box += '<hr/>';
+						} else {
+						  var ajaxErrMsg = xraydata[0].errorMessage;
+						}
+						
+						//檢驗
+						
+						if (labdata[0].status == "Success") {
+							$.each(labdata[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									//alert(obj);
+									box += '<button class="btn btn-primary btn-lab" onclick="callLab(' + "'date'" +' )">檢驗 <span class="badge">' + obj +'</span></button>';
+								}
+								/**else{
+									$.each(obj, function(index, obj_d){
+										box += '&nbsp;<button class="btn btn-primary btn-lab" onclick="callLab(' + "'date',\'" + obj_d.kind_id + "\'" +' )">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}**/
+				
+							});
+							
+						} else {
+							var ajaxErrMsg = labdata[0].errorMessage;
+						}
+						
+						$("#opdRecordInfo").append(box);
+						
+						hideLoading();
+						setPageVisible("opdRecordPage", true);
+						popUpPageFixPos("opdRecordPage");
+							
+
+					});
+		 
+		    request.onreadystatechange = null;
+			request.abort = null;
+			request = null;
+		
+		
+	};
+	
+

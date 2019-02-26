@@ -1,0 +1,100 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/10/13.
+ */
+public class OrRecord {
+    private Connection con;
+
+    public OrRecord(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryOrVisitedBychartNo(int chartNo) throws SQLException {
+        String queryString =
+                "SELECT COUNT(chart_no) count " +
+                "  FROM or1 a " +
+                " WHERE a.chart_no = ? " +
+                "   AND op_start_time IS NOT NULL ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findSingle(new Object[]{chartNo});
+    }
+
+    public Map<String, Object> queryOrVisitedBychartNoAndYears(String startDate, String endDate, int chartNo) throws SQLException {
+        String queryString =
+                "SELECT COUNT(chart_no) count " +
+                "  FROM or1 a " +
+                " WHERE op_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND op_start_time IS NOT NULL ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findSingle(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public List<Map<String, Object>> queryOPCodeByStartDateEndDateAndChartNo(String startDate, String endDate, int chartNo) throws SQLException {
+        String queryString =
+                "SELECT a.op_date, a.chart_no, a.serno, a.times, a.inp_opd, a.code1, b.full_name_c full_name_1, " +
+                "       a.code2, c.full_name_c full_name_2, a.code3, d.full_name_c full_name_3 " +
+                "  FROM or1 a, price b, price c, price d " +
+                " WHERE a.op_date BETWEEN ? AND ? " +
+                "   AND a.chart_no = ? " +
+                "   AND a.code1 = b.code(+) " +
+                "   AND a.code2 = c.code(+) " +
+                "   AND a.code3 = d.code(+) " +
+                " ORDER BY a.op_date desc ";
+
+        EntityFactory orrecordEntity = new EntityFactory(con, queryString);
+        return orrecordEntity.findMultiple(new Object[]{startDate, endDate, chartNo});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            OrRecord orRecord = new OrRecord(myConnection);
+
+            int chartNo = 912473;
+
+            System.out.printf("\nOrRecord.queryOrVisitedBychartNo chartNo=%d JsonObject:%s ",
+                    chartNo, MapUtil.mapToJsonObject(orRecord.queryOrVisitedBychartNo(chartNo)).toString());
+
+            String startDate = DateUtil.dateToROCDateString(LocalDate.now().plus(-5, ChronoUnit.YEARS));
+            String endDate = DateUtil.dateToROCDateString(LocalDate.now());
+            System.out.printf("\nOrRecord.queryOrVisitedBychartNoAndYears startDate=%s endDate=%s chartNo=%d JsonObject:%s ",
+                   startDate, endDate, chartNo, MapUtil.mapToJsonObject(orRecord.queryOrVisitedBychartNoAndYears(startDate, endDate, chartNo)).toString());
+
+            startDate = "0980309";
+            endDate = "1010821";
+            chartNo = 805240;
+            System.out.printf("\nOrRecord.queryOPCodeByStartDateEndDateAndChartNo startDate=%s endDate=%s chartNo=%d JsonArray:%s ",
+                    startDate, endDate, chartNo, MapUtil.listMapToJsonArray(orRecord.queryOPCodeByStartDateEndDateAndChartNo(startDate, endDate, chartNo)).toString());
+
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}
+
+

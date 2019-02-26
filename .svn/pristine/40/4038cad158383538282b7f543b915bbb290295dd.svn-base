@@ -1,0 +1,76 @@
+package model;
+
+import library.dateutility.DateUtil;
+import library.utility.EntityFactory;
+import library.utility.JDBCUtilities;
+import library.utility.MapUtil;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+
+/**
+ * Created by jeffy on 2017/10/13.
+ */
+public class LabRecord {
+    private Connection con;
+
+    public LabRecord(Connection con) {
+        this.con = con;
+    }
+
+    public Map<String, Object> queryLabVisitedBychartNo(int chartNo) throws SQLException {
+        String queryString =
+                "SELECT COUNT(*) count " +
+                "  FROM labrecordm a " +
+                " WHERE a.chart_no = ? " +
+                "   AND report_date IS NOT NULL ";
+
+        EntityFactory labRecordEntity = new EntityFactory(con, queryString);
+        return labRecordEntity.findSingle(new Object[]{chartNo});
+    }
+
+    public Map<String, Object> queryLabVisitedBychartNoAndYears(String startDate, String endDate, int chartNo) throws SQLException {
+        String queryString =
+                "SELECT COUNT(*) count " +
+                "  FROM labrecordm a " +
+                " WHERE a.chart_no = ? " +
+                "   AND report_date BETWEEN to_date(?, 'YYYYMMDD') AND to_date(?, 'YYYYMMDD') ";
+
+        EntityFactory labRecordEntity = new EntityFactory(con, queryString);
+        return labRecordEntity.findSingle(new Object[]{chartNo, startDate, endDate});
+    }
+
+    public static void main(String[] args) {
+        Connection myConnection = null;
+        JDBCUtilities jdbcUtil = new JDBCUtilities();
+        String resultStrng;
+
+        try {
+            myConnection = jdbcUtil.getConnection();
+            LabRecord labRecord = new LabRecord(myConnection);
+
+            int chartNo = 912473;
+
+            System.out.printf("\nLabRecord.queryLabVisitedBychartNo chartNo=%d JsonObject:%s ",
+                    chartNo, MapUtil.mapToJsonObject(labRecord.queryLabVisitedBychartNo(chartNo)).toString());
+
+            String startDate = DateUtil.dateToADDateString(LocalDate.now().plus(-4, ChronoUnit.YEARS));
+            String endDate = DateUtil.dateToADDateString(LocalDate.now().plus(1, ChronoUnit.DAYS));
+            System.out.printf("\nLabRecord.queryLabVisitedBychartNoAndYears chartNo=%d startDate=%s endDate=%s JsonObject:%s ",
+                    chartNo, startDate, endDate, MapUtil.mapToJsonObject(labRecord.queryLabVisitedBychartNoAndYears(startDate, endDate, chartNo)).toString());
+
+        } catch (SQLException ex) {
+            JDBCUtilities.printSQLException(ex);
+        } finally {
+            if (myConnection != null) {
+                JDBCUtilities.closeConnection(myConnection);
+            }
+        }
+    }
+}
+
+
+

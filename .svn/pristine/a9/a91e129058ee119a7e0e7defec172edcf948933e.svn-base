@@ -1,0 +1,52 @@
+		
+			<div class="panel panel-info">
+				<div class="panel-heading clearfix header">
+					<div class="panel-title pull-left panel-tool">
+						<span id="inpRecordPage_Title" class="EMRPurpleTitle">住院記錄</span>
+						<span id="inpRecordSerno" style="display:none;"></span><!-- 住院序號 -->
+						<span id="inpRecordStartDate" style="display:none;"></span><!-- startDate -->
+						<span id="inpRecordEndDate" style="display:none;"></span><!-- endDate -->
+						<!-- <a data-toggle="collapse" data-parent="#accordion" href="#collapse_xrayPage"></a> -->
+					</div>
+					<div class="pull-right">
+						<!--  <button type="button" class="btn btn-link btn-popUp" onclick="popUpPageToggle('inpRecordPage')"><span class="glyphicon glyphicon-new-window"></span></button>-->
+						<button type="button"  class="btn btn-link btn-popUp btn-img24 img24_newWindow" onclick="popUpPageToggle('inpRecordPage')"></button>
+						<button type="button" class="btn btn-link btn-close" onclick="closePage('inpRecordPage')"><span class="glyphicon glyphicon-remove"></span></button>
+					</div>
+				</div>
+				<div class="panel-body fix-body">
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline">
+							<span class="EMRfont" id="inpRecordPatInfo"> </span>
+						</div>
+					</div>
+					<br/>
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline" id="inpRecordInfo"></div>
+					</div>
+					<div class="row form-group">
+						<div class="col-sm-12 form-inline" id="inpRecordInfo2">
+							<!--  <button style="display:none;" class="btn btn-primary" onclick="callChgBed('date')">病房</button>&nbsp;
+							<button style="display:none;" class="btn btn-primary" name="admission" onclick="alert('尚未建置')">普通病房 <span class="badge">0</span></button>&nbsp;
+							<button style="display:none;" class="btn btn-primary" name="outnote" onclick="alert('尚未建置')">ICU <span class="badge">0</span></button>&nbsp;
+							<button style="display:none;" class="btn btn-primary" name="chgbed" onclick="alert('尚未建置')">恢復室 <span class="badge">0</span></button>&nbsp;-->
+
+							<div style="display: inline" id="InpRecordDetail"></div> <!-- 住院紀錄 病房篩選 -->
+							<div class="pull-right">
+								<button class="btn btn-primary" name="chgbed" onclick="callST();"><img alt="STAT" src="/FangEmrServices/img/24_ST.png"> STAT用藥記錄 </button>&nbsp;
+								<button class="btn btn-primary" name="chgbed" onclick="callUD();"><img alt="UD" src="/FangEmrServices/img/24_UD.png"> UD用藥記錄 </button>&nbsp;
+								<button class="btn btn-primary" name="chgbed" onclick="callTakeHome()"><img alt="UD" src="/FangEmrServices/img/24_takehome.png"> 出院帶藥 </button>&nbsp;
+								<button class="btn btn-primary" name="chgbed" onclick="callOPDOrder()"><img alt="OPD" src="/FangEmrServices/img/24_OPD.png"> 門急轉住醫囑 </button>&nbsp;
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12">
+							<table id="inpRecordList" class="table-hover">
+							</table>
+							<div id="inpRecordList_Pager"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		

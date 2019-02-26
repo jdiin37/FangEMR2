@@ -1,0 +1,780 @@
+function ajax_checkPasswd() {
+	var request = $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("checkPasswd"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			UserObj.emp_no = data.emp_no;
+			UserObj.emp_name = data.emp_name;
+			UserObj.session_id = data.session_id;
+			render_checkPasswd(true);
+			ajax_getHospName(); // 取得醫院資料
+			ajax_getChartByChartNo(); // 取得客戶基本資料			
+		} else {
+			render_checkPasswd(false);
+			ajaxErrMsg = data.errorMessage;
+//			alert(ajaxErrMsg);
+		}
+		hideLoading();
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+	
+}
+
+function render_checkPasswd(isOk) {
+	$('#user_info').html("使用者: ORCL");
+	/**if (isOk) {
+		$('#user_info').html("使用者:" + UserObj.emp_name);
+		$('#user_log').html("登出");
+	} else {
+		$('#user_info').html("您尚未登入");
+		$('#user_log').html("登入");
+	}**/
+}
+
+function ajax_getHospName() {
+	var request = $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getHospName"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				render_getHospName(index, this);
+			});
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+		hideLoading();
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getHospName(index, value) {
+	if (index == "no") {
+	} else if (index == "name") {
+	} else if (index == "value") {
+		$("#hospName").html(value);
+	}
+}
+
+function ajax_getChartByChartNo() {
+	// $('#LoadingModal').modal('show');
+	var request = $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getChartByChartNo"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			PatObj = data.resultSet;
+			$.each(PatObj, function(index, obj) {
+				render_getChartByChartNo(index, this);
+			});
+			PatObj.recentYear = 5;
+			$("#recentYear").val("5");
+			ajax_getChartEMRSummaryByChartNoAndYears(); // 取得查詢範圍筆數 預設5年
+			ajax_getChartEMRSummaryByChartNo(); // 取得查詢範圍筆數 全部
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}		
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getChartByChartNo(index, value) {
+	if (index == "chart_no") {
+		$("#chart_no").html(value);
+		$("#chart_no2").html(value);
+	} else if (index == "pt_name") {
+		$("#pt_name").html(value);
+		$("#pt_name2").html(value);
+	} else if (index == "sex_name") {
+		$("#sex_name").html(value);
+		$("#sex_name2").html(value);
+	} else if (index == "age") {
+		$("#age").html(value);
+		$("#age2").html(value);
+	} else if (index == "first_view_date") {
+		$("#first_view_date").html(value);
+	} else if (index == "last_view_date") {
+		$("#last_view_date").html(value);
+	} else if (index == "first_div_name") {
+		$("#first_div_name").html(value);
+	} else if (index == "last_div_name") {
+		$("#last_div_name").html(value);
+	} else if (index == "home_tel") {
+		$("#home_tel").html(value);
+	}
+}
+
+//查詢總數 
+function ajax_getChartEMRSummaryByChartNoAndYears() {
+	var request = $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getChartEMRSummaryByChartNoAndYears"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				render_getChartEMRSummaryByChartNoAndYears(index, this); // 範圍內
+			});
+						
+			$.when(ajax_getEmrViewListByYearsChartNo()).done(function(dataViewList){
+				$("#timeLine").html("");
+				if (dataViewList.status == "Success") {
+					$.each(dataViewList.resultSet, function(index, obj) {		
+						render_getEmrViewListByYearsChartNo(index, obj);
+					});		
+				} else {
+					ajaxErrMsg = dataViewList.errorMessage;
+				}	
+				hideLoading();
+			});
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getChartEMRSummaryByChartNoAndYears(index, value) {
+	if (index == "OPD") {
+		$("#yearsOPD").html(value);
+	} else if (index == "INP") {
+		$("#yearsINP").html(value);
+	} else if (index == "OR") {
+		$("#yearsOR").html(value);
+	} else if (index == "LAB") {
+		$("#yearsLAB").html(value);
+	} else if (index == "XRAY") {
+		$("#yearsXRAY").html(value);
+	}
+	
+	
+}
+
+//查詢總數(全)
+function ajax_getChartEMRSummaryByChartNo() {
+	var request = $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getChartEMRSummaryByChartNo"),
+		dataType : "json"
+	}).done(function(data) {
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				render_getChartEMRSummaryByChartNo(index, this); // 全部
+			});
+			$("#LoadingModal").modal('hide');
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+function render_getChartEMRSummaryByChartNo(index, value) {
+	if (index == "OPD") {
+		$("#allOPD").html(value);
+	} else if (index == "INP") {
+		$("#allINP").html(value);
+	} else if (index == "OR") {
+		$("#allOR").html(value);
+	} else if (index == "LAB") {
+		$("#allLAB").html(value);
+	} else if (index == "XRAY") {
+		$("#allXRAY").html(value);
+	}
+}
+//查詢門診 住院 出院病人
+function ajax_getPatientListOpd() {	
+	if (QueryObj.chkopd) {
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getPatientListOpd"),
+			dataType : "json"
+		});
+	}
+}
+
+function ajax_getPatientListInp() {
+	if (QueryObj.chkinp) {
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getPatientListInp"),
+			dataType : "json"
+		});
+	}
+}
+
+function ajax_getPatientListDischarge() {
+	if (QueryObj.chkdis) {
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getPatientListDischarge"),
+			dataType : "json"
+		});
+	}
+}
+//查詢病歷主檔
+function ajax_getChartByChartNoPtNameBirthDateTel() {
+	// var sendDate = (new Date()).getTime();
+	var request = $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getChartByChartNoPtNameBirthDateTel"),
+		dataType : "json"
+	}).done(function(data) {
+		QueryPatArray =[];
+		if (data.status == "Success") {
+			$.each(data.resultSet, function(index, obj) {
+				QueryPatArray.push(obj);
+			});
+		} else {
+			ajaxErrMsg = data.errorMessage;
+		}
+		jqGrid_PatList2();
+		hideLoading();
+	});
+	request.onreadystatechange = null;
+	request.abort = null;
+	request = null;
+}
+
+//查詢病人門住歷次紀錄
+function ajax_getEmrViewListByYearsChartNo() {
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getEmrViewListByYearsChartNo"),
+		dataType : "json"
+	})
+}
+
+//過濾 主治醫師值為 null  (add By IvyLin 1070119)
+var setNullText = function(text){  
+	return text==null?"":text;
+};
+
+var ViewYear = "";
+
+function render_getEmrViewListByYearsChartNo(index, obj) {	//***************產生ViewList**********
+	// alert("index:" +index + " obj:" + obj.dis_details + " this:" +this);
+	var newTimeDivision = "";
+	var title = "<img class='pull-right menu-down' src='/FangEmrServices/img/24_close.png'></img>";
+//	var title = "<span class='pull-right glyphicon glyphicon-menu-down'></span>";
+	var opMsg = "";
+	var year;
+	if(obj.start_date.substr(0, 3) == ViewYear){
+		year= "";
+	}else{
+		year = obj.start_date.substr(0, 3) + "&nbsp;";
+	}
+	
+	if (obj.visit_type == "OPD") {				
+		title += "<span class='EMRfont'>";
+		title += "<span style='min-width:40px;display: inline-block;'>" + year+ "</span>";
+		title += obj.start_date.substr(3, 2);
+//		title += "&emsp;<span class='type' name='OPD'>&emsp;&nbsp;門急記錄</span>"; //修改位置 與 住院紀錄對齊
+		title += "&emsp;<span class='type' name='OPD'><img alt='門急' src='/FangEmrServices/img/24_emg.png'>門急記錄</span>"; //修改位置 與 住院紀錄對齊
+		title += "<span class='sdate'>" + obj.start_date + "</span>";
+		title += "-";
+		title += "<span class='edate'>" + obj.end_date + "</span>";
+		title += "&emsp;(" + obj.count +"次)"; 	
+		// newTimeDivision += "<div class='panel panel-default'>";
+
+		
+		if (obj.dis_details != undefined) {
+			$.each(obj.dis_details, function(index, obj) {
+				// title += " 診斷碼:" + obj.code;
+				// title += " 診斷名稱:" + obj.title2;
+				title += "&emsp;" + obj.title2;
+			});
+		}
+		if (obj.op_details != undefined) {
+			$.each(obj.op_details,function(index, obj) {
+				// title +='<img src="img/40_Surgery.png"
+				// class="img-responsive"
+				// alt="..." >';
+				title += '&emsp;<img alt="手術" src="/FangEmrServices/img/24_op.png">';
+				title += "手術日期:" + obj.op_date;
+				// title += " 手術碼:" + obj.op_code;
+				title += "&emsp;手術名稱:" + obj.op_name;	
+				opMsg += "手術日期:" + obj.op_date + " 手術名稱:" + obj.op_name + "\n";
+			});
+		}
+
+	} else if (obj.visit_type == "INP") {
+		title += "<span class='EMRfont'>";
+		title += "<span style='min-width:40px;display: inline-block;'>" + year+ "</span>";
+		title += obj.start_date.substr(3, 2);
+		title += "&emsp;<img alt='住院' src='/FangEmrServices/img/24_inp.png'><span class='type' name='INP'>住院紀錄</span>";
+		title += "<span class='sdate'>" + obj.start_date + "</span>";
+		title += "-";
+		if(obj.end_date == null){					
+			title += "<span class='edate'>" + today + "</span>";	
+			title += "(住院中)";
+		}else{
+			title += "<span class='edate'>" + obj.end_date + "</span>";			
+		}
+		
+		title += "<span class='serno hide'>" + obj.serno + "</span>";		
+		
+		title += "&emsp;(" + obj.admit_days +"天)";
+		// newTimeDivision += "<div class='panel panel-warning'>";
+		if (obj.dis_details != undefined) {
+			$.each(obj.dis_details, function(index, obj) {
+				// title += " 診斷碼:" + obj.code;
+				// title += " 診斷名稱:" + obj.title2;
+				title += "&emsp;" + obj.title2;
+			});
+		}
+
+		title += "&emsp;主治醫師:" + setNullText(obj.doctor_name);
+		if (obj.op_details != undefined) {
+			$
+					.each(
+							obj.op_details,
+							function(index, obj) {
+								// title +='<img src="img/40_Surgery.png"
+								// class="img-responsive"
+								// alt="..." >';
+								title += '&emsp;<img alt="手術" src="/FangEmrServices/img/24_op.png">';
+								title += "手術日期:" + obj.op_date;
+								// title += " 手術碼:" + obj.op_code;
+								title += "&emsp;手術名稱:" + obj.op_name;
+								opMsg += "手術日期:" + obj.op_date + " 手術名稱:" + obj.op_name + "\n";
+							});
+		}
+	}
+
+	title += "</span>";
+		
+	newTimeDivision += "<div class='panel panel-info'>"
+			+ "<div class='panel-heading'>"
+			+ "<a data-toggle='collapse' id='newTime_" + index
+			+ "' data-parent='#timeLine' href='#time_" + index + "'>"
+			+ "<div class='panel-title ellipsis'>" + title + "</div>" + "</a></div>" 
+			+ "<div id='time_" + index+ "' class='panel-collapse collapse'>" + "<div class='panel-body'>"
+			+ "" + "</div>" + "</div>"
+	"</div>";	
+	
+	$("#timeLine").append(newTimeDivision);
+			
+	ViewYear = obj.start_date.substr(0, 3);
+			
+	
+	//binding event Start
+	$('#newTime_' + index).attr('title', opMsg); //設tooltip
+	$('#newTime_' + index).click(function(){
+		
+//		$(this).find(".glyphicon-menu-down").removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+		$(this).find(".menu-down").removeClass('menu-down').addClass('menu-up').attr("src","/FangEmrServices/img/24_open.png");
+
+		if($("#time_" + index).hasClass("in")){
+			return;
+		}
+		
+		
+		$("#time_" + index).children().html("資料讀取中..");
+		ViewListObj.sdate = $(this).find('.sdate').html();
+		ViewListObj.edate = $(this).find('.edate').html();
+		ViewListObj.viewType = $(this).find('.type').attr('name');
+		ViewListObj.serno = $(this).find('.serno').html();	
+		ViewListObj.desc = $(this).html().replace('<img class="pull-right menu-up" src="/FangEmrServices/img/24_open.png">',"");//複製 html 至 住院紀錄的標頭,刪除 img
+		
+		var box ="";
+		//日期範圍 細菌報告 數量
+		var cmParam = new EMRDateRangeInputObj(UserObj.emp_no,UserObj.session_id,PatObj.chart_no,ViewListObj.sdate,ViewListObj.edate,"getGermCountByChartNoDateRangeGroupByGerm");
+		
+		$.when(ajax_getPatSummaryByChartNoDateRange(ViewListObj.viewType),ajax_getPatOPDataByChartNoDateRange(ViewListObj.viewType),ajax_getXrayCountByChartNoDateRangeGroupByType(),ajax_getLabCountByChartNoDateRangeGroupByKind()).done(
+				function(dataSum,dataOP,dataXray,dataLab){
+					
+					if(ViewListObj.viewType =="OPD"){
+						if(dataSum[0].status == "Success"){
+							var SummaryBtnWidth = 86+32;//因為加入icon 所以寬度需加寬 +26
+							$.each(dataSum[0].resultSet, function(index, obj) {
+								if(index == "summary"){
+									//alert(obj);
+									if(obj >=1000){
+										SummaryBtnWidth += 8;
+									}
+									
+									box += '<button class="btn btn-primary" onclick="callOPD(' + "'date'" +' )"><img alt="門急" src="/FangEmrServices/img/24_emg.png">門急 <span class="badge">' + obj +'</span></button>';
+								}
+								
+								if(index =="visit_details"){
+									$.each(obj, function(index, obj_d) {
+										var viewtype = obj_d.cash_type =="OPD"? '門診' : '急診';
+										box += '&nbsp;<button class="btn btn-primary" onclick="callOPD(' + "'date'" +' )"><img alt="門急" src="/FangEmrServices/img/24_emg.png">' + viewtype +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}
+								if(index =="dis_details"){
+									$.each(obj, function(index, obj_d) {
+										if(index%4 == 0 ){
+											box += '<hr class="hr_noline" /><span style="margin-right:' + SummaryBtnWidth + 'px"></span>'
+										}
+										box += '&nbsp;<button class="btn btn-primary" onclick="callOPD(' + "'date'" +' )">' + obj_d.dis_cat + " "+ obj_d.name_c +' <span class="badge">' + obj_d.count +'</span></button>';
+									});
+								}
+							
+							});
+							box += '<hr/>';
+						}else {
+							ajaxErrMsg = dataSum[0].errorMessage;
+						}
+					}else{
+						if(dataSum[0].status == "Success"){
+							box += '<div class="well well-sm">';
+							box += '<button class="btn btn-primary" onclick="callINPrecord()"><img alt="住院" src="/FangEmrServices/img/24_inp.png"> 住院</button>';
+							$.each(dataSum[0].resultSet, function(index, obj) {
+								
+								if(index == "admission"){
+									box += '&nbsp;<button class="btn btn-primary" name="admission" onclick="callInp(' + "'admission'" +' )"><img alt="入院病摘" src="/FangEmrServices/img/24_AdmissionSummary.png"> 入院病摘 <span class="badge">' + obj +'</span></button>';
+								}
+								if(index == "outnote"){
+									box += '&nbsp;<button class="btn btn-primary" name="outnote" onclick="callInp(' + "'outnote'" +' )"><img alt="出院病摘" src="/FangEmrServices/img/24_DischargeSummary.png"> 出院病摘 <span class="badge">' + obj +'</span></button>';
+								}
+								if(index == "chgbed"){
+									box += '&nbsp;<button class="btn btn-primary" name="chgbed" onclick="callChgBed(' + "'date'" +' )"> <img alt="病房" src="/FangEmrServices/img/24_bed.png"> 病房紀錄 <span class="badge">' + obj +'</span></button>';
+								}
+								if(index == "nurseprogress"){
+									box += '&nbsp;<button class="btn btn-primary" name="nurseprogress" onclick="callFocus(' + "'date'" +' )"> <img alt="護理紀錄" src="/FangEmrServices/img/24_focus.png"> 護理紀錄 <span class="badge">' + obj +'</span></button>';
+								}
+								if(index == "drprogress"){
+									box += '&nbsp;<button class="btn btn-primary" name="drprogress" onclick="callProgress(' + "'date'" +' )"> <img alt="病程紀錄" src="/FangEmrServices/img/24_progress.png"> 病程紀錄 <span class="badge">' + obj +'</span></button>';
+								}												
+							});
+							box += '</div>';
+						}else {
+							ajaxErrMsg = dataSum[0].errorMessage;
+						}
+					}
+										
+					
+					if (dataOP[0].status == "Success") {
+						$.each(dataOP[0].resultSet, function(index, obj) {
+//							box += '<button class="btn btn-primary">手術</button><span class="">';
+//							box += '<button class="btn btn-primary" onclick="callOp('+"'date'"+')">手術</button><span class="">';//1070119 修改 by IvyLin
+							box += '<button class="btn btn-primary" onclick="callOp('+"'date',\'"+obj.code1+"\'"+')"><img alt="手術" src="/FangEmrServices/img/24_op.png">手術</button><span class="EMRLabel">';//1070119 修改 by IvyLin
+							box += '&ensp;' + obj.op_date + '&ensp;' + obj.op_start_time +'-'+ obj.op_date +'&ensp;' +obj.op_end_time;
+							box += '&ensp;' + obj.op_durat + 'HR';
+							if(obj.full_name_1 != null)
+								box += '&ensp;' + obj.full_name_1;
+							if(obj.full_name_2 != null)
+								box += '&ensp;' + obj.full_name_2;
+							if(obj.full_name_3 != null)
+								box += '&ensp;' + obj.full_name_3;
+							
+							box += "&ensp;主刀醫師:" + obj.op_doctor_name;
+							box += "&ensp;科別:" + obj.div_name + "</span><hr/>";
+														
+							//alert(index + ":" + obj);
+						});
+						
+					} else {
+						ajaxErrMsg = dataOP[0].errorMessage;
+					}
+					
+					if (dataXray[0].status == "Success") {
+						$.each(dataXray[0].resultSet, function(index, obj) {
+							if(index == "summary"){
+								//alert(obj);
+								box += '<div class="right">'
+								box += '<button class="btn btn-primary" onclick="callXray(' + "'date'" +' )"><img alt="影像" src="/FangEmrServices/img/24_xray.png"> 影像 <span class="badge">' + obj +'</span></button>';
+							}else{
+								$.each(obj, function(index, obj_d){
+									box += '&nbsp;<button class="btn btn-primary" onclick="callXray(' + "'date',\'" + obj_d.cat_type + "\'" +')"><img alt="影像" src="/FangEmrServices/img/24_xray.png"> ' + obj_d.cat_name +' <span class="badge">' + obj_d.count +'</span></button>';
+								});
+							}
+							box += '</div>'
+							//alert(index + ":" + obj);
+						});
+						box += '<hr/>';
+					} else {
+						ajaxErrMsg = dataXray[0].errorMessage;
+					}			
+					
+					if (dataLab[0].status == "Success") {
+						$.each(dataLab[0].resultSet, function(index, obj) {
+							if(index == "summary"){
+								//alert(obj);
+								box += '<div class="right">'
+								box += '<button class="btn btn-primary btn-lab" onclick="callLab(' + "'date'" +' )"><img alt="檢驗" src="/FangEmrServices/img/24_lab.png">檢驗 <span class="badge">' + obj +'</span></button>';								
+
+							}else{
+								$.each(obj, function(index, obj_d){
+									box += '&nbsp;<button class="btn btn-primary btn-lab" onclick="callLab(' + "'date',\'" + obj_d.kind_id + "\'" +' )"><img alt="檢驗" src="/FangEmrServices/img/24_lab.png">' + obj_d.report_subtitle +' <span class="badge">' + obj_d.count +'</span></button>';
+								});
+							}
+							box += '</div>'
+							//alert(index + ":" + obj);
+							
+						});
+						box += '<hr/>';
+					} else {
+						ajaxErrMsg = dataLab[0].errorMessage;
+					}
+					
+					
+					
+//					//測試加上細菌報告 button count ↓ 測試完成記得刪除
+//					box += '<hr/>';
+//					box += '<button class="btn btn-primary btn-lab" onclick="callGerm(' + "'date'" +' )">細菌 <span class="badge">' + "0" +'</span></button>';
+//					//--- 測試完成記得刪除---↑
+					
+					$("#time_" + index).children().html(box).hide().fadeIn();
+				});
+		
+	})
+		
+	$("#time_" + index).on('shown.bs.collapse', function () {	
+	    //	   	    
+	});
+	
+	$("#time_" + index).on('hidden.bs.collapse', function () {
+//	    $(this).prev().find(".glyphicon-menu-up").removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+	    $(this).prev().find(".menu-up").removeClass('menu-up').addClass('menu-down').attr("src","/FangEmrServices/img/24_close.png");;
+
+	});
+	//binding event End
+}
+
+function ajax_getLabCountByChartNoDateRangeGroupByKind() {	//抓檢驗 日期區間
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getLabCountByChartNoDateRangeGroupByKind"),
+		dataType : "json"
+	});
+}
+
+function ajax_getLabCountByChartNoYearsGroupByKind() {	//抓檢驗 年
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getLabCountByChartNoYearsGroupByKind"),
+		dataType : "json"
+	});
+}
+
+function ajax_getLabCountByChartNoGroupByKind(){  //抓檢驗 全部
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getLabCountByChartNoGroupByKind"),
+		dataType : "json"
+	});
+}
+
+function ajax_getLabListByChartNo(range){	//抓檢驗清單
+	if(range =="All"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getLabListByChartNo"),
+			dataType : "json"
+		});		
+	}else if(range =="Year"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getLabListByChartNoYears"),
+			dataType : "json"
+		});	
+	}else if(range == "Date"){		//用日期
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getLabListByChartNoDateRange"),
+			dataType : "json"
+		});	
+	}		
+}
+
+
+function ajax_getPatOPDataByChartNoDateRange(viewType) {	//抓手術
+	if(viewType == "OPD"){	//抓門診
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getPatopdOPDataByChartNoDateRange"),
+		dataType : "json"
+	});
+	}else if(viewType == "INP"){ //抓住院
+		return $.ajax({			
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getPatinpOPDataByChartNoDateRange"),
+			dataType : "json"
+		});
+	}
+}
+
+function ajax_getXrayCountByChartNoDateRangeGroupByType() {	//抓影像 日期區間
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getXrayCountByChartNoDateRangeGroupByType"),
+		dataType : "json"
+	});
+}
+
+function ajax_getXrayCountByChartNoYearsGroupByType() {	//抓影像 年
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getXrayCountByChartNoYearsGroupByType"),
+		dataType : "json"
+	});
+}
+
+function ajax_getXrayCountByChartNoGroupByType() {	//抓影像 全部
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData("getXrayCountByChartNoGroupByType"),
+		dataType : "json"
+	});
+}
+
+function ajax_getXrayListByChartNo(range){	//抓影像清單
+	if(range =="All"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getXrayListByChartNo"),
+			dataType : "json"
+		});		
+	}else if(range =="Year"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getXrayListByChartNoYears"),
+			dataType : "json"
+		});	
+	}else if(range == "Date"){		//用日期
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getXrayListByChartNoDateRange"),
+			dataType : "json"
+		});	
+	}		
+}
+
+
+function ajax_getPatSummaryByChartNoDateRange(viewType){	//抓門急資料/住院資料 by one ViewList
+	if(viewType == "OPD"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getPatopdSummaryByChartNoDateRange"),
+			dataType : "json"
+		});
+	}else{
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getPatinpSummaryByChartNoSerno"),
+			dataType : "json"
+		});
+	}
+	
+}
+
+// 抓手術清單
+function ajax_getOPListByChartNo(range){	
+	if(range =="All"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getOPListByChartNo"),
+			dataType : "json"
+		});		
+	}else if(range =="Year"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getOPListByChartNoYears"),
+			dataType : "json"
+		});	
+	}else if(range == "Date"){		//用日期
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getOPListByChartNoDateRange"),
+			dataType : "json"
+		});	
+	}		
+}
+
+//抓 手術 數量 count
+function ajax_getOPCountByChartNo(range){	
+	if(range =="All"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getOPCountByChartNo"),
+			dataType : "json"
+		});		
+	}else if(range =="Year"){
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getOPCountByChartNoYears"),
+			dataType : "json"
+		});	
+	}else if(range == "Date"){		//用日期
+		return $.ajax({
+			method : "POST",
+			url : ajax_url(1),
+			data : getAjaxData("getOPCountByChartNoDateRange"),
+			dataType : "json"
+		});	
+	}		
+}
+
+
+
+
+//抓出院病摘清單 ajax  add By IvyLin 1070122 (尚未完成) 
+function ajax_getOutNoteListByChartNo(range){	//抓出院病摘清單
+	var method = "";
+	if(range=="All"){
+		method="";
+	}else if(range=="Year"){
+		method="";
+	}else if(range=="Date"){
+		method="";
+	}
+	
+	return $.ajax({
+		method : "POST",
+		url : ajax_url(1),
+		data : getAjaxData(method),
+		dataType : "json"
+	});	
+	
+}
+
+
+
